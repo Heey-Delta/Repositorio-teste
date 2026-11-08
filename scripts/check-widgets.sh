@@ -36,6 +36,21 @@ PY
       echo "ERRO: $dir/$component.dc.html não existe (componente do widget '$slug')"; fail=1
     fi
   done < <(grep -rl --include='*.dc.html' 'id="portfolio"' . --exclude-dir=.git --exclude-dir=widgets || true)
+
+  # Páginas publicadas (.html comuns): a seção #portfolio precisa carregar o widget de verdade
+  while IFS= read -r page; do
+    case "$page" in *.dc.html) continue ;; esac
+    section=$(python3 - "$page" <<'PY'
+import re, sys
+html = open(sys.argv[1], encoding="utf-8").read()
+m = re.search(r'<section[^>]*id="portfolio"[^>]*>(.*?)</section>', html, re.S)
+print(m.group(1) if m else "")
+PY
+)
+    if ! grep -q "<iframe[^>]*src=\"[./]*$entry\"" <<<"$section"; then
+      echo "ERRO: $page não carrega o widget obrigatório '$slug' ($entry) na seção #portfolio"; fail=1
+    fi
+  done < <(grep -rl --include='*.html' 'id="portfolio"' . --exclude-dir=.git --exclude-dir=widgets || true)
 done <<<"$required"
 
 [ "$fail" -eq 0 ] && echo "OK: todos os projetos montam os widgets obrigatórios."
