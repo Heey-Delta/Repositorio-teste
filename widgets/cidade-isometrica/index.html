@@ -171,6 +171,15 @@
 </div>
 
 <script>
+  // ---------- Tela de carregamento da página que embute a cidade ----------
+  // Com ?hold=1 na URL do iframe, a cidade avisa a página quando os modelos terminaram de carregar
+  // ({ type: 'city:loaded' }) e espera { type: 'city:start' } para disparar a animação de entrada.
+  // Sem ?hold=1 (página aberta sozinha) nada muda: a animação dispara assim que a cidade aparece.
+  const HOLD_INTRO = new URLSearchParams(location.search).get('hold') === '1' && window.parent !== window;
+  function notifyParentLoaded() {
+    if (!HOLD_INTRO) return;
+    try { window.parent.postMessage({ type: 'city:loaded' }, '*'); } catch (e) {}
+  }
   // ---------- Plano B: a cidade sem 3D ----------
   // Sem WebGL (ou se a cidade 3D falhar, ou o aparelho não aguentar), o widget mostra uma imagem
   // da cidade com os prédios clicáveis. Os links vêm da lista #cityLinks (a mesma lida pelo Google).
@@ -192,6 +201,7 @@
   function showCityFallback(reason, onRetry) {
     const box = document.getElementById('cityFallback');
     if (!box || !box.hidden) return;
+    notifyParentLoaded();   // o plano B também conta como carregado: a tela de carregamento não pode travar
     const frame = document.getElementById('fbFrame'), img = document.getElementById('fbImage');
     if (!img.src) { img.src = FALLBACK_IMAGE.src; img.width = FALLBACK_IMAGE.width; img.height = FALLBACK_IMAGE.height; }
     frame.querySelectorAll('.fb-spot').forEach(a => a.remove());
@@ -4456,8 +4466,9 @@ if (!window.CITY_FALLBACK) (() => {
     updateCameraTransform();
     introState = 'ready';
   }
+  let introReleased = !HOLD_INTRO;   // com ?hold=1, só dispara depois do aviso da página
   function startExperience() {
-    if (!cityReady || !cityInView || introState === 'playing' || introState === 'finished') return;
+    if (!introReleased || !cityReady || !cityInView || introState === 'playing' || introState === 'finished') return;
     if (introState === 'ready') {
       introState = 'playing';
       tweenCamera(introTo, INTRO_MS / 1000);
@@ -4902,7 +4913,18 @@ if (!window.CITY_FALLBACK) (() => {
     scheduleFarBuild();
     cityReady = true;
     autoWarmUntil = performance.now() + 1500;
-    startExperience();
+    if (HOLD_INTRO) {
+      // modelos prontos e cidade já desenhada: avisa a página e espera a tela de carregamento sair
+      window.addEventListener('message', (e) => {
+        if (e.source !== window.parent || !e.data || e.data.type !== 'city:start') return;
+        introReleased = true;
+        startExperience();
+      });
+      setTimeout(() => { if (!introReleased) { introReleased = true; startExperience(); } }, 30000);   // segurança
+      notifyParentLoaded();
+    } else {
+      startExperience();
+    }
   })();
 })();   // fim da cidade 3D
 </script>

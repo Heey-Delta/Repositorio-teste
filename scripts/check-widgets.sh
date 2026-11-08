@@ -47,7 +47,7 @@ m = re.search(r'<section[^>]*id="portfolio"[^>]*>(.*?)</section>', html, re.S)
 print(m.group(1) if m else "")
 PY
 )
-    if ! grep -q "<iframe[^>]*src=\"[./]*$entry\"" <<<"$section"; then
+    if ! grep -qE "<iframe[^>]*src=\"[./]*$entry(\\?[^\"]*)?\"" <<<"$section"; then
       echo "ERRO: $page não carrega o widget obrigatório '$slug' ($entry) na seção #portfolio"; fail=1
     fi
   done < <(grep -rl --include='*.html' 'id="portfolio"' . --exclude-dir=.git --exclude-dir=widgets || true)

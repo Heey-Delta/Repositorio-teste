@@ -6,6 +6,7 @@
 <title>Sites que Abrem as Portas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Sites sob medida para pizzarias, cafés, restaurantes e negócios do bairro: identidade visual própria, rápidos no celular e feitos para trazer clientes.">
+<script>document.documentElement.classList.add('loading');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -111,11 +112,37 @@
   .contact-detail span:last-child { font: 500 16px/1.4 var(--mono); user-select: all; }
   footer { padding-block: 24px; font-size: 14px; color: var(--ink-soft); }
 
+  /* Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar */
+  html.loading { overflow: hidden; }
+  .loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; align-content: center; gap: 28px; background: var(--paper);
+    padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    transition: opacity .45s ease, visibility 0s linear .45s; }
+  html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-inner { display: grid; justify-items: center; gap: 20px; text-align: center; }
+  .loader-mark { width: 56px; height: 56px; color: var(--ink); }
+  .loader-title { font: 800 clamp(24px, 4vw, 32px)/1.1 var(--display); text-wrap: balance; }
+  .loader-bar { width: min(260px, 70vw); height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .loader-bar::before { content: ""; display: block; height: 100%; width: 40%; border-radius: 4px; background: var(--teal); animation: loader-slide 1.3s ease-in-out infinite; }
+  @keyframes loader-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .loader { transition: none; }
+    .loader-bar::before { animation: none; width: 100%; opacity: .5; }
+  }
+
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
   html { scroll-behavior: smooth; }
 </style>
 </head>
 <body>
+
+<div class="loader" id="loader" role="status" aria-live="polite">
+  <div class="loader-inner">
+    <svg class="loader-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="12" width="10" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="5" width="14" height="23" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="18" y="20" width="6" height="8" fill="currentColor"/></svg>
+    <div class="loader-title">Montando a cidade</div>
+    <div class="loader-bar" aria-hidden="true"></div>
+    <span class="label">Carregando os modelos 3D</span>
+  </div>
+</div>
 
 <header>
   <div class="wrap nav">
@@ -154,7 +181,7 @@
       <a class="btn btn-ghost" href="widgets/cidade-isometrica/index.html">Abrir em tela cheia</a>
     </div>
     <div>
-      <iframe class="city-frame" src="widgets/cidade-isometrica/index.html" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque" loading="lazy"></iframe>
+      <iframe class="city-frame" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
     </div>
   </section>
 
@@ -213,5 +240,22 @@
   <div class="wrap">© [Seu nome]. Sites para negócios do bairro.</div>
 </footer>
 
+<script>
+  // Tela de carregamento: sai quando a cidade avisa que os modelos 3D carregaram; aí a animação de entrada dispara.
+  (function () {
+    var root = document.documentElement, frame = document.getElementById('cityFrame');
+    var shownAt = Date.now(), MIN_MS = 700, MAX_MS = 25000, done = false;
+    function finish() {
+      if (done) return; done = true;
+      root.classList.remove('loading');
+      try { frame.contentWindow.postMessage({ type: 'city:start' }, '*'); } catch (e) {}
+    }
+    function finishSoon() { setTimeout(finish, Math.max(0, MIN_MS - (Date.now() - shownAt))); }
+    window.addEventListener('message', function (e) {
+      if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
+    });
+    setTimeout(finish, MAX_MS);   // segurança: a página nunca fica presa na tela de carregamento
+  })();
+</script>
 </body>
 </html>

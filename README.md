@@ -17,3 +17,10 @@ publicado, esse espaço é ocupado por `widgets/cidade-isometrica/index.html`.
 Em páginas `.html` comuns, como `index.html`, a seção `#portfolio` precisa carregar a cidade num `<iframe>` apontando para `widgets/cidade-isometrica/index.html`.
 
 `scripts/check-widgets.sh` confere isso, e o workflow `Widgets obrigatórios` roda essa verificação a cada push e PR.
+
+## Tela de carregamento
+
+`index.html` cobre a página com uma tela de carregamento até os modelos 3D da cidade terminarem de carregar.
+O iframe usa `widgets/cidade-isometrica/index.html?hold=1`: com esse parâmetro a cidade manda `{ type: 'city:loaded' }`
+para a página, que tira a tela de carregamento e responde `{ type: 'city:start' }` para disparar a animação de entrada.
+Sem `?hold=1` (widget aberto sozinho) a animação dispara assim que a cidade aparece. Se a cidade não avisar, a página libera sozinha após 25 s.
