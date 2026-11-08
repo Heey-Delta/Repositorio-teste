@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Loader from '../components/Loader.astro';
 import Button from '../components/Button.astro';
+import CityCard from '../components/CityCard.astro';
 
 const fonts = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap';
 
@@ -20,6 +21,8 @@ const h2 = 'text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold';
 ---
 <Base title="Sites que Abrem as Portas" description="Sites sob medida para pizzarias, cafés, restaurantes e negócios do bairro: identidade visual própria, rápidos no celular e feitos para trazer clientes." fonts={fonts}>
   <script slot="head" is:inline>document.documentElement.classList.add('loading');</script>
+  <!-- Visual do card dos prédios (o mesmo da cidade); o card abre aqui por fora, ver CityCard -->
+  <link slot="head" rel="stylesheet" href="widgets/cidade-isometrica/card.css">
 
   <Loader />
   <Header />
@@ -47,8 +50,9 @@ const h2 = 'text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold';
       </div>
       <div>
         <!-- Widget obrigatório: Cidade Isométrica 3D. O color-scheme igual ao da cidade evita o fundo branco no tema escuro. -->
-        <iframe class="block h-[clamp(300px,44vh,470px)] w-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&debug=1" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
+        <iframe class="block h-[clamp(300px,44vh,470px)] w-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&debug=1&card=out" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
       </div>
+      <CityCard />
     </section>
 
     <section id="servicos" class="py-[clamp(64px,9vw,104px)]" aria-labelledby="servicos-title">

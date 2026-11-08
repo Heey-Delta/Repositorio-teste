@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="card.css">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Cidade Isométrica 3D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -28,45 +29,7 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     transform: translateY(105%); visibility: hidden; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.35s; }
   .info-card.open { transform: translateY(0); visibility: visible; transition-delay: 0s; }
-  .info-card .card-back { position: absolute; top: 12px; left: 12px; z-index: 2; padding: 7px 13px; background: rgba(255,255,255,0.92); color: #0f172a;
-    border: 1px solid rgba(15,23,42,0.12); border-radius: 999px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
-  .info-card .card-back:hover { background: #fff; }
-  /* Conteúdo do card: lembra um perfil de empresa (banner, nome, ações, informações) */
-  .card-body { height: 100%; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; background: var(--card-bg, #fff); color: var(--card-ink, #1f2937); font-family: var(--card-body-font, inherit); }
-  .card-banner { position: relative; flex: none; height: clamp(64px, 34%, 150px); background: var(--banner-bg, linear-gradient(135deg, #334155, #0f172a));
-    display: flex; align-items: flex-start; justify-content: flex-end; padding: 16px 16px; color: rgba(255,255,255,0.85); font-size: 11px; letter-spacing: 0.04em; }
-  .card-banner .banner-mark { position: absolute; right: 16px; bottom: 6px; font-size: clamp(24px, 9cqw, 44px); font-weight: 800; color: rgba(255,255,255,0.16); letter-spacing: -0.02em; pointer-events: none; }
-  .card-main { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
-  .card-title { margin: 0; font-size: 22px; line-height: 1.2; color: var(--card-ink, #111827); font-weight: 700; font-family: var(--card-display, inherit); display: flex; align-items: center; gap: 10px; }
-  .card-title img { width: 34px; height: 34px; flex: none; }
-  .card-kicker { font-family: var(--card-display, inherit); font-style: italic; font-size: 16px; color: var(--accent-card); margin-bottom: -8px; padding-left: 44px; }
-  .card-tagline { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; color: var(--accent-card); margin-top: -6px; }
-  .card-rule { width: 56px; height: 2px; background: var(--card-rule); border: 0; margin: 0; }
-  .card-sub { font-size: 13px; color: var(--card-muted, #4b5563); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
-  .card-sub .ok { color: #15803d; font-weight: 600; } .card-sub .off { color: #b91c1c; font-weight: 600; } .card-sub .warn { color: #b45309; font-weight: 600; }
-  .card-desc { margin: 0; font-size: 14px; line-height: 1.5; color: var(--card-ink, #374151); }
-  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .card-play { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: var(--accent-card, #1a73e8); color: var(--card-on-accent, #fff);
-    font-size: 14px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
-  .card-play:hover { filter: brightness(1.08); }
-  .card-play .play-icon { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.25); display: grid; place-items: center; font-size: 10px; }
-  .card-ghost { padding: 10px 16px; border-radius: 999px; background: var(--card-bg, #fff); color: var(--card-ink, #1f2937); border: 1px solid var(--card-ghost-line, #d1d5db); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .card-ghost:hover { background: #f3f4f6; }
-  .card-play:focus-visible, .card-ghost:focus-visible, .card-back:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
-  .card-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .card-chips span { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--card-chip, #f3f4f6); color: var(--card-ink, #374151); border: 1px solid var(--card-line, #e5e7eb); }
-  .card-info { border-top: 1px solid var(--card-line, #e5e7eb); padding-top: 8px; display: flex; flex-direction: column; }
-  .card-info .row { display: flex; gap: 12px; align-items: baseline; padding: 6px 0; font-size: 13px; color: var(--card-ink, #374151); }
-  .card-info .row .k { color: var(--card-muted, #6b7280); min-width: 112px; }
-  .card-info .row .ok { color: #15803d; } .card-info .row .off { color: #b91c1c; } .card-info .row .warn { color: #b45309; }
-  .card-label { font-size: 11px; color: var(--card-muted, #6b7280); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-  .card-plain .card-main { padding-top: 56px; }
-  /* Card largo: banner à esquerda, conteúdo à direita */
-  @container (min-width: 620px) {
-    .card-body.has-banner { flex-direction: row; overflow: hidden; }
-    .card-body.has-banner .card-banner { width: 38%; height: 100%; }
-    .card-body.has-banner .card-main { flex: 1; overflow-y: auto; padding: 18px 24px; }
-  }
+  .card-outside .info-card { display: none; }   /* card por fora: o card interno não aparece */
   /* Desfoque das bordas no zoom: uma máscara de CSS por cima do canvas (o navegador desfoca o que está
      atrás dela). O centro fica nítido e o desfoque cresce em círculo até as bordas. */
   .city-edge-blur { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: none;
@@ -93,14 +56,6 @@
   .feed-bread:hover { transform: scale(1.06); }
   .feed-bread:active { transform: scale(0.92); }
   .feed-exit { border: 0; border-radius: 999px; padding: 10px 16px; background: rgba(15, 23, 42, 0.8); color: #f8fafc; font: 600 13px system-ui, sans-serif; cursor: pointer; }
-  /* Card do parque: texto à esquerda, play à direita */
-  .park-row { display: flex; align-items: center; gap: 16px; }
-  .park-text { flex: 1; min-width: 0; }
-  .park-play { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; cursor: pointer; color: #166534;
-    font: 600 12px/1.2 system-ui, sans-serif; max-width: 96px; text-align: center; }
-  .park-play-icon { width: 58px; height: 58px; border-radius: 50%; background: #16a34a; color: #ffffff; display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4); padding-left: 4px; box-sizing: border-box; }
-  .park-play:hover .park-play-icon { background: #15803d; }
   /* Balão de dica (primeira visita): preso ao topo de um prédio */
   .city-tip { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.35s; }
   .city-tip.show { opacity: 1; }
@@ -178,6 +133,9 @@
   const HOLD_INTRO = new URLSearchParams(location.search).get('hold') === '1' && window.parent !== window;
   // Painel de ajuste (temporário): com ?debug=1 a cidade informa a câmera à página a cada mudança.
   const DEBUG_CAMERA = HOLD_INTRO && new URLSearchParams(location.search).get('debug') === '1';
+  // Card por fora: com ?card=out o card dos prédios abre na página que embute a cidade, não dentro dela.
+  const CARD_OUTSIDE = HOLD_INTRO && new URLSearchParams(location.search).get('card') === 'out';
+  if (CARD_OUTSIDE) document.documentElement.classList.add('card-outside');
   function notifyParentLoaded() {
     if (!HOLD_INTRO) return;
     try { window.parent.postMessage({ type: 'city:loaded' }, '*'); } catch (e) {}
@@ -2332,7 +2290,7 @@ if (!window.CITY_FALLBACK) (() => {
 
   // O card cobre a parte de baixo do widget: o alvo sobe para o meio da parte que sobra
   function computeCardShift() {
-    return CARD_SCREEN_SHARE / 2;
+    return CARD_OUTSIDE ? 0 : CARD_SCREEN_SHARE / 2;   // card por fora: o alvo fica no meio da cidade
   }
 
   const CARD_CLOSE_MS = 380;   // tempo do card fechar antes de o próximo subir
@@ -2347,6 +2305,7 @@ if (!window.CITY_FALLBACK) (() => {
     cardShiftTarget = open ? computeCardShift() : 0;
     if (reduceMotion) cardShiftCur = cardShiftTarget;
     startAnimation();
+    if (CARD_OUTSIDE) postCard(open);
   }
 
   // ---------- Conteúdo do card ----------
@@ -2445,6 +2404,7 @@ if (!window.CITY_FALLBACK) (() => {
     play.append(el('span', 'play-icon', '▶'), el('span', '', 'Ver o site'));
     const copy = el('button', 'card-ghost', 'Copiar link');
     copy.type = 'button';
+    copy.dataset.copy = new URL(siteUrl(project), location.href).href;   // o card por fora copia este endereço
     copy.addEventListener('click', () => {
       const url = new URL(siteUrl(project), location.href).href;
       const done = () => { copy.textContent = 'Link copiado'; setTimeout(() => { copy.textContent = 'Copiar link'; }, 1500); };
@@ -2526,6 +2486,7 @@ if (!window.CITY_FALLBACK) (() => {
     play.type = 'button';
     play.setAttribute('aria-label', PARK_CARD.play);
     play.append(el('span', 'park-play-icon', '▶'), el('span', 'park-play-label', PARK_CARD.play));
+    play.dataset.act = 'feed';   // o card por fora manda de volta { type: 'city:card-act', act: 'feed' }
     play.addEventListener('click', startFeeding);
     row.append(text, play);
     main.append(row);
@@ -2578,6 +2539,7 @@ if (!window.CITY_FALLBACK) (() => {
       if (!node) return;
       node.textContent = text;
       if (cls !== undefined) node.className = cls;
+      queueCardLive(key, text, cls);
     };
     if (followedPerson) { const st = personStatus(followedPerson); set('person', st[0], st[1]); return; }
     if (followedCar) { const st = carStatus(followedCar); set('kmh', st.kmh + ' km/h'); set('carState', st.state[0], st.state[1]); return; }
@@ -2645,6 +2607,59 @@ if (!window.CITY_FALLBACK) (() => {
   }
 
   document.getElementById('btnCardBack').addEventListener('click', () => { stopFollowing(); clearSelection(); });
+
+  // ---------- Card por fora (?card=out) ----------
+  // A cidade continua montando o card (dados, horários, valores ao vivo), mas em vez de mostrá-lo manda
+  // para a página: { type: 'city:card', open, html, ... } ao abrir e { type: 'city:card-live', updates }
+  // para os valores que mudam. A página responde com { type: 'city:card-back' } (voltar) e
+  // { type: 'city:card-act', act: 'feed' } (alimentar os pássaros).
+  function absolutizeStyle(value) {   // url("pizzaria/predio.webp") do banner vira endereço completo
+    return value.replace(/url\((["']?)([^)"']+)\1\)/g, (m, q, u) => 'url("' + new URL(u, location.href).href + '")');
+  }
+  function serializeCard() {
+    const clone = cardBody.cloneNode(true);
+    const links = cardBody.querySelectorAll('a[href]'), cloneLinks = clone.querySelectorAll('a[href]');
+    links.forEach((a, i) => { const raw = a.getAttribute('href'); cloneLinks[i].setAttribute('href', raw.startsWith('#') ? raw : a.href); });   // #contato é da página
+    const imgs = cardBody.querySelectorAll('img[src]'), cloneImgs = clone.querySelectorAll('img[src]');
+    imgs.forEach((img, i) => cloneImgs[i].setAttribute('src', img.src));
+    clone.querySelectorAll('[style]').forEach(n => n.setAttribute('style', absolutizeStyle(n.getAttribute('style'))));
+    return clone.innerHTML;
+  }
+  let cardLiveLast = {}, cardLiveQueue = [], cardLiveQueued = false;
+  function postCard(open) {
+    cardLiveLast = {};
+    const msg = { type: 'city:card', open };
+    if (open) {
+      const project = selected && PORTFOLIO[selected.id];
+      Object.assign(msg, {
+        html: serializeCard(),
+        bodyClass: cardBody.className,
+        bodyStyle: absolutizeStyle(cardBody.getAttribute('style') || ''),
+        plain: infoCard.classList.contains('card-plain'),
+        fonts: (project && project.brand && project.brand.fonts) || null
+      });
+    }
+    try { window.parent.postMessage(msg, '*'); } catch (e) {}
+  }
+  function queueCardLive(key, text, cls) {
+    if (!CARD_OUTSIDE) return;
+    const sig = text + '|' + cls;
+    if (cardLiveLast[key] === sig) return;   // só manda o que mudou
+    cardLiveLast[key] = sig;
+    cardLiveQueue.push({ key, text, cls });
+    if (cardLiveQueued) return;
+    cardLiveQueued = true;
+    Promise.resolve().then(() => {
+      cardLiveQueued = false;
+      const updates = cardLiveQueue; cardLiveQueue = [];
+      try { window.parent.postMessage({ type: 'city:card-live', updates }, '*'); } catch (e) {}
+    });
+  }
+  if (CARD_OUTSIDE) window.addEventListener('message', (e) => {
+    if (e.source !== window.parent || !e.data) return;
+    if (e.data.type === 'city:card-back') { stopFollowing(); clearSelection(); }
+    else if (e.data.type === 'city:card-act' && e.data.act === 'feed') startFeeding();
+  });
 
   // Pessoa sob uma posição da tela (só enquanto está na rua ou na calçada)
   function personAtScreen(clientX, clientY) {
