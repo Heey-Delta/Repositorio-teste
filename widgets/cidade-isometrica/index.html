@@ -398,6 +398,7 @@ if (!window.CITY_FALLBACK) (() => {
   const MIN_ZOOM = 0.4;
   const SELECT_ZOOM_PROGRESS = 0.5;     // zoom ao clicar num elemento (50% no indicador)
   const DEFAULT_ZOOM_PROGRESS = 0.35;   // zoom inicial (e ao recentralizar), na mesma escala do indicador de zoom
+  const DEFAULT_ZOOM_BOOST = 1.15;      // multiplica o zoom inicial (e ao recentralizar): +15% sobre o enquadramento da cidade
   const MAX_ZOOM_5x5 = 45;         // zoom máximo (era 14); escala com o tamanho da cidade
   const BLUR_FULL_ZOOM_5x5 = 14;   // o desfoque das bordas chega ao máximo neste zoom e fica assim daí em diante
   const BLUR_START = 0.5;          // desfoque começa na metade do caminho até BLUR_FULL_ZOOM (já aparece ao focar)
@@ -4131,7 +4132,7 @@ if (!window.CITY_FALLBACK) (() => {
   function defaultZoom() {
     const preferred = MIN_ZOOM * Math.pow(maxZoom() / MIN_ZOOM, DEFAULT_ZOOM_PROGRESS);
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (!w || !h) return preferred;
+    if (!w || !h) return preferred * DEFAULT_ZOOM_BOOST;
     const a = DEFAULT_ANGLE * Math.PI / 180, p = DEFAULT_PITCH * Math.PI / 180;
     const W = cityWidth() + 2 * PEDESTAL_MARGIN, D = cityDepth() + 2 * PEDESTAL_MARGIN;
     const spanX = W * Math.abs(Math.cos(a)) + D * Math.abs(Math.sin(a));                         // largura na tela
@@ -4139,7 +4140,7 @@ if (!window.CITY_FALLBACK) (() => {
     const halfW = w >= h ? w / h : 1, halfH = w >= h ? 1 : h / w;   // meia largura/altura visível por unidade de viewSize/zoom
     const fitX = 2 * viewSize() * halfW / (spanX * FIT_MARGIN);
     const fitY = 2 * viewSize() * halfH / (spanY * FIT_MARGIN);
-    return Math.min(preferred, fitX, fitY);
+    return Math.min(preferred, fitX, fitY) * DEFAULT_ZOOM_BOOST;
   }
   function maxZoom() { return MAX_ZOOM_5x5 * citySize() / VIEW_SCALE; }
 
