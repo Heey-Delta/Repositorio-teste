@@ -252,17 +252,16 @@ if (!window.CITY_FALLBACK) (() => {
   // 1. CONFIGURAÇÃO
   // =====================================================================
 
-  // --- Grade: uma fileira de grama atrás, os prédios lado a lado e a rua passando na frente ---
+  // --- Grade: uma fileira de prédios lado a lado e a rua passando na frente ---
   const CITY_TEMPLATE = [
-    [ 6,  6,  6,  6,  6],    // grama atrás dos prédios (só visual; sem ficha)
     [ 1,  1,  1,  1,  1],    // prédios (lotes preenchidos por SPAWN_IDS)
     [-1, -1, -1, -1, -1]     // rua
   ];
   const GRID_ROWS = CITY_TEMPLATE.length;
   const GRID_COLS = CITY_TEMPLATE[0].length;
   // Ruas com detalhe: [linha, coluna, giro]. A faixa de pedestre do modelo fica na ponta +X (direita).
-  // Linha 3, coluna 2 da matriz = a penúltima da rua, contando da direita para a esquerda.
-  const DETAILED_ROAD_CELLS = [[2, 1, 0]];
+  // Linha 2, coluna 2 da matriz = a penúltima da rua, contando da direita para a esquerda.
+  const DETAILED_ROAD_CELLS = [[1, 1, 0]];
   const VIEW_SCALE = 300;              // extensão de referência (uma grade 5×5) para câmera e zoom
   const CELL_SIZE = 60;                // células encostadas, sem vão
   const GROUND_HEIGHT = 6;             // espessura da placa de chão; topo em y = GROUND_HEIGHT
@@ -312,7 +311,6 @@ if (!window.CITY_FALLBACK) (() => {
      4:  { name: 'Restaurante', modelUrl: 'models/restaurante.glb', underlay: SOIL_URL, faceRoad: true,
            door: [0.03, 0, 0.3],
            info: { kind: 'Restaurante japonês', hours: [[11.5, 15], [18, 23]], peaks: [12.5, 20.5] } },
-     6:  { name: 'Gramado', modelUrl: SOIL_URL, fillCell: true, decor: true },   // fileira de grama atrás dos prédios: só visual
      5:  { name: 'Área Verde', modelUrl: 'models/parque.glb', fillCell: true,
            info: { kind: 'Parque', hours: [[5, 22]], peaks: [8, 17.5] } }
   };
@@ -4682,7 +4680,6 @@ if (!window.CITY_FALLBACK) (() => {
     const half = CELL_SIZE / 2;
     let best = null, bestDistance = Infinity;
     forEachCell((r, c) => {
-      if (BUILDINGS[overlayGrid[r][c]]?.decor) return;   // a grama de fundo não é clicável
       const { x, z } = cellCenter(r, c);
       const top = cellObjects[r][c]?.userData.pickTop ?? GROUND_HEIGHT;
       _pickBox.min.set(x - half, 0, z - half);
