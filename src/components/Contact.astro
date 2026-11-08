@@ -1,0 +1,14 @@
+---
+import Button from './Button.astro';
+---
+<section id="contato" class="bg-ink text-paper" aria-labelledby="contato-title">
+  <div class="wrap section-y grid gap-6">
+    <span class="eyebrow text-[color-mix(in_srgb,var(--paper)_70%,var(--ink))]!">Contato</span>
+    <h2 id="contato-title" class="max-w-[760px] text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold">Vamos colocar o seu negócio nessa rua?</h2>
+    <p class="max-w-[600px] text-[color-mix(in_srgb,var(--paper)_78%,var(--ink))]">Me conte o que você vende e onde fica. Respondo com uma proposta.</p>
+    <div class="flex flex-wrap items-center gap-x-8 gap-y-4">
+      <Button href="https://wa.me/[SEU-NUMERO]" class="bg-paper! text-ink!">Chamar no WhatsApp</Button>
+      <div class="grid gap-1"><span class="eyebrow text-[color-mix(in_srgb,var(--paper)_70%,var(--ink))]!">E-mail</span><span class="font-mono text-base leading-[1.4] font-medium select-all">[seu@email.com]</span></div>
+    </div>
+  </div>
+</section>

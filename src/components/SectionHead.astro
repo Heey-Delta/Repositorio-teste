@@ -1,0 +1,10 @@
+---
+// Cabeçalho padrão de seção: rótulo em mono, título e, se houver, uma linha de apoio.
+interface Props { eyebrow: string; title: string; id?: string; text?: string; class?: string; }
+const { eyebrow, title, id, text, class: extra = '' } = Astro.props;
+---
+<div class:list={['grid max-w-[640px] gap-3', extra]}>
+  <span class="eyebrow">{eyebrow}</span>
+  <h2 id={id} class="text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold">{title}</h2>
+  {text && <p class="text-ink-soft">{text}</p>}
+</div>

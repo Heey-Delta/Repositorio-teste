@@ -1,0 +1,21 @@
+---
+import SectionHead from './SectionHead.astro';
+const services = [
+  ['Site sob medida', 'Cardápio, reservas, delivery ou fidelidade: as páginas que o seu negócio usa no dia a dia, sem modelo pronto.'],
+  ['Identidade visual própria', 'Cores, fontes e marca pensadas para o seu ponto, do letreiro ao botão de pedir.'],
+  ['Rápido no celular', 'A maioria dos clientes chega pelo telefone. O site abre rápido e funciona bem na tela pequena.'],
+];
+---
+<section id="servicos" class="section-y" aria-labelledby="servicos-title">
+  <div class="wrap">
+    <SectionHead eyebrow="Serviços" title="O que vem no seu site" id="servicos-title" class="mb-10" />
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-x-10 gap-y-8">
+      {services.map(([title, text]) => (
+        <article class="grid content-start gap-2.5 border-t-2 border-ink pt-[18px]">
+          <h3 class="text-[22px] leading-[1.05] font-semibold">{title}</h3>
+          <p class="text-ink-soft">{text}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

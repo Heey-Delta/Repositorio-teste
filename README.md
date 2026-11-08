@@ -16,6 +16,8 @@ npm run check:widgets
 ## Estrutura
 
 - `src/pages/index.astro` — a landing page.
+- `src/components/` — uma seção por componente: `About`, `Services`, `Process`, `Stacks`, `BlogLatest`, `Contact` (mais `Header`, `Button`, `SectionHead`...). Os dados editáveis ficam em `src/data/`.
+- `src/pages/blog/` — a lista de posts (`index.astro`) e um arquivo por post (`<slug>.astro`).
 - `src/pages/widgets/cidade-isometrica/{pizzaria,cafeteria,restaurante}.astro` — os 3 sites de demonstração.
   Cada um sai em `widgets/cidade-isometrica/<nome>/index.html`, o mesmo endereço que a cidade já usa nos links.
 - `src/styles/` — `global.css` (landing) e um CSS por site (`pizzaria.css`, `cafeteria.css`, `restaurante.css`).
@@ -34,6 +36,22 @@ npm run check:widgets
   Os links entre páginas são relativos, escritos à mão.
 - Tailwind v4 aplica a regra de CSS mais tardia, não a ordem das classes no atributo. Evite duas classes que definem a mesma propriedade no mesmo elemento.
 - Os sites usam `text-[14px]` em vez de `text-sm`, e `leading-[normal]` em botões, para manter a altura de linha herdada do design original.
+
+## Seções da landing page
+
+Ordem: Hero → **Sobre** → **Projetos** (a cidade) → **Serviços** → **Processo de trabalho** → **Stacks** → **Blog** → **Contato**.
+O menu do cabeçalho tem um link para cada uma (menos Contato, que é o botão "Fale comigo").
+Os textos entre `[colchetes]` são marcadores para você preencher.
+
+- **Stacks:** edite `src/data/stacks.ts`. Cada grupo vira uma coluna.
+- **Blog:** a landing mostra os 3 posts mais recentes; `/blog/` mostra todos.
+
+### Como adicionar um post
+
+1. Copie `src/pages/blog/exemplo-1.astro` para `src/pages/blog/<slug>.astro` e escreva o post em HTML comum dentro do `<Blog>` (títulos, parágrafos, listas, `code`, `pre`, imagens e citações já saem formatados).
+2. Adicione uma entrada em `src/data/blog.ts` com o mesmo `<slug>`, título, data (`AAAA-MM-DD`), tema e resumo.
+
+Pronto: o post aparece na seção Blog (se for um dos 3 mais recentes) e em `/blog/`. Os 3 `exemplo-*` são só marcadores: apague-os e tire as entradas de `blog.ts` quando tiver posts de verdade.
 
 ## Widget obrigatório: Cidade Isométrica
 

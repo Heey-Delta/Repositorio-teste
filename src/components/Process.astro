@@ -1,0 +1,23 @@
+---
+import SectionHead from './SectionHead.astro';
+// A ordem aqui é informação: cada etapa vem depois da anterior.
+const steps = [
+  ['Conversa', 'Entendo o seu negócio, seus clientes e o que o site precisa resolver.'],
+  ['Identidade e layout', 'Você vê a proposta visual antes de qualquer página ficar pronta.'],
+  ['Site no ar', 'Publico o site e mostro como atualizar cardápio e horários.'],
+];
+---
+<section id="processo" class="section-y border-y border-line bg-surface" aria-labelledby="processo-title">
+  <div class="wrap">
+    <SectionHead eyebrow="Processo de trabalho" title="Um site feito com você, do começo ao fim." id="processo-title" class="mb-10" />
+    <ol class="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-10 gap-y-8 p-0">
+      {steps.map(([title, text], i) => (
+        <li class="grid content-start gap-3">
+          <span class="grid size-11 place-items-center rounded-full bg-ink font-mono text-[15px] leading-none font-medium text-paper">{i + 1}</span>
+          <h3 class="text-[22px] leading-[1.05] font-semibold">{title}</h3>
+          <p class="text-ink-soft">{text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

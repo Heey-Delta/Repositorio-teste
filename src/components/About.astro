@@ -1,0 +1,17 @@
+---
+import SectionHead from './SectionHead.astro';
+const facts = [['Base', '[cidade]'], ['Atendimento', '[presencial e remoto]'], ['Disponibilidade', '[aberto a novos projetos]']];
+---
+<section id="sobre" class="section-y" aria-labelledby="sobre-title">
+  <div class="wrap grid items-start gap-x-14 gap-y-10 md:grid-cols-[minmax(0,300px)_1fr]">
+    <div class="grid aspect-[4/5] w-full max-w-[300px] place-items-center rounded-2xl border-[1.5px] border-dashed border-line bg-surface text-[14px] text-ink-soft" role="img" aria-label="Espaço para a sua foto">[Sua foto]</div>
+    <div class="grid min-w-0 gap-5">
+      <SectionHead eyebrow="Sobre" title="[Uma frase sobre você e o que você faz]" id="sobre-title" />
+      <p class="max-w-[62ch] text-ink-soft">[Parágrafo 1: sua trajetória e o que te levou a fazer sites para negócios locais.]</p>
+      <p class="max-w-[62ch] text-ink-soft">[Parágrafo 2: como você trabalha e o que te diferencia.]</p>
+      <dl class="m-0 mt-2 grid max-w-[520px] grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 border-t border-line pt-5">
+        {facts.map(([term, value]) => <Fragment><dt class="eyebrow self-center">{term}</dt><dd class="m-0 font-medium">{value}</dd></Fragment>)}
+      </dl>
+    </div>
+  </div>
+</section>

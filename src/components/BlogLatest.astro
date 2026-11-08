@@ -1,0 +1,19 @@
+---
+// Seção "Blog" da landing page: os 3 posts mais recentes de src/data/blog.ts.
+import SectionHead from './SectionHead.astro';
+import PostCard from './PostCard.astro';
+import Button from './Button.astro';
+import { latestPosts } from '../data/blog';
+const posts = latestPosts(3);
+---
+<section id="blog" class="section-y border-t border-line bg-surface" aria-labelledby="blog-title">
+  <div class="wrap">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+      <SectionHead eyebrow="Blog" title="Últimos posts" id="blog-title" text="Artigos sobre sites, design e o que eu aprendo no caminho." />
+      <Button href="blog/index.html" variant="ghost">Ver todos os posts</Button>
+    </div>
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+      {posts.map((post) => <PostCard post={post} href={`blog/${post.slug}/index.html`} />)}
+    </div>
+  </div>
+</section>
