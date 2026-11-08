@@ -1,0 +1,11 @@
+{
+  "widgets": {
+    "cidade-isometrica": {
+      "title": "Cidade Isométrica 3D",
+      "entry": "widgets/cidade-isometrica/index.html",
+      "component": "CidadeIsometrica",
+      "required": true,
+      "requiredIn": "section#portfolio"
+    }
+  }
+}

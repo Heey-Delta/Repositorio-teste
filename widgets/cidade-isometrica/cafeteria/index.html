@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un buon caffè · Caffetteria italiana</title>
+<meta name="description" content="Un buon caffè: o café como se toma na Itália. Espresso tirado na hora, cornetto quente e balcão de bar. Negócio fictício, projeto de demonstração.">
+<link rel="icon" href="caffe-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;1,6..96,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Identidade visual Un buon caffè: crema 55% · espresso 30% · terracotta 10% · ottone/latte/oliva 5% */
+  :root {
+    --crema: #F4EBDD; --crema-deep: #E8DAC4; --espresso: #2A1A14; --espresso-muted: #6E5A4E; --espresso-soft: #B3A196;
+    --terracotta: #A84A24; --terracotta-dark: #8C3C1C; --latte: #D9B99B; --ottone: #C8A15A; --oliva: #56663F;
+    --display: "Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
+    --sans: Jost, Futura, "Helvetica Neue", Arial, sans-serif;
+    --space-1: 4px; --space-2: 8px; --space-4: 16px; --space-8: 32px;
+    --radius-sm: 3px; --radius-md: 8px; --radius-full: 999px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: var(--sans); font-size: 16px; line-height: 26px; color: var(--espresso); background: var(--crema); }
+  img { max-width: 100%; height: auto; display: block; }
+  .wrap { width: min(1100px, 100% - 40px); margin-inline: auto; }
+  h1, h2, h3 { font-family: var(--display); margin: 0; font-weight: 600; }
+  em { font-family: var(--display); font-style: italic; font-weight: 500; }
+  .label { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.25em; text-transform: uppercase; color: var(--terracotta); }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+
+  .back { position: fixed; left: 16px; bottom: 16px; z-index: 50; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--radius-full);
+    background: var(--espresso); color: var(--crema); font: 500 14px var(--sans); border: 0; cursor: pointer; box-shadow: 0 8px 24px rgba(42,26,20,0.3); }
+  .back:hover { background: #000; }
+
+  /* toldo listrado: faixa no topo, recorte arredondado embaixo (passo de 32px) */
+  .awning { height: 34px; background: repeating-linear-gradient(90deg, var(--terracotta) 0 32px, var(--crema) 32px 64px);
+    -webkit-mask: radial-gradient(16px at 16px 18px, #000 98%, transparent) 0 0 / 32px 34px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% 18px no-repeat;
+            mask: radial-gradient(16px at 16px 18px, #000 98%, transparent) 0 0 / 32px 34px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% 18px no-repeat; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: 18px; }
+  .lockup { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .lockup img { width: 42px; height: 42px; flex: none; }
+  .lockup .name { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1; display: block; }
+  .lockup .desc { display: block; font-size: 10px; line-height: 12px; font-weight: 500; letter-spacing: 0.25em; color: var(--terracotta); margin-top: 5px; }
+  nav { display: flex; gap: var(--space-8); font-size: 15px; }
+  nav a { color: var(--espresso-muted); text-decoration: none; }
+  nav a:hover { color: var(--espresso); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 22px; border-radius: var(--radius-md); font: 500 15px var(--sans);
+    text-decoration: none; border: 1.5px solid transparent; cursor: pointer; letter-spacing: 0.02em; }
+  .btn-terra { background: var(--terracotta); color: var(--crema); }
+  .btn-terra:hover { background: var(--terracotta-dark); }
+  .btn-line { border-color: var(--espresso); color: var(--espresso); background: transparent; }
+  .btn-line:hover { background: var(--espresso); color: var(--crema); }
+
+  /* hero */
+  .hero { padding: 40px 0 88px; position: relative; overflow: hidden; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; }
+  .hero h1 { font-size: clamp(44px, 6vw, 72px); line-height: 1.04; margin: var(--space-4) 0 20px; }
+  .hero h1 em { color: var(--terracotta); }
+  .hero p { font-size: 18px; line-height: 30px; color: var(--espresso-muted); max-width: 29em; margin: 0 0 28px; }
+  .hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-art { position: relative; display: grid; place-items: center; }
+  .hero-art .arch { position: absolute; inset: 4% 8% 0; border-radius: 999px 999px 0 0; background: var(--crema-deep); }
+  .hero-art .arch::after { content: ""; position: absolute; inset: 14px 14px 0; border-radius: 999px 999px 0 0; border: 1px solid var(--ottone); border-bottom: 0; opacity: 0.8; }
+  .hero-art img.building { position: relative; width: 94%; filter: drop-shadow(0 24px 26px rgba(42,26,20,0.25)); }
+  .stamp { position: absolute; right: 2%; bottom: 8%; width: 124px; height: 124px; border-radius: 50%; background: var(--espresso); color: var(--crema);
+    display: grid; place-items: center; text-align: center; transform: rotate(-8deg); box-shadow: 0 10px 24px rgba(42,26,20,0.3); }
+  .stamp strong { display: block; font-family: var(--display); font-size: 26px; line-height: 1.05; }
+  .stamp span { display: block; font-size: 10px; letter-spacing: 0.25em; color: var(--ottone); margin-top: 4px; }
+  .bean { position: absolute; width: 22px; opacity: 0.9; pointer-events: none; }
+
+  /* fita de destaques */
+  .ribbon { border-block: 1px solid var(--crema-deep); background: var(--crema); }
+  .ribbon .wrap { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .ribbon .wrap > div { padding: 24px 22px; display: flex; gap: 14px; align-items: flex-start; }
+  .ribbon .wrap > div + div { border-left: 1px solid var(--crema-deep); }
+  .ribbon img { width: 30px; flex: none; margin-top: 2px; }
+  .ribbon h3 { font-size: 20px; line-height: 28px; }
+  .ribbon p { margin: 0; color: var(--espresso-muted); font-size: 14px; line-height: 22px; }
+
+  section { padding: 88px 0; }
+  .head { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 18px; margin-bottom: 34px; }
+  .head h2 { font-size: clamp(34px, 4.4vw, 52px); line-height: 1.1; margin-top: var(--space-2); }
+
+  /* cardápio */
+  .tabs { display: flex; gap: 4px; background: var(--crema-deep); padding: 4px; border-radius: var(--radius-md); }
+  .tab { border: 0; background: transparent; padding: 9px 18px; border-radius: 6px; font: 500 15px var(--sans); color: var(--espresso-muted); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--espresso); color: var(--crema); }
+  .menu-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 60px; }
+  .item { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; padding: 18px 0; border-bottom: 1px dashed var(--latte); align-items: baseline; }
+  .item h3 { font-size: 22px; line-height: 28px; font-weight: 500; font-style: italic; }
+  .item .price { font-family: var(--display); font-size: 20px; font-weight: 600; }
+  .item p { grid-column: 1 / -1; margin: 0; color: var(--espresso-muted); font-size: 13px; line-height: 20px; }
+  .seal { display: inline-block; margin-left: 8px; padding: 0 8px; border-radius: var(--radius-full); font: 500 11px/18px var(--sans); letter-spacing: 0.08em; vertical-align: 4px; font-style: normal; }
+  .seal.casa { background: var(--terracotta); color: var(--crema); }
+  .seal.veg { background: var(--oliva); color: var(--crema); }
+
+  /* o rito: seção espresso */
+  .dark { background: var(--espresso); color: var(--crema); position: relative; overflow: hidden; }
+  .dark .label { color: var(--ottone); }
+  .rito .wrap { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center; }
+  .rito h2 { font-size: clamp(34px, 4.4vw, 52px); line-height: 1.1; margin: var(--space-2) 0 var(--space-4); }
+  .rito h2 em { color: var(--latte); }
+  .rito-text > p { color: var(--espresso-soft); font-size: 17px; }
+  .rules { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 0; }
+  .rules li { display: grid; grid-template-columns: 70px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(179,161,150,0.25); }
+  .rules b { font-family: var(--display); font-size: 22px; color: var(--ottone); font-weight: 600; }
+  .rules span { color: var(--crema); }
+  .rules small { display: block; color: var(--espresso-soft); font-size: 13px; }
+  .card { background: var(--crema); color: var(--espresso); border-radius: var(--radius-md); padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.35); transform: rotate(1.2deg); }
+  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .card h3 { font-size: 26px; }
+  .card .card-top img { width: 48px; }
+  .card p { color: var(--espresso-muted); margin: 6px 0 20px; font-size: 15px; }
+  .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .slot { aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed var(--latte); display: grid; place-items: center; background: transparent; cursor: pointer; padding: 6px; }
+  .slot img { width: 80%; opacity: 0; transform: scale(0.6) rotate(-14deg); transition: opacity 0.2s, transform 0.25s; }
+  .slot[aria-pressed="true"] { border: 1.5px solid var(--terracotta); background: var(--crema-deep); }
+  .slot[aria-pressed="true"] img { opacity: 1; transform: scale(1) rotate(-8deg); }
+  .slot:last-child { border-color: var(--ottone); }
+  .stamp-msg { margin: 16px 0 0; font-weight: 500; min-height: 1.6em; }
+
+  /* banner */
+  .banner { padding: 0; background: var(--espresso); }
+  .banner img { width: 100%; aspect-ratio: 3 / 1; object-fit: cover; object-position: left center; }
+
+  /* visita */
+  .visit .wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; }
+  .box { background: var(--crema-deep); border-radius: var(--radius-md); padding: 30px; }
+  .box h3 { font-size: 28px; margin: var(--space-2) 0 var(--space-4); }
+  .box dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 22px; }
+  .box dt { color: var(--espresso-muted); }
+  .box dd { margin: 0; font-weight: 500; }
+  .status { display: inline-flex; gap: 8px; align-items: center; margin-top: 20px; font-weight: 500; }
+  .status::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--dot, var(--espresso-muted)); }
+  .map { position: relative; border-radius: var(--radius-md); overflow: hidden; min-height: 280px; border: 1px solid var(--crema-deep);
+    background: linear-gradient(90deg, transparent 46%, var(--crema) 46% 54%, transparent 54%), linear-gradient(0deg, transparent 56%, var(--crema) 56% 66%, transparent 66%), #DCCFB8; }
+  .map .pin { position: absolute; left: 50%; top: 61%; transform: translate(-50%, -100%); display: flex; align-items: center; gap: 8px; background: var(--espresso); color: var(--crema); padding: 8px 12px 8px 8px; border-radius: var(--radius-full); font-weight: 500; font-size: 14px; white-space: nowrap; }
+  .map .pin img { width: 26px; }
+  .map small { position: absolute; left: 14px; bottom: 12px; color: var(--espresso-muted); }
+
+  footer { background: var(--espresso); color: var(--espresso-soft); padding: 44px 0 96px; font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  footer .lockup .name { color: var(--crema); }
+  footer .lockup .desc { color: var(--ottone); }
+
+  @media (max-width: 880px) {
+    nav { display: none; }
+    .hero .wrap, .rito .wrap, .visit .wrap { grid-template-columns: 1fr; }
+    .hero-art { order: -1; max-width: min(340px, 82%); margin-inline: auto; }
+    .menu-list { grid-template-columns: 1fr; }
+    .ribbon .wrap { grid-template-columns: 1fr; }
+    .ribbon .wrap > div + div { border-left: 0; border-top: 1px solid var(--crema-deep); }
+  }
+  @media (max-width: 520px) {
+    header .btn { display: none; }
+    section { padding: 68px 0; }
+    .stamp { width: 96px; height: 96px; }
+    .stamp strong { font-size: 20px; }
+    .card { padding: 20px; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .slot img { transition: none; } }
+</style>
+</head>
+<body>
+<button class="back" type="button" id="back" aria-label="Voltar para a cidade">← Voltar à cidade</button>
+
+<div class="awning" aria-hidden="true"></div>
+<header>
+  <div class="wrap">
+    <a class="lockup" href="#topo" aria-label="Un buon caffè, início">
+      <img src="caffe-mark.svg" alt="" width="42" height="42">
+      <span><span class="name">Un buon caffè</span><span class="desc">CAFFETTERIA ITALIANA</span></span>
+    </a>
+    <nav aria-label="Seções"><a href="#cardapio">Cardápio</a><a href="#rito">Il rito</a><a href="#visite">Visite</a></nav>
+    <a class="btn btn-terra" href="#visite">Como chegar</a>
+  </div>
+</header>
+
+<main id="topo">
+  <section class="hero">
+    <img class="bean" src="caffe-chicco.svg" alt="" aria-hidden="true" style="left:46%;top:14%;transform:rotate(30deg)">
+    <img class="bean" src="caffe-chicco.svg" alt="" aria-hidden="true" style="left:4%;bottom:10%;width:16px;transform:rotate(-40deg)">
+    <div class="wrap">
+      <div>
+        <span class="label">Espresso tirado na hora · desde as 7h</span>
+        <h1>O café como se toma <em>na Itália.</em></h1>
+        <p>Em pé, no balcão, sem pressa. Espresso curto e encorpado, cornetto quente saindo do forno e aquela conversa rápida antes de seguir o dia.</p>
+        <div class="actions">
+          <a class="btn btn-terra" href="#cardapio">Ver o cardápio</a>
+          <a class="btn btn-line" href="#rito">Como pedir</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <div class="arch" aria-hidden="true"></div>
+        <img class="building" src="predio.webp" alt="Ilustração 3D do Un buon caffè: toldo listrado, mesas na calçada e uma bicicleta" width="900" height="780">
+        <div class="stamp" aria-label="Aberto das 7h às 19h, todos os dias"><div><strong>7h–19h</strong><span>OGNI GIORNO</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ribbon">
+    <div class="wrap">
+      <div><img src="caffe-tazzina.svg" alt="" aria-hidden="true"><div><h3>Espresso de verdade</h3><p>Blend de torra média, extraído em 25 segundos.</p></div></div>
+      <div><img src="caffe-chicco.svg" alt="" aria-hidden="true"><div><h3>Grãos para levar</h3><p>Moídos na hora, para a sua moka ou cafeteira.</p></div></div>
+      <div><img src="caffe-mark-espresso.svg" alt="" aria-hidden="true"><div><h3>Balcão e calçada</h3><p>Em pé no bar ou sentado vendo a rua passar.</p></div></div>
+    </div>
+  </div>
+
+  <section id="cardapio">
+    <div class="wrap">
+      <div class="head">
+        <div><span class="label">Il menù</span><h2>Cardápio</h2></div>
+        <div class="tabs" role="tablist" aria-label="Categorias do cardápio">
+          <button class="tab" role="tab" aria-selected="true" data-tab="caffe">Caffè</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="dolci">Dolci</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="salati">Salati</button>
+        </div>
+      </div>
+      <div class="menu-list" id="menu" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="dark rito" id="rito">
+    <div class="wrap">
+      <div class="rito-text">
+        <span class="label">Il rito del bar</span>
+        <h2>Pedir café é <em>quase uma arte.</em></h2>
+        <p>Na Itália, o café tem hora, jeito e lugar. A gente traz o rito para a esquina, sem regra rígida: só o jeito bom de fazer.</p>
+        <ul class="rules">
+          <li><b>7h</b><span>Ristretto no balcão<small>curto, intenso, perfeito para começar.</small></span></li>
+          <li><b>9h</b><span>Cappuccino e cornetto<small>a dupla clássica da manhã.</small></span></li>
+          <li><b>16h</b><span>Marocchino<small>espresso, cacau e espuma: a pausa da tarde.</small></span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-top"><h3>Cartão fidelidade</h3><img src="caffe-mark.svg" alt="" aria-hidden="true"></div>
+        <p>A cada 9 cafés, o 10º é por nossa conta. Toque para carimbar.</p>
+        <div class="stamps" id="stamps"></div>
+        <p class="stamp-msg" id="stampMsg" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="banner" aria-label="Banner Un buon caffè">
+    <img src="caffe-banner.svg" alt="Un buon caffè · Caffetteria italiana · O café como se toma na Itália: em pé, no balcão, sem pressa." width="1500" height="500" loading="lazy">
+  </section>
+
+  <section class="visit" id="visite">
+    <div class="wrap">
+      <div class="box">
+        <span class="label">Vieni a trovarci</span>
+        <h3>Visite a gente</h3>
+        <dl>
+          <dt>Endereço</dt><dd>Rua do Café, 3 · Cidade Isométrica</dd>
+          <dt>Horário</dt><dd>Todos os dias, 7h às 19h</dd>
+          <dt>Mais cheio</dt><dd>8h30 e 16h</dd>
+          <dt>Contato</dt><dd>ciao@unbuoncaffe.exemplo</dd>
+        </dl>
+        <span class="status" id="status"></span>
+      </div>
+      <div class="map" role="img" aria-label="Mapa ilustrativo com a localização do café na esquina">
+        <span class="pin"><img src="caffe-mark.svg" alt="">Un buon caffè</span>
+        <small>Mapa ilustrativo</small>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="lockup"><img src="caffe-mark.svg" alt="" width="42" height="42"><span><span class="name">Un buon caffè</span><span class="desc">CAFFETTERIA ITALIANA</span></span></span>
+    <span>Negócio fictício · landing page de demonstração · design e código por Halla</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('back').addEventListener('click', () => {
+    if (document.referrer && history.length > 1) history.back();
+    else location.href = '../';
+  });
+
+  // Nome da bebida em italiano, descrição em português embaixo
+  const MENU = {
+    caffe: [
+      ['Espresso', 'Curto e encorpado, com crema dourada.', 7, ''],
+      ['Ristretto', 'Ainda mais curto e intenso. Perfeito às 7h.', 7, ''],
+      ['Cappuccino', 'Espresso, leite vaporizado e espuma macia.', 13, ''],
+      ['Marocchino', 'Espresso, cacau e espuma de leite, no copinho.', 14, 'casa'],
+      ['Caffè latte', 'Mais leite, mais calma. Para ficar mais um pouco.', 14, ''],
+      ['Affogato', 'Sorvete de creme com espresso por cima.', 16, ''],
+    ],
+    dolci: [
+      ['Cornetto', 'Folhado amanteigado, saindo do forno às 7h.', 12, 'casa'],
+      ['Cannolo siciliano', 'Massa crocante com creme de ricota e pistache.', 15, ''],
+      ['Tiramisù', 'Mascarpone, biscoito molhado no espresso e cacau.', 18, ''],
+      ['Biscotti', 'Três biscoitos de amêndoa para molhar no café.', 9, ''],
+    ],
+    salati: [
+      ['Tramezzino', 'Sanduíche de pão macio com presunto e queijo.', 18, ''],
+      ['Focaccia', 'Azeite, alecrim e sal grosso, quentinha.', 14, 'veg'],
+      ['Panino caprese', 'Tomate, muçarela de búfala e manjericão.', 24, 'veg'],
+      ['Toast', 'Pão na chapa, presunto cozido e fontina.', 19, ''],
+    ],
+  };
+  const SEAL = { casa: '<span class="seal casa">da casa</span>', veg: '<span class="seal veg">vegetariano</span>' };
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const menu = document.getElementById('menu');
+  function show(tab) {
+    menu.innerHTML = MENU[tab].map(([n, d, p, s]) => `<div class="item"><h3>${n}${s ? SEAL[s] : ''}</h3><span class="price">${brl(p)}</span><p>${d}</p></div>`).join('');
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === tab)));
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
+  show('caffe');
+
+  // Cartão fidelidade: carimbo com a tazzina da marca
+  const stamps = document.getElementById('stamps'), msg = document.getElementById('stampMsg');
+  for (let i = 0; i < 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'slot'; b.type = 'button';
+    b.innerHTML = '<img src="caffe-tazzina.svg" alt="">';
+    b.setAttribute('aria-label', 'Carimbo ' + (i + 1)); b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      const n = [...stamps.children].filter(s => s.getAttribute('aria-pressed') === 'true').length;
+      stamps.children[Math.min(n, 9)].setAttribute('aria-pressed', 'true');
+      const total = Math.min(n + 1, 10);
+      msg.textContent = total >= 10 ? 'Cartão completo. O próximo caffè è offerto da noi!' : `${total} de 10 carimbos`;
+    });
+    stamps.append(b);
+  }
+
+  const h = new Date().getHours() + new Date().getMinutes() / 60;
+  const st = document.getElementById('status');
+  const open = h >= 7 && h < 19;
+  st.textContent = open ? 'Aperto · aberto agora' : 'Chiuso · abrimos às 7h';
+  st.style.setProperty('--dot', open ? '#56663F' : '#A84A24');
+</script>
+</body>
+</html>

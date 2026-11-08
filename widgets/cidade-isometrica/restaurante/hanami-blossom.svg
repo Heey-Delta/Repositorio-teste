@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 104" width="512" height="512">
+<g fill="#EBA7B3"><g transform="rotate(0)"><path d="M0,-4 C-15,-14 -19,-36 -9,-48 L0,-41 L9,-48 C19,-36 15,-14 0,-4 Z"></path></g>
+<g transform="rotate(72)"><path d="M0,-4 C-15,-14 -19,-36 -9,-48 L0,-41 L9,-48 C19,-36 15,-14 0,-4 Z"></path></g>
+<g transform="rotate(144)"><path d="M0,-4 C-15,-14 -19,-36 -9,-48 L0,-41 L9,-48 C19,-36 15,-14 0,-4 Z"></path></g>
+<g transform="rotate(216)"><path d="M0,-4 C-15,-14 -19,-36 -9,-48 L0,-41 L9,-48 C19,-36 15,-14 0,-4 Z"></path></g>
+<g transform="rotate(288)"><path d="M0,-4 C-15,-14 -19,-36 -9,-48 L0,-41 L9,-48 C19,-36 15,-14 0,-4 Z"></path></g></g>
+<circle r="7" fill="#F6F0E8"></circle><circle r="3" fill="#A8322F"></circle>
+</svg>
