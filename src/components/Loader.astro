@@ -1,7 +1,7 @@
 ---
 // Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar.
 // A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' }; aí a tela sai e a página responde
-// { type: 'city:start' } para disparar a animação de entrada. Há um limite de 25 s para nunca travar.
+// { type: 'city:start' } para disparar a animação de entrada. Há um limite de 15 s (e um botão "Entrar sem esperar" depois de 6 s) para nunca travar.
 ---
 <div class="loader fixed inset-0 z-100 grid place-content-center place-items-center gap-7 bg-paper px-[max(16px,env(safe-area-inset-right,0px))] py-6" id="loader" role="status" aria-live="polite">
   <div class="grid justify-items-center gap-5 text-center">
@@ -9,6 +9,8 @@
     <div class="font-display text-[clamp(24px,4vw,32px)] leading-[1.1] font-extrabold text-balance">Montando a cidade</div>
     <div class="loader-bar h-1 w-[min(260px,70vw)] overflow-hidden rounded bg-line" aria-hidden="true"></div>
     <span class="eyebrow">Carregando os modelos 3D</span>
+    <!-- aparece só se o carregamento demorar: a pessoa nunca fica presa na tela de carregamento -->
+    <button type="button" id="loaderSkip" class="mt-2 min-h-11 cursor-pointer rounded-full border-[1.5px] border-ink bg-transparent px-5 text-[15px] leading-[normal] font-semibold text-ink hover:bg-surface" hidden>Entrar sem esperar</button>
   </div>
 </div>
 <style is:global>
@@ -25,7 +27,7 @@
   (function () {
     var root = document.documentElement;
     function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
-    var shownAt = Date.now(), MIN_MS = 700, MAX_MS = 25000, done = false;
+    var shownAt = Date.now(), MIN_MS = 700, MAX_MS = 15000, done = false;
     function finish() {
       if (done) return; done = true;
       root.classList.remove('loading');
@@ -37,5 +39,8 @@
       if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
     });
     setTimeout(finish, MAX_MS);   // segurança: a página nunca fica presa na tela de carregamento
+    var skip = document.getElementById('loaderSkip');
+    setTimeout(function () { if (!done && skip) skip.hidden = false; }, 6000);   // demorando: oferece entrar sem esperar
+    if (skip) skip.addEventListener('click', finish);
   })();
 </script>

@@ -4947,7 +4947,9 @@ if (!window.CITY_FALLBACK) (() => {
     }
     prepareIntro();
     renderFrame();
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));   // quadro com tudo já na tela
+    // quadro com tudo já na tela. Se a cidade está fora da tela dentro de outro site (iframe de outra origem),
+    // o navegador pausa o requestAnimationFrame: sem o limite de tempo a página ficaria esperando para sempre
+    await Promise.race([new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))), new Promise(r => setTimeout(r, 400))]);
     widget.classList.add('ready');
     farBuildReady = true;   // agora monta as versões de longe, sem pressa
     scheduleFarBuild();
