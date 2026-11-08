@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* ---------- Landing page: tokens (claro, escuro do sistema e escolha explícita) ---------- */
+:root {
+  --paper: #F2F5F7; --surface: #FFFFFF; --ink: #12202B; --ink-soft: #4A5A66; --line: #D5DEE4;
+  --accent: #0E7490; --accent-ink: #FFFFFF; --lamp: #B7791F; --sky-top: #CFE6F2; --sky-bottom: #EEF4F7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0D161D; --surface: #15212A; --ink: #E8EEF2; --ink-soft: #A3B2BD; --line: #263642;
+    --accent: #38BDF8; --accent-ink: #082F49; --lamp: #F2B85B; --sky-top: #0B2233; --sky-bottom: #12202B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0D161D; --surface: #15212A; --ink: #E8EEF2; --ink-soft: #A3B2BD; --line: #263642;
+  --accent: #38BDF8; --accent-ink: #082F49; --lamp: #F2B85B; --sky-top: #0B2233; --sky-bottom: #12202B;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-lamp: var(--lamp);
+  --color-sky-top: var(--sky-top);
+  --color-sky-bottom: var(--sky-bottom);
+  --font-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+/* Gutter lateral de 16px que também respeita a área segura do celular */
+@utility wrap {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+/* Rótulo pequeno em fonte mono */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  html.loading { overflow: hidden; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+  /* Faixa do topo (área segura do celular) pintada com o fundo do cabeçalho */
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--paper); }
+  h1, h2, h3 { font-family: var(--font-display); line-height: 1.05; letter-spacing: -0.01em; text-wrap: balance; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+}

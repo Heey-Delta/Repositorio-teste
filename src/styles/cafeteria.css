@@ -1,0 +1,43 @@
+@import "tailwindcss" source(none);
+@source "../pages/widgets/cidade-isometrica/cafeteria.astro";
+@source "../components/SiteBack.astro";
+
+/* Identidade visual Un buon caffè: crema 55% · espresso 30% · terracotta 10% · ottone/latte/oliva 5% */
+@theme {
+  --color-crema: #F4EBDD;
+  --color-crema-deep: #E8DAC4;
+  --color-espresso: #2A1A14;
+  --color-espresso-muted: #6E5A4E;
+  --color-espresso-soft: #B3A196;
+  --color-terracotta: #A84A24;
+  --color-terracotta-dark: #8C3C1C;
+  --color-latte: #D9B99B;
+  --color-ottone: #C8A15A;
+  --color-oliva: #56663F;
+  --font-display: "Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
+  --font-sans: Jost, Futura, "Helvetica Neue", Arial, sans-serif;
+  --radius-md: 8px;
+  /* o site só muda de layout em 880px (tablet) e 520px (celular), como o desenho original */
+  --breakpoint-sm: 521px;
+  --breakpoint-md: 881px;
+}
+
+@utility wrap { width: min(1100px, 100% - 40px); margin-inline: auto; }
+
+/* toldo listrado: faixa no topo, recorte arredondado embaixo (passo de 32px) */
+@utility awning {
+  height: 34px;
+  background: repeating-linear-gradient(90deg, var(--color-terracotta) 0 32px, var(--color-crema) 32px 64px);
+  -webkit-mask: radial-gradient(16px at 16px 18px, #000 98%, transparent) 0 0 / 32px 34px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% 18px no-repeat;
+  mask: radial-gradient(16px at 16px 18px, #000 98%, transparent) 0 0 / 32px 34px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% 18px no-repeat;
+}
+
+@layer base {
+  html { color-scheme: light; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; }
+  em { font-family: var(--font-display); font-style: italic; font-weight: 500; }
+  small { font-size: smaller; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 3px; }
+}

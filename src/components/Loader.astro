@@ -1,0 +1,41 @@
+---
+// Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar.
+// A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' }; aí a tela sai e a página responde
+// { type: 'city:start' } para disparar a animação de entrada. Há um limite de 25 s para nunca travar.
+---
+<div class="loader fixed inset-0 z-100 grid place-content-center place-items-center gap-7 bg-paper px-[max(16px,env(safe-area-inset-right,0px))] py-6" id="loader" role="status" aria-live="polite">
+  <div class="grid justify-items-center gap-5 text-center">
+    <svg class="size-14 text-ink" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="12" width="10" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="5" width="14" height="23" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="18" y="20" width="6" height="8" fill="currentColor"/></svg>
+    <div class="font-display text-[clamp(24px,4vw,32px)] leading-[1.1] font-extrabold text-balance">Montando a cidade</div>
+    <div class="loader-bar h-1 w-[min(260px,70vw)] overflow-hidden rounded bg-line" aria-hidden="true"></div>
+    <span class="eyebrow">Carregando os modelos 3D</span>
+  </div>
+</div>
+<style is:global>
+  .loader { transition: opacity .45s ease, visibility 0s linear .45s; }
+  html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-bar::before { content: ""; display: block; height: 100%; width: 40%; border-radius: 4px; background: var(--accent); animation: loader-slide 1.3s ease-in-out infinite; }
+  @keyframes loader-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .loader { transition: none; }
+    .loader-bar::before { animation: none; width: 100%; opacity: .5; }
+  }
+</style>
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
+    var shownAt = Date.now(), MIN_MS = 700, MAX_MS = 25000, done = false;
+    function finish() {
+      if (done) return; done = true;
+      root.classList.remove('loading');
+      try { cityFrame().contentWindow.postMessage({ type: 'city:start' }, '*'); } catch (e) {}
+    }
+    function finishSoon() { setTimeout(finish, Math.max(0, MIN_MS - (Date.now() - shownAt))); }
+    window.addEventListener('message', function (e) {
+      var frame = cityFrame();
+      if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
+    });
+    setTimeout(finish, MAX_MS);   // segurança: a página nunca fica presa na tela de carregamento
+  })();
+</script>

@@ -1,13 +1,20 @@
-name: Widgets obrigatórios
+name: Build e widgets obrigatórios
 
 on:
   push:
   pull_request:
 
 jobs:
-  check-widgets:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (Astro + Tailwind)
+        run: npm run build
       - name: Verificar widgets obrigatórios nos projetos
         run: scripts/check-widgets.sh

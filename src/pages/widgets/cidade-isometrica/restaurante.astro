@@ -1,0 +1,204 @@
+---
+import Site from '../../../layouts/Site.astro';
+import SiteBack from '../../../components/SiteBack.astro';
+import '../../../styles/restaurante.css';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
+
+// Classes repetidas desta marca (sem classes que se anulem: o Tailwind decide pela ordem do CSS)
+const btnCore = 'inline-flex cursor-pointer items-center justify-center gap-2.5 rounded-md border-[1.5px] px-[22px] py-[13px] text-[15px] leading-[normal] font-bold no-underline';
+const beni = `${btnCore} border-transparent bg-beni text-washi hover:bg-beni-dark`;
+const line = `${btnCore} border-sumi bg-transparent text-sumi hover:bg-sumi hover:text-washi`;
+const lineDark = `${btnCore} border-washi bg-transparent text-washi hover:bg-washi hover:text-sumi`;
+const labelBase = 'text-xs leading-4 font-bold tracking-[0.2em] uppercase';
+const label = `${labelBase} text-beni`;
+const labelDark = `${labelBase} text-sakura`;
+const head = 'mb-12 grid items-end gap-8 md:grid-cols-2';
+const h2 = 'mt-2 text-[clamp(34px,4.4vw,48px)] leading-[1.15] font-semibold';
+const section = 'py-[72px] sm:py-24';
+const lockup = 'flex items-center gap-3 no-underline';
+const name = 'block font-display text-[26px] leading-none font-semibold';
+const desc = 'mt-1 block text-[10px] leading-3 font-bold tracking-[0.3em]';
+const courses = [
+  ['一 · 01', 'Sunomono', 'Pepino, wakame e vinagre de arroz. Leve, para abrir.'],
+  ['二 · 02', 'Sashimi', 'Três cortes do dia: atum, salmão e peixe branco.'],
+  ['三 · 03', 'Nigiri', 'Seis peças, cada uma com o pincel de molho da casa.'],
+  ['四 · 04', 'Sobremesa', 'Mochi de matchá e sorvete de gergelim preto.'],
+];
+const hours = [['Almoço', '11h30 – 15h'], ['Jantar', '18h – 23h'], ['Endereço', 'Rua do Sushi, 4 · Cidade Isométrica']];
+const field = 'grid gap-1.5 text-[12px] font-bold tracking-[0.2em] text-sumi-muted uppercase';
+const input = 'rounded-sm border border-sumi-soft bg-white px-3 py-[11px] text-[16px] leading-[normal] font-normal tracking-normal text-sumi normal-case';
+---
+<Site title="Hanami Sushi · A arte do sushi sob as cerejeiras" description="Hanami Sushi: peixe do dia, cortado na hora. Balcão omakase, cardápio do salão e reservas para almoço e jantar. Negócio fictício, projeto de demonstração." fonts={fonts} icon="hanami-mark.svg" bodyClass="bg-washi font-sans text-[16px] leading-[26px] text-sumi">
+  <SiteBack class="bg-sumi font-bold text-washi" />
+
+  <header class="sticky top-0 z-40 border-b border-washi-deep bg-[rgba(246,240,232,0.92)] backdrop-blur-[8px]">
+    <div class="wrap flex items-center justify-between gap-4 py-3.5">
+      <a class={lockup} href="#topo" aria-label="Hanami Sushi, início">
+        <img class="size-10" src="hanami-mark.svg" alt="" width="40" height="40">
+        <span><span class={name}>Hanami</span><span class={`${desc} text-beni`}>SUSHI · 花見寿司</span></span>
+      </a>
+      <nav class="hidden gap-8 text-[14px] md:flex" aria-label="Seções">
+        {[['#omakase', 'Omakase'], ['#cardapio', 'Cardápio'], ['#reservas', 'Reservas']].map(([href, text]) => <a href={href} class="text-sumi-muted no-underline hover:text-sumi">{text}</a>)}
+      </nav>
+      <a class={`hidden sm:inline-flex ${btnCore.replace('inline-flex ', '').replace('px-[22px] py-[13px] text-[15px]', 'px-4 py-[9px] text-[14px]')} border-transparent bg-beni text-washi hover:bg-beni-dark`} href="#reservas">Reservar mesa</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="relative overflow-hidden pt-16 pb-20">
+      <div class="pointer-events-none absolute inset-0 overflow-hidden motion-reduce:hidden" aria-hidden="true" id="petals"></div>
+      <div class="wrap relative grid items-center gap-8 md:grid-cols-2">
+        <div>
+          <span class={label}>Restaurante japonês · balcão e salão</span>
+          <h1 class="my-4 text-[clamp(42px,5.6vw,64px)] leading-[1.08] font-semibold">A arte do sushi <em class="text-beni not-italic">sob as cerejeiras.</em></h1>
+          <p class="mb-8 max-w-[30em] text-[18px] leading-[30px] text-sumi-muted">Peixe do dia, cortado na hora. Arroz temperado na temperatura certa, servido sem pressa, num salão calmo como um fim de tarde de primavera.</p>
+          <div class="flex flex-wrap gap-3">
+            <a class={beni} href="#reservas">Reservar mesa</a>
+            <a class={line} href="#cardapio">Ver cardápio</a>
+          </div>
+          <div class="mt-10 flex flex-wrap gap-5 sm:gap-8">
+            {[['8', 'lugares no balcão'], ['12', 'passos no omakase'], ['Diário', 'peixe que chega de manhã']].map(([value, text]) => (
+              <div class="flex flex-col"><strong class="font-display text-[28px] leading-[1.1] font-semibold">{value}</strong><span class="text-[13px] text-sumi-muted">{text}</span></div>
+            ))}
+          </div>
+        </div>
+        <div class="relative order-first mx-auto grid max-w-[min(340px,82%)] place-items-center md:order-none md:mx-0 md:max-w-none">
+          <div class="absolute aspect-square w-[82%] rounded-full bg-beni after:absolute after:inset-[6%] after:rounded-full after:border after:border-[rgba(201,164,106,0.6)] after:content-['']" aria-hidden="true"></div>
+          <img class="relative w-[92%] drop-shadow-[0_26px_30px_rgba(31,26,28,0.35)]" src="predio.webp" alt="Ilustração 3D do Hanami Sushi: fachada branca, toldo vermelho e rolls no telhado" width="900" height="760">
+          <span class="absolute top-[6%] -right-1 font-display text-[18px] tracking-[0.4em] text-sumi-muted [writing-mode:vertical-rl]" aria-hidden="true">花見寿司</span>
+        </div>
+      </div>
+    </section>
+
+    <section class={`${section} relative overflow-hidden bg-sumi text-washi`} id="omakase">
+      <img class="absolute -top-[120px] -right-[120px] w-[420px] opacity-[0.07]" src="hanami-blossom.svg" alt="" aria-hidden="true">
+      <div class="wrap">
+        <div class={head}>
+          <div><span class={labelDark}>Omakase · お任せ</span><h2 class={h2}>Deixe com o chef.</h2></div>
+          <p class="m-0 text-sumi-soft">Doze passos servidos um a um, na ordem que o peixe pede. Oito lugares por noite, de terça a sábado.</p>
+        </div>
+        <div class="grid gap-px border-y border-[rgba(184,171,166,0.25)] bg-[rgba(184,171,166,0.25)] sm:grid-cols-2 md:grid-cols-4">
+          {courses.map(([num, title, text]) => (
+            <div class="bg-sumi px-[22px] pt-7 pb-8"><b class="mb-[18px] block font-display text-[15px] tracking-[0.2em] text-kin">{num}</b><h3 class="mb-2 text-[22px] leading-7 font-semibold">{title}</h3><p class="m-0 text-[15px] leading-6 text-sumi-soft">{text}</p></div>
+          ))}
+        </div>
+        <div class="mt-10 flex flex-wrap items-center justify-between gap-5">
+          <div><strong class="font-display text-[30px] font-semibold">R$ 280 por pessoa</strong><span class="block text-[14px] text-sumi-soft">Bebidas à parte · reserva com 24 h</span></div>
+          <a class={lineDark} href="#reservas">Reservar o balcão</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="cardapio" class={section}>
+      <div class="wrap">
+        <div class={head}>
+          <div><span class={label}>Cardápio do salão</span><h2 class={h2}>Simples, fresco, preciso.</h2></div>
+          <p class="m-0 text-sumi-muted">Uma seleção do salão. O cardápio completo muda conforme o peixe do dia.</p>
+        </div>
+        <div class="grid md:grid-cols-2 md:gap-x-[72px]" id="menu"></div>
+      </div>
+    </section>
+
+    <section class="bg-sumi" aria-label="Banner Hanami Sushi">
+      <img class="aspect-[3/1] w-full object-cover object-left" src="hanami-banner.svg" alt="Hanami Sushi · A arte do sushi sob as cerejeiras" width="1500" height="500" loading="lazy">
+    </section>
+
+    <section class={`${section} bg-washi-deep`} id="reservas">
+      <div class="wrap grid items-start gap-14 md:grid-cols-[1fr_1.1fr]">
+        <div>
+          <span class={label}>Reservas</span>
+          <h2 class={`${h2} mb-4`}>Uma mesa para quando você quiser.</h2>
+          <p class="m-0 text-sumi-muted">Seguramos a mesa por 15 minutos. Para grupos acima de 8 pessoas, fale com a gente.</p>
+          <div class="mt-8 grid">
+            {hours.map(([term, value]) => (
+              <div class="flex justify-between gap-3 border-b border-[rgba(107,95,92,0.2)] py-3"><span class="text-sumi-muted">{term}</span><span class="text-right font-bold">{value}</span></div>
+            ))}
+          </div>
+          <span class="mt-5 inline-flex items-center gap-2.5 text-[14px] font-bold before:size-[9px] before:rounded-full before:bg-[var(--dot,#6B5F5C)] before:content-['']" id="now"></span>
+        </div>
+        <form class="grid gap-4 rounded-md bg-washi p-5 shadow-[0_18px_40px_rgba(31,26,28,0.08)] sm:grid-cols-2 sm:p-8" id="form" novalidate>
+          <label class={field}>Data<input class={`${input} [&::-webkit-datetime-edit]:py-px`} type="date" id="date" required></label>
+          <label class={field}>Horário
+            <select class={input} id="time" required>
+              <option>11:30</option><option>12:30</option><option>13:30</option>
+              <option>19:00</option><option selected>20:00</option><option>21:00</option><option>22:00</option>
+            </select>
+          </label>
+          <div class="col-span-full">
+            <span class={field} id="peopleLabel">Pessoas</span>
+            <div class="mt-1.5 flex flex-wrap gap-1.5" role="group" aria-labelledby="peopleLabel" id="people"></div>
+          </div>
+          <label class={`${field} col-span-full`}>Nome<input class={input} type="text" id="name" autocomplete="name" placeholder="Como devemos chamar você?"></label>
+          <button class={`${beni} col-span-full`} type="submit">Confirmar reserva</button>
+          <p class="col-span-full m-0 rounded-sm bg-sakura-light px-4 py-3.5 text-[15px] text-sumi" id="confirm" role="status" hidden></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-sumi pt-12 pb-24 text-[14px] text-sumi-soft">
+    <div class="wrap flex flex-wrap items-center justify-between gap-5">
+      <span class={lockup}><img class="size-10" src="hanami-mark.svg" alt="" width="40" height="40"><span><span class={`${name} text-washi`}>Hanami</span><span class={`${desc} text-sakura`}>SUSHI · 花見寿司</span></span></span>
+      <span>Negócio fictício · landing page de demonstração · design e código por Halla</span>
+    </div>
+  </footer>
+
+  <script is:inline>
+  // Pétalas: poucas e lentas (o ma da marca: pouca coisa, bem posicionada)
+  const petals = document.getElementById('petals');
+  for (let i = 0; i < 7; i++) {
+    const p = document.createElement('img');
+    p.src = 'hanami-blossom.svg'; p.alt = ''; p.className = 'absolute -top-10 animate-fall opacity-85';
+    p.style.left = (6 + i * 13 + Math.random() * 6) + '%';
+    p.style.width = (12 + Math.random() * 14) + 'px';
+    p.style.animationDuration = (14 + Math.random() * 10) + 's';
+    p.style.animationDelay = (-Math.random() * 20) + 's';
+    p.style.setProperty('--drift', (40 + Math.random() * 90) + 'px');
+    p.style.setProperty('--spin', (180 + Math.random() * 240) + 'deg');
+    petals.append(p);
+  }
+
+  const MENU = [
+    ['Nigiri', [['Salmão maçaricado', 'Molho tarê e cebolinha.', 24, ''], ['Atum', 'Corte magro, gengibre fresco.', 28, ''], ['Peixe branco', 'Raspas de limão e flor de sal.', 22, '']]],
+    ['Rolls da casa', [['Hanami roll', 'Salmão, cream cheese, manga e crocante de batata-doce.', 46, 'chef'], ['Dragon roll', 'Enguia, pepino e abacate por cima.', 52, ''], ['Kappa roll', 'Pepino, gergelim e shissô.', 26, 'veg']]],
+    ['Quentes', [['Lámen tonkotsu', 'Caldo de 12 horas, chashu e ovo marinado.', 58, ''], ['Guioza de legumes', 'Seis unidades, grelhados e no vapor.', 32, 'veg']]],
+    ['Combinados', [['Combinado 20 peças', 'Sashimis, nigiris e rolls do dia.', 98, ''], ['Combinado 40 peças', 'Para dividir, com os rolls da casa.', 178, '']]],
+  ];
+  const SEAL_BASE = 'ml-2 inline-block rounded-full px-2 py-px align-[3px] font-sans text-[11px] leading-[18px] font-bold tracking-[0.08em]';
+  const SEAL = { chef: `<span class="${SEAL_BASE} bg-sakura-light text-beni">da casa</span>`, veg: `<span class="${SEAL_BASE} bg-matcha text-washi">vegetariano</span>` };
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  document.getElementById('menu').innerHTML = [MENU.slice(0, 2), MENU.slice(2)].map(col => '<div>' + col.map(([cat, items]) =>
+    `<div class="mt-7 mb-1.5 flex items-center gap-3 after:h-px after:flex-1 after:bg-kin after:opacity-70 after:content-['']"><span class="text-xs leading-4 font-bold tracking-[0.2em] text-beni uppercase">${cat}</span></div>` +
+    items.map(([n, d, p, s]) => `<div class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 border-b border-washi-deep py-4"><h4 class="text-[20px] leading-7 font-semibold">${n}${s ? SEAL[s] : ''}</h4><span class="font-bold">${brl(p)}</span><p class="col-span-full m-0 text-[14px] leading-[22px] text-sumi-muted">${d}</p></div>`).join('')
+  ).join('') + '</div>').join('');
+
+  // Reserva (demonstração: nada é enviado)
+  const peopleBox = document.getElementById('people');
+  let people = 2;
+  for (let i = 1; i <= 8; i++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = i; b.className = 'size-11 cursor-pointer rounded-sm border border-sumi-soft bg-white text-[15px] leading-[normal] font-bold text-sumi aria-pressed:border-sumi aria-pressed:bg-sumi aria-pressed:text-washi'; b.setAttribute('aria-pressed', String(i === people));
+    b.setAttribute('aria-label', i + (i === 1 ? ' pessoa' : ' pessoas'));
+    b.addEventListener('click', () => { people = i; [...peopleBox.children].forEach((c, k) => c.setAttribute('aria-pressed', String(k + 1 === i))); });
+    peopleBox.append(b);
+  }
+  const date = document.getElementById('date');
+  const today = new Date(), iso = d => d.toISOString().slice(0, 10);
+  date.min = iso(today); date.value = iso(new Date(today.getTime() + 86400000));
+  document.getElementById('form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim() || 'você';
+    const d = new Date(date.value + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const box = document.getElementById('confirm');
+    box.textContent = `Pronto, ${name}. Mesa para ${people} ${people === 1 ? 'pessoa' : 'pessoas'} em ${d}, às ${document.getElementById('time').value}. (Demonstração: nenhuma reserva foi enviada.)`;
+    box.hidden = false;
+  });
+
+  const h = new Date().getHours() + new Date().getMinutes() / 60;
+  const open = (h >= 11.5 && h < 15) || (h >= 18 && h < 23);
+  const now = document.getElementById('now');
+  now.textContent = open ? 'Aberto agora' : (h < 11.5 ? 'Fechado · abrimos às 11h30' : h < 18 ? 'Fechado · o jantar começa às 18h' : 'Fechado · abrimos amanhã às 11h30');
+  now.style.setProperty('--dot', open ? '#4F6B43' : '#A8322F');
+  </script>
+</Site>

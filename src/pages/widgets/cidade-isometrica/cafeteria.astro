@@ -1,0 +1,195 @@
+---
+import Site from '../../../layouts/Site.astro';
+import SiteBack from '../../../components/SiteBack.astro';
+import '../../../styles/cafeteria.css';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;1,6..96,500&family=Jost:wght@400;500;600&display=swap';
+
+// Classes repetidas desta marca (sem classes que se anulem: o Tailwind decide pela ordem do CSS)
+const btnCore = 'inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border-[1.5px] px-[22px] py-[13px] text-[15px] leading-[normal] font-medium tracking-[0.02em] no-underline';
+const terra = `${btnCore} border-transparent bg-terracotta text-crema hover:bg-terracotta-dark`;
+const line = `${btnCore} border-espresso bg-transparent text-espresso hover:bg-espresso hover:text-crema`;
+const label = 'text-xs leading-4 font-medium tracking-[0.25em] text-terracotta uppercase';
+const head = 'mb-[34px] flex flex-wrap items-end justify-between gap-[18px]';
+const h2 = 'mt-2 text-[clamp(34px,4.4vw,52px)] leading-[1.1]';
+const section = 'py-[68px] sm:py-[88px]';
+const lockup = 'flex items-center gap-3 no-underline';
+const name = 'block font-display text-[24px] leading-none font-semibold';
+const desc = 'mt-[5px] block text-[10px] leading-3 font-medium tracking-[0.25em]';
+const ribbon = [
+  ['caffe-tazzina.svg', 'Espresso de verdade', 'Blend de torra média, extraído em 25 segundos.'],
+  ['caffe-chicco.svg', 'Grãos para levar', 'Moídos na hora, para a sua moka ou cafeteira.'],
+  ['caffe-mark-espresso.svg', 'Balcão e calçada', 'Em pé no bar ou sentado vendo a rua passar.'],
+];
+const rules = [['7h', 'Ristretto no balcão', 'curto, intenso, perfeito para começar.'], ['9h', 'Cappuccino e cornetto', 'a dupla clássica da manhã.'], ['16h', 'Marocchino', 'espresso, cacau e espuma: a pausa da tarde.']];
+const visit = [['Endereço', 'Rua do Café, 3 · Cidade Isométrica'], ['Horário', 'Todos os dias, 7h às 19h'], ['Mais cheio', '8h30 e 16h'], ['Contato', 'ciao@unbuoncaffe.exemplo']];
+---
+<Site title="Un buon caffè · Caffetteria italiana" description="Un buon caffè: o café como se toma na Itália. Espresso tirado na hora, cornetto quente e balcão de bar. Negócio fictício, projeto de demonstração." fonts={fonts} icon="caffe-mark.svg" bodyClass="bg-crema font-sans text-[16px] leading-[26px] text-espresso">
+  <SiteBack class="bg-espresso font-medium text-crema" />
+
+  <div class="awning" aria-hidden="true"></div>
+  <header>
+    <div class="wrap flex items-center justify-between gap-4 py-[18px]">
+      <a class={lockup} href="#topo" aria-label="Un buon caffè, início">
+        <img class="size-[42px] flex-none" src="caffe-mark.svg" alt="" width="42" height="42">
+        <span><span class={name}>Un buon caffè</span><span class={`${desc} text-terracotta`}>CAFFETTERIA ITALIANA</span></span>
+      </a>
+      <nav class="hidden gap-8 text-[15px] md:flex" aria-label="Seções">
+        {[['#cardapio', 'Cardápio'], ['#rito', 'Il rito'], ['#visite', 'Visite']].map(([href, text]) => <a href={href} class="text-espresso-muted no-underline hover:text-espresso">{text}</a>)}
+      </nav>
+      <a class={`${terra} hidden! sm:inline-flex!`} href="#visite">Como chegar</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="relative overflow-hidden pt-10 pb-[88px]">
+      <img class="pointer-events-none absolute top-[14%] left-[46%] w-[22px] rotate-[30deg] opacity-90" src="caffe-chicco.svg" alt="" aria-hidden="true">
+      <img class="pointer-events-none absolute bottom-[10%] left-[4%] w-4 -rotate-[40deg] opacity-90" src="caffe-chicco.svg" alt="" aria-hidden="true">
+      <div class="wrap grid items-center gap-10 md:grid-cols-[1.05fr_1fr]">
+        <div>
+          <span class={label}>Espresso tirado na hora · desde as 7h</span>
+          <h1 class="mt-4 mb-5 text-[clamp(44px,6vw,72px)] leading-[1.04]">O café como se toma <em class="text-terracotta">na Itália.</em></h1>
+          <p class="mb-7 max-w-[29em] text-[18px] leading-[30px] text-espresso-muted">Em pé, no balcão, sem pressa. Espresso curto e encorpado, cornetto quente saindo do forno e aquela conversa rápida antes de seguir o dia.</p>
+          <div class="flex flex-wrap gap-3">
+            <a class={terra} href="#cardapio">Ver o cardápio</a>
+            <a class={line} href="#rito">Como pedir</a>
+          </div>
+        </div>
+        <div class="relative order-first mx-auto grid max-w-[min(340px,82%)] place-items-center md:order-none md:mx-0 md:max-w-none">
+          <div class="absolute inset-x-[8%] top-[4%] bottom-0 rounded-t-[999px] bg-crema-deep after:absolute after:inset-x-3.5 after:top-3.5 after:bottom-0 after:rounded-t-[999px] after:border after:border-b-0 after:border-ottone after:opacity-80 after:content-['']" aria-hidden="true"></div>
+          <img class="relative w-[94%] drop-shadow-[0_24px_26px_rgba(42,26,20,0.25)]" src="predio.webp" alt="Ilustração 3D do Un buon caffè: toldo listrado, mesas na calçada e uma bicicleta" width="900" height="780">
+          <div class="absolute right-[2%] bottom-[8%] grid size-24 -rotate-[8deg] place-items-center rounded-full bg-espresso text-center text-crema shadow-[0_10px_24px_rgba(42,26,20,0.3)] sm:size-[124px]" aria-label="Aberto das 7h às 19h, todos os dias"><div><strong class="block font-display text-[20px] leading-[1.05] sm:text-[26px]">7h–19h</strong><span class="mt-1 block text-[10px] tracking-[0.25em] text-ottone">OGNI GIORNO</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="border-y border-crema-deep bg-crema">
+      <div class="wrap grid md:grid-cols-3">
+        {ribbon.map(([icon, title, text], i) => (
+          <div class={`flex items-start gap-3.5 px-[22px] py-6 ${i > 0 ? 'border-t border-crema-deep md:border-t-0 md:border-l' : ''}`}><img class="mt-0.5 w-[30px] flex-none" src={icon} alt="" aria-hidden="true"><div><h3 class="text-[20px] leading-7">{title}</h3><p class="m-0 text-[14px] leading-[22px] text-espresso-muted">{text}</p></div></div>
+        ))}
+      </div>
+    </div>
+
+    <section id="cardapio" class={section}>
+      <div class="wrap">
+        <div class={head}>
+          <div><span class={label}>Il menù</span><h2 class={h2}>Cardápio</h2></div>
+          <div class="flex gap-1 rounded-md bg-crema-deep p-1" role="tablist" aria-label="Categorias do cardápio">
+            {[['caffe', 'Caffè', 'true'], ['dolci', 'Dolci', 'false'], ['salati', 'Salati', 'false']].map(([tab, text, selected]) => (
+              <button class="tab cursor-pointer rounded-md border-0 bg-transparent px-[18px] py-[9px] text-[15px] leading-[normal] font-medium text-espresso-muted aria-selected:bg-espresso aria-selected:text-crema" role="tab" aria-selected={selected} data-tab={tab}>{text}</button>
+            ))}
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 md:gap-x-[60px]" id="menu" role="tabpanel" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class={`${section} relative overflow-hidden bg-espresso text-crema`} id="rito">
+      <div class="wrap grid items-center gap-14 md:grid-cols-[1fr_1.05fr]">
+        <div>
+          <span class={`${label} text-ottone!`}>Il rito del bar</span>
+          <h2 class={`${h2} mb-4`}>Pedir café é <em class="text-latte">quase uma arte.</em></h2>
+          <p class="my-[1em] text-[17px] text-espresso-soft">Na Itália, o café tem hora, jeito e lugar. A gente traz o rito para a esquina, sem regra rígida: só o jeito bom de fazer.</p>
+          <ul class="mt-7 grid list-none p-0">
+            {rules.map(([time, title, small]) => (
+              <li class="grid grid-cols-[70px_1fr] gap-3.5 border-t border-[rgba(179,161,150,0.25)] py-3.5"><b class="font-display text-[22px] font-semibold text-ottone">{time}</b><span class="text-crema">{title}<small class="block text-[13px] text-espresso-soft">{small}</small></span></li>
+            ))}
+          </ul>
+        </div>
+        <div class="rounded-md bg-crema p-5 text-espresso shadow-[0_20px_40px_rgba(0,0,0,0.35)] sm:rotate-[1.2deg] sm:p-7">
+          <div class="flex items-center justify-between gap-3"><h3 class="text-[26px]">Cartão fidelidade</h3><img class="w-12" src="caffe-mark.svg" alt="" aria-hidden="true"></div>
+          <p class="mt-1.5 mb-5 text-[15px] text-espresso-muted">A cada 9 cafés, o 10º é por nossa conta. Toque para carimbar.</p>
+          <div class="grid grid-cols-5 gap-2.5" id="stamps"></div>
+          <p class="mt-1.5 mb-5 min-h-[1.6em] text-[15px] font-medium text-espresso-muted" id="stampMsg" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-espresso" aria-label="Banner Un buon caffè">
+      <img class="aspect-[3/1] w-full object-cover object-left" src="caffe-banner.svg" alt="Un buon caffè · Caffetteria italiana · O café como se toma na Itália: em pé, no balcão, sem pressa." width="1500" height="500" loading="lazy">
+    </section>
+
+    <section class={section} id="visite">
+      <div class="wrap grid gap-6 md:grid-cols-[1.1fr_1fr]">
+        <div class="rounded-md bg-crema-deep p-[30px]">
+          <span class={label}>Vieni a trovarci</span>
+          <h3 class="mt-2 mb-4 text-[28px]">Visite a gente</h3>
+          <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-[22px] gap-y-2.5">
+            {visit.map(([term, value]) => <Fragment><dt class="text-espresso-muted">{term}</dt><dd class="m-0 font-medium">{value}</dd></Fragment>)}
+          </dl>
+          <span class="mt-5 inline-flex items-center gap-2 font-medium before:size-2.5 before:rounded-full before:bg-[var(--dot,#6E5A4E)] before:content-['']" id="status"></span>
+        </div>
+        <div class="relative min-h-[280px] overflow-hidden rounded-md border border-crema-deep [background:linear-gradient(90deg,transparent_46%,var(--color-crema)_46%_54%,transparent_54%),linear-gradient(0deg,transparent_56%,var(--color-crema)_56%_66%,transparent_66%),#DCCFB8]" role="img" aria-label="Mapa ilustrativo com a localização do café na esquina">
+          <span class="absolute top-[61%] left-1/2 flex -translate-x-1/2 -translate-y-full items-center gap-2 rounded-full bg-espresso py-2 pr-3 pl-2 text-[14px] font-medium whitespace-nowrap text-crema"><img class="w-[26px]" src="caffe-mark.svg" alt="">Un buon caffè</span>
+          <small class="absolute bottom-3 left-3.5 text-espresso-muted">Mapa ilustrativo</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-espresso pt-11 pb-24 text-[14px] text-espresso-soft">
+    <div class="wrap flex flex-wrap items-center justify-between gap-5">
+      <span class={lockup}><img class="size-[42px] flex-none" src="caffe-mark.svg" alt="" width="42" height="42"><span><span class={`${name} text-crema`}>Un buon caffè</span><span class={`${desc} text-ottone`}>CAFFETTERIA ITALIANA</span></span></span>
+      <span>Negócio fictício · landing page de demonstração · design e código por Halla</span>
+    </div>
+  </footer>
+
+  <script is:inline>
+  // Nome da bebida em italiano, descrição em português embaixo
+  const MENU = {
+    caffe: [
+      ['Espresso', 'Curto e encorpado, com crema dourada.', 7, ''],
+      ['Ristretto', 'Ainda mais curto e intenso. Perfeito às 7h.', 7, ''],
+      ['Cappuccino', 'Espresso, leite vaporizado e espuma macia.', 13, ''],
+      ['Marocchino', 'Espresso, cacau e espuma de leite, no copinho.', 14, 'casa'],
+      ['Caffè latte', 'Mais leite, mais calma. Para ficar mais um pouco.', 14, ''],
+      ['Affogato', 'Sorvete de creme com espresso por cima.', 16, ''],
+    ],
+    dolci: [
+      ['Cornetto', 'Folhado amanteigado, saindo do forno às 7h.', 12, 'casa'],
+      ['Cannolo siciliano', 'Massa crocante com creme de ricota e pistache.', 15, ''],
+      ['Tiramisù', 'Mascarpone, biscoito molhado no espresso e cacau.', 18, ''],
+      ['Biscotti', 'Três biscoitos de amêndoa para molhar no café.', 9, ''],
+    ],
+    salati: [
+      ['Tramezzino', 'Sanduíche de pão macio com presunto e queijo.', 18, ''],
+      ['Focaccia', 'Azeite, alecrim e sal grosso, quentinha.', 14, 'veg'],
+      ['Panino caprese', 'Tomate, muçarela de búfala e manjericão.', 24, 'veg'],
+      ['Toast', 'Pão na chapa, presunto cozido e fontina.', 19, ''],
+    ],
+  };
+  const SEAL_BASE = 'ml-2 inline-block rounded-full px-2 align-[4px] font-sans text-[11px] leading-[18px] font-medium tracking-[0.08em] text-crema not-italic';
+  const SEAL = { casa: `<span class="${SEAL_BASE} bg-terracotta">da casa</span>`, veg: `<span class="${SEAL_BASE} bg-oliva">vegetariano</span>` };
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const menu = document.getElementById('menu');
+  function show(tab) {
+    menu.innerHTML = MENU[tab].map(([n, d, p, s]) => `<div class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-0.5 border-b border-dashed border-latte py-[18px]"><h3 class="font-display text-[22px] leading-7 font-medium italic">${n}${s ? SEAL[s] : ''}</h3><span class="font-display text-[20px] font-semibold">${brl(p)}</span><p class="col-span-full m-0 text-[13px] leading-5 text-espresso-muted">${d}</p></div>`).join('');
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === tab)));
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
+  show('caffe');
+
+  // Cartão fidelidade: carimbo com a tazzina da marca
+  const stamps = document.getElementById('stamps'), msg = document.getElementById('stampMsg');
+  for (let i = 0; i < 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'group grid aspect-square cursor-pointer place-items-center rounded-full border-[1.5px] border-dashed border-latte bg-transparent p-1.5 last:border-ottone aria-pressed:border-solid aria-pressed:border-terracotta aria-pressed:bg-crema-deep'; b.type = 'button';
+    b.innerHTML = '<img class="w-4/5 scale-[0.6] -rotate-[14deg] opacity-0 transition-[opacity,scale,rotate] duration-[250ms] group-aria-pressed:scale-100 group-aria-pressed:-rotate-[8deg] group-aria-pressed:opacity-100 motion-reduce:transition-none" src="caffe-tazzina.svg" alt="">';
+    b.setAttribute('aria-label', 'Carimbo ' + (i + 1)); b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      const n = [...stamps.children].filter(s => s.getAttribute('aria-pressed') === 'true').length;
+      stamps.children[Math.min(n, 9)].setAttribute('aria-pressed', 'true');
+      const total = Math.min(n + 1, 10);
+      msg.textContent = total >= 10 ? 'Cartão completo. O próximo caffè è offerto da noi!' : `${total} de 10 carimbos`;
+    });
+    stamps.append(b);
+  }
+
+  const h = new Date().getHours() + new Date().getMinutes() / 60;
+  const st = document.getElementById('status');
+  const open = h >= 7 && h < 19;
+  st.textContent = open ? 'Aperto · aberto agora' : 'Chiuso · abrimos às 7h';
+  st.style.setProperty('--dot', open ? '#56663F' : '#A84A24');
+  </script>
+</Site>

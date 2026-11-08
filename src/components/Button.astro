@@ -1,0 +1,10 @@
+---
+// Botão em forma de link. `variant`: primary (preenchido) ou ghost (contorno).
+interface Props { href: string; variant?: 'primary' | 'ghost'; class?: string; }
+const { href, variant = 'primary', class: extra = '' } = Astro.props;
+const variants = {
+  primary: 'bg-accent text-accent-ink hover:brightness-110',
+  ghost: 'border-ink text-ink hover:bg-surface',
+};
+---
+<a href={href} class:list={['inline-flex min-h-12 items-center justify-center rounded-full border-[1.5px] border-transparent px-[22px] font-semibold no-underline', variants[variant], extra]}><slot /></a>

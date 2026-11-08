@@ -1,0 +1,38 @@
+@import "tailwindcss" source(none);
+@source "../pages/widgets/cidade-isometrica/restaurante.astro";
+@source "../components/SiteBack.astro";
+
+/* Identidade visual Hanami Sushi: washi 60% · sumi 25% · beni 10% · sakura/kin/matcha 5% */
+@theme {
+  --color-washi: #F6F0E8;
+  --color-washi-deep: #EDE3D6;
+  --color-sumi: #1F1A1C;
+  --color-sumi-muted: #6B5F5C;
+  --color-sumi-soft: #B8ABA6;
+  --color-beni: #A8322F;
+  --color-beni-dark: #8C2926;
+  --color-sakura: #EBA7B3;
+  --color-sakura-light: #F8E1E5;
+  --color-matcha: #4F6B43;
+  --color-kin: #C9A46A;
+  --font-display: "Shippori Mincho", "Noto Serif JP", Georgia, serif;
+  --font-sans: "Zen Kaku Gothic New", "Helvetica Neue", Arial, sans-serif;
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  /* o site só muda de layout em 880px (tablet) e 520px (celular), como o desenho original */
+  --breakpoint-sm: 521px;
+  --breakpoint-md: 881px;
+  /* pétalas caindo: a deriva e o giro de cada uma vêm de variáveis CSS definidas pelo script */
+  --animate-fall: fall 20s linear infinite;
+  @keyframes fall { to { transform: translate(var(--drift, 60px), 760px) rotate(var(--spin, 260deg)); } }
+}
+
+@utility wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+
+@layer base {
+  html { color-scheme: light; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0.01em; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--color-beni); outline-offset: 3px; }
+}

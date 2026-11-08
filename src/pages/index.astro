@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Loader from '../components/Loader.astro';
+import Button from '../components/Button.astro';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap';
+
+const services = [
+  ['Site sob medida', 'Cardápio, reservas, delivery ou fidelidade: as páginas que o seu negócio usa no dia a dia, sem modelo pronto.'],
+  ['Identidade visual própria', 'Cores, fontes e marca pensadas para o seu ponto, do letreiro ao botão de pedir.'],
+  ['Rápido no celular', 'A maioria dos clientes chega pelo telefone. O site abre rápido e funciona bem na tela pequena.'],
+];
+const steps = [
+  ['Conversa', 'Entendo o seu negócio, seus clientes e o que o site precisa resolver.'],
+  ['Identidade e layout', 'Você vê a proposta visual antes de qualquer página ficar pronta.'],
+  ['Site no ar', 'Publico o site e mostro como atualizar cardápio e horários.'],
+];
+const h2 = 'text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold';
+---
+<Base title="Sites que Abrem as Portas" description="Sites sob medida para pizzarias, cafés, restaurantes e negócios do bairro: identidade visual própria, rápidos no celular e feitos para trazer clientes." fonts={fonts}>
+  <script slot="head" is:inline>document.documentElement.classList.add('loading');</script>
+
+  <Loader />
+  <Header />
+
+  <main id="inicio">
+    <div class="wrap grid justify-items-start gap-7 pt-[clamp(56px,9vw,104px)] pb-[clamp(40px,6vw,64px)]">
+      <span class="eyebrow">Sites para negócios do bairro</span>
+      <h1 class="max-w-[820px] text-[clamp(40px,6.4vw,76px)] font-extrabold">Seu negócio merece um site que abre as portas.</h1>
+      <p class="max-w-[620px] text-[clamp(18px,2vw,21px)] text-ink-soft">Eu crio o site da sua pizzaria, café ou restaurante com identidade visual própria, rápido no celular e pensado para trazer clientes de verdade.</p>
+      <div class="flex flex-wrap gap-3">
+        <Button href="#projetos">Passear pela cidade</Button>
+        <Button href="#contato" variant="ghost">Quero um site assim</Button>
+      </div>
+    </div>
+
+    <section id="portfolio" class="border-y border-line bg-linear-to-b from-sky-top to-sky-bottom" aria-labelledby="projetos-title">
+      <span id="projetos"></span>
+      <div class="wrap flex flex-wrap items-end justify-between gap-x-8 gap-y-4 pt-14 pb-6">
+        <div class="grid min-w-0 max-w-[600px] gap-3">
+          <span class="eyebrow">Projetos</span>
+          <h2 id="projetos-title" class={h2}>Cada prédio desta rua é um site que eu fiz.</h2>
+          <p class="text-ink-soft">Clique num prédio para ver o projeto. Arraste para girar e use a roda do mouse ou dois dedos para aproximar.</p>
+        </div>
+        <Button href="widgets/cidade-isometrica/index.html" variant="ghost">Abrir em tela cheia</Button>
+      </div>
+      <div>
+        <!-- Widget obrigatório: Cidade Isométrica 3D. O color-scheme igual ao da cidade evita o fundo branco no tema escuro. -->
+        <iframe class="block h-[clamp(300px,44vh,470px)] w-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&debug=1" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
+      </div>
+    </section>
+
+    <section id="servicos" class="py-[clamp(64px,9vw,104px)]" aria-labelledby="servicos-title">
+      <div class="wrap">
+        <div class="mb-10 grid max-w-[640px] gap-3">
+          <span class="eyebrow">Serviços</span>
+          <h2 id="servicos-title" class={h2}>O que vem no seu site</h2>
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-x-10 gap-y-8">
+          {services.map(([title, text]) => (
+            <article class="grid content-start gap-2.5 border-t-2 border-ink pt-[18px]">
+              <h3 class="text-[22px] leading-[1.05] font-semibold">{title}</h3>
+              <p class="text-ink-soft">{text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="como-trabalho" class="pb-[clamp(64px,9vw,104px)]" aria-labelledby="como-title">
+      <div class="wrap grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] items-start gap-x-14 gap-y-8">
+        <div class="grid min-w-0 gap-4">
+          <span class="eyebrow">Quem faz</span>
+          <h2 id="como-title" class={h2}>Um site feito com você, do começo ao fim.</h2>
+          <p class="max-w-[62ch] text-ink-soft">[Uma ou duas frases sobre você: quem é, onde atende e por que gosta de fazer sites para negócios locais.]</p>
+        </div>
+        <ol class="m-0 grid list-none rounded-[14px] border border-line bg-surface p-0" aria-label="Etapas do trabalho">
+          {steps.map(([title, text], i) => (
+            <li class="grid grid-cols-[34px_1fr] gap-3 border-t border-line px-5 py-4 first:border-t-0">
+              <span class="font-mono text-[13px] leading-[1.6] font-medium text-accent">{i + 1}</span>
+              <div><strong class="block font-semibold">{title}</strong><span class="text-[15px] text-ink-soft">{text}</span></div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section id="contato" class="bg-ink text-paper" aria-labelledby="contato-title">
+      <div class="wrap grid gap-6 py-[clamp(64px,9vw,104px)]">
+        <span class="eyebrow text-[color-mix(in_srgb,var(--paper)_70%,var(--ink))]!">Contato</span>
+        <h2 id="contato-title" class={h2 + ' max-w-[760px]'}>Vamos colocar o seu negócio nessa rua?</h2>
+        <p class="max-w-[600px] text-[color-mix(in_srgb,var(--paper)_78%,var(--ink))]">Me conte o que você vende e onde fica. Respondo com uma proposta.</p>
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-4">
+          <Button href="https://wa.me/[SEU-NUMERO]" class="bg-paper! text-ink!">Chamar no WhatsApp</Button>
+          <div class="grid gap-1"><span class="eyebrow text-[color-mix(in_srgb,var(--paper)_70%,var(--ink))]!">E-mail</span><span class="font-mono text-base leading-[1.4] font-medium select-all">[seu@email.com]</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-6 text-[14px] text-ink-soft">
+    <div class="wrap">© [Seu nome]. Sites para negócios do bairro.</div>
+  </footer>
+</Base>

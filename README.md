@@ -1,26 +1,58 @@
 # Repositorio-teste
 
+Landing page e sites de demonstração feitos com **Astro** e **Tailwind CSS v4**, mais o widget da
+**Cidade Isométrica 3D** (Three.js), que é um arquivo estático e continua fora do Astro.
+
+## Como rodar
+
+```bash
+npm install
+npm run dev        # servidor de desenvolvimento
+npm run build      # gera dist/ (site estático)
+npm run preview    # serve dist/ localmente
+npm run check:widgets
+```
+
 ## Estrutura
 
-- `index.html` — a landing page publicada. Abra pelo servidor (`python3 -m http.server`) para a cidade 3D carregar.
+- `src/pages/index.astro` — a landing page.
+- `src/pages/widgets/cidade-isometrica/{pizzaria,cafeteria,restaurante}.astro` — os 3 sites de demonstração.
+  Cada um sai em `widgets/cidade-isometrica/<nome>/index.html`, o mesmo endereço que a cidade já usa nos links.
+- `src/styles/` — `global.css` (landing) e um CSS por site (`pizzaria.css`, `cafeteria.css`, `restaurante.css`).
+  Cada site tem o seu `@theme` do Tailwind com as cores, fontes e breakpoints da marca, então nada vaza de um para o outro.
+- `src/layouts/` e `src/components/` — layouts (`Base`, `Site`) e componentes (`Header`, `Button`, `Loader`, `DevPanel`, `SiteBack`).
+- `public/widgets/cidade-isometrica/` — a cidade 3D (HTML, modelos, texturas) e as imagens dos 3 sites. É copiado como está para `dist/`.
+- `widgets.json` — lista os widgets e diz quais são obrigatórios.
 - `landing-page/` — fonte do canvas de Design (Wireframe Portfolio): `Main.dc.html`, `CidadeIsometrica.dc.html` e `canvas.json`.
-- `widgets/` — widgets reutilizáveis. `widgets/widgets.json` lista cada um e diz se é obrigatório.
-  - `widgets/cidade-isometrica/` — Cidade Isométrica 3D (Three.js). Abra `index.html` para ver o widget sozinho.
+  O canvas de Design usa outro formato e não passa pelo Astro nem pelo Tailwind.
+- `scripts/` — `check-widgets.sh` (verificação dos widgets obrigatórios) e `artifact-fragment.py` (prepara `dist/index.html` para publicar como artefato).
+
+## Detalhes do build
+
+- Os estilos ficam dentro de cada página (`inlineStylesheets: 'always'`) e os scripts das páginas são `is:inline`.
+  Assim a saída não usa caminhos absolutos como `/_astro/` e funciona em qualquer pasta, inclusive publicada como artefato.
+  Os links entre páginas são relativos, escritos à mão.
+- Tailwind v4 aplica a regra de CSS mais tardia, não a ordem das classes no atributo. Evite duas classes que definem a mesma propriedade no mesmo elemento.
+- Os sites usam `text-[14px]` em vez de `text-sm`, e `leading-[normal]` em botões, para manter a altura de linha herdada do design original.
 
 ## Widget obrigatório: Cidade Isométrica
 
-Todo projeto com seção de Projetos (`<section id="portfolio">`) precisa montar a cidade com
-`<dc-import name="CidadeIsometrica">` e ter o arquivo `CidadeIsometrica.dc.html` ao lado.
-No canvas de Design ele aparece como um espaço reservado (o canvas não roda Three.js); no site
-publicado, esse espaço é ocupado por `widgets/cidade-isometrica/index.html`.
+Todo projeto com seção de Projetos (`<section id="portfolio">`) precisa carregar a cidade:
 
-Em páginas `.html` comuns, como `index.html`, a seção `#portfolio` precisa carregar a cidade num `<iframe>` apontando para `widgets/cidade-isometrica/index.html`.
+- **Astro/HTML:** um `<iframe>` apontando para `widgets/cidade-isometrica/index.html`.
+- **Canvas de Design:** `<dc-import name="CidadeIsometrica">` e o arquivo `CidadeIsometrica.dc.html` ao lado.
+  No canvas ele aparece como um espaço reservado, porque o canvas não roda Three.js.
 
-`scripts/check-widgets.sh` confere isso, e o workflow `Widgets obrigatórios` roda essa verificação a cada push e PR.
+`scripts/check-widgets.sh` confere isso, e o workflow `Build e widgets obrigatórios` roda o build e a verificação a cada push e PR.
 
 ## Tela de carregamento
 
-`index.html` cobre a página com uma tela de carregamento até os modelos 3D da cidade terminarem de carregar.
+A landing page cobre a tela até os modelos 3D da cidade terminarem de carregar (`src/components/Loader.astro`).
 O iframe usa `widgets/cidade-isometrica/index.html?hold=1`: com esse parâmetro a cidade manda `{ type: 'city:loaded' }`
 para a página, que tira a tela de carregamento e responde `{ type: 'city:start' }` para disparar a animação de entrada.
 Sem `?hold=1` (widget aberto sozinho) a animação dispara assim que a cidade aparece. Se a cidade não avisar, a página libera sozinha após 25 s.
+
+## Painel temporário da câmera
+
+`src/components/DevPanel.astro` mostra zoom, inclinação e giro da cidade ao vivo (o iframe usa `&debug=1`).
+Para remover: apague o componente, o `<DevPanel />` do `Header.astro` e o `&debug=1` do iframe em `index.astro`.
