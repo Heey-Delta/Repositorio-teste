@@ -58,7 +58,9 @@
   .btn-ghost:hover { background: var(--surface); }
 
   /* Cabeçalho */
-  header { border-bottom: 1px solid var(--line); }
+  header { border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--paper); }
+  /* Faixa do topo (área segura do celular) pintada com o fundo do cabeçalho */
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--paper); }
   .nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-block: 18px; }
   .brand { font: 800 20px/1 var(--display); color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
   .brand-mark { width: 30px; height: 30px; flex: none; }
@@ -112,6 +114,18 @@
   .contact-detail span:last-child { font: 500 16px/1.4 var(--mono); user-select: all; }
   footer { padding-block: 24px; font-size: 14px; color: var(--ink-soft); }
 
+  /* ===== PAINEL TEMPORÁRIO: câmera da cidade (remover junto com o bloco no cabeçalho e o script no fim) ===== */
+  .devpanel { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 10px 14px; border: 1.5px dashed var(--lamp); border-radius: 12px; background: var(--surface); }
+  .devpanel-tag { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--lamp); }
+  .devpanel dl { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 0; }
+  .devpanel dl div { display: flex; align-items: baseline; gap: 8px; }
+  .devpanel dt { font: 500 12px/1 var(--mono); color: var(--ink-soft); letter-spacing: .06em; text-transform: uppercase; }
+  .devpanel dd { margin: 0; font: 500 18px/1 var(--mono); font-variant-numeric: tabular-nums; min-width: 6ch; }
+  .devpanel dd small { font-size: 12px; color: var(--ink-soft); margin-left: 4px; }
+  .devpanel button { margin-left: auto; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); font: 600 13px/1 var(--body); cursor: pointer; }
+  .devpanel button:hover { background: var(--paper); }
+  /* ===== fim do painel temporário ===== */
+
   /* Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar */
   html.loading { overflow: hidden; }
   .loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; align-content: center; gap: 28px; background: var(--paper);
@@ -156,6 +170,16 @@
       <a href="#como-trabalho">Como trabalho</a>
       <a class="btn btn-primary" href="#contato">Fale comigo</a>
     </nav>
+    <!-- PAINEL TEMPORÁRIO: mostra a câmera da cidade ao vivo, para escolher o enquadramento -->
+    <div class="devpanel" id="devpanel" role="group" aria-label="Painel temporário da câmera da cidade">
+      <span class="devpanel-tag">Temporário · câmera</span>
+      <dl>
+        <div><dt>Zoom</dt><dd id="dpZoom">—</dd></div>
+        <div><dt>Inclinação</dt><dd id="dpPitch">—</dd></div>
+        <div><dt>Giro</dt><dd id="dpAngle">—</dd></div>
+      </dl>
+      <button type="button" id="dpCopy">Copiar valores</button>
+    </div>
   </div>
 </header>
 
@@ -181,7 +205,7 @@
       <a class="btn btn-ghost" href="widgets/cidade-isometrica/index.html">Abrir em tela cheia</a>
     </div>
     <div>
-      <iframe class="city-frame" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
+      <iframe class="city-frame" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&amp;debug=1" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
     </div>
   </section>
 
@@ -255,6 +279,28 @@
       if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
     });
     setTimeout(finish, MAX_MS);   // segurança: a página nunca fica presa na tela de carregamento
+  })();
+</script>
+<script>
+  // PAINEL TEMPORÁRIO: recebe a câmera da cidade e mostra zoom, inclinação e giro ao vivo.
+  (function () {
+    var frame = document.getElementById('cityFrame'), last = null;
+    var zoomEl = document.getElementById('dpZoom'), pitchEl = document.getElementById('dpPitch'), angleEl = document.getElementById('dpAngle');
+    var copyBtn = document.getElementById('dpCopy');
+    window.addEventListener('message', function (e) {
+      var d = e.data;
+      if (!frame || e.source !== frame.contentWindow || !d || d.type !== 'city:camera') return;
+      last = d;
+      zoomEl.innerHTML = d.zoom.toFixed(2) + '×<small>' + d.zoomPercent.toFixed(1) + '%</small>';
+      pitchEl.textContent = d.pitch.toFixed(1) + '°';
+      angleEl.textContent = d.angle.toFixed(1) + '°';
+    });
+    copyBtn.addEventListener('click', function () {
+      if (!last) return;
+      var text = 'zoom ' + last.zoom.toFixed(2) + ' (' + last.zoomPercent.toFixed(1) + '% no indicador), inclinação ' + last.pitch.toFixed(1) + '°, giro ' + last.angle.toFixed(1) + '°';
+      var done = function () { copyBtn.textContent = 'Copiado'; setTimeout(function () { copyBtn.textContent = 'Copiar valores'; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { copyBtn.textContent = 'Não copiou'; setTimeout(function () { copyBtn.textContent = 'Copiar valores'; }, 1400); });
+    });
   })();
 </script>
 </body>

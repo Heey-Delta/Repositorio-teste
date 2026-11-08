@@ -176,6 +176,8 @@
   // ({ type: 'city:loaded' }) e espera { type: 'city:start' } para disparar a animação de entrada.
   // Sem ?hold=1 (página aberta sozinha) nada muda: a animação dispara assim que a cidade aparece.
   const HOLD_INTRO = new URLSearchParams(location.search).get('hold') === '1' && window.parent !== window;
+  // Painel de ajuste (temporário): com ?debug=1 a cidade informa a câmera à página a cada mudança.
+  const DEBUG_CAMERA = HOLD_INTRO && new URLSearchParams(location.search).get('debug') === '1';
   function notifyParentLoaded() {
     if (!HOLD_INTRO) return;
     try { window.parent.postMessage({ type: 'city:loaded' }, '*'); } catch (e) {}
@@ -4183,6 +4185,29 @@ if (!window.CITY_FALLBACK) (() => {
     positionCamera();
     cameraDirty = true;
     requestRender();
+    if (DEBUG_CAMERA) scheduleCameraReport();
+  }
+
+  // Painel de ajuste (temporário): manda zoom, inclinação e giro para a página, no máximo 1 vez por quadro
+  let cameraReportQueued = false, lastCameraReport = '';
+  function scheduleCameraReport() {
+    if (cameraReportQueued) return;
+    cameraReportQueued = true;
+    requestAnimationFrame(() => {
+      cameraReportQueued = false;
+      const progress = Math.log(currentZoom / MIN_ZOOM) / Math.log(maxZoom() / MIN_ZOOM);
+      const msg = {
+        type: 'city:camera',
+        zoom: Math.round(currentZoom * 1000) / 1000,
+        zoomPercent: Math.round(progress * 1000) / 10,   // na escala do indicador de zoom (DEFAULT_ZOOM_PROGRESS = 0.35 → 35%)
+        pitch: Math.round(currentPitch * 10) / 10,
+        angle: Math.round((((currentAngle % 360) + 360) % 360) * 10) / 10
+      };
+      const key = JSON.stringify(msg);
+      if (key === lastCameraReport) return;
+      lastCameraReport = key;
+      try { window.parent.postMessage(msg, '*'); } catch (e) {}
+    });
   }
 
   function flushCameraChanges() {
@@ -4913,6 +4938,7 @@ if (!window.CITY_FALLBACK) (() => {
     scheduleFarBuild();
     cityReady = true;
     autoWarmUntil = performance.now() + 1500;
+    if (DEBUG_CAMERA) scheduleCameraReport();
     if (HOLD_INTRO) {
       // modelos prontos e cidade já desenhada: avisa a página e espera a tela de carregamento sair
       window.addEventListener('message', (e) => {
