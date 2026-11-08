@@ -394,8 +394,8 @@ if (!window.CITY_FALLBACK) (() => {
   const CAMERA_DISTANCE = 1200;
   const CAMERA_NEAR = 1, CAMERA_FAR = 3000;
   const PITCH_MIN = 5, PITCH_MAX = 85;
-  const DEFAULT_ANGLE = 21;        // rotação inicial (e ao recentralizar), em graus
-  const DEFAULT_PITCH = 21;        // inclinação inicial (e ao recentralizar), em graus
+  const DEFAULT_ANGLE = 32.2;      // rotação inicial (e ao recentralizar), em graus
+  const DEFAULT_PITCH = 23;        // inclinação inicial (e ao recentralizar), em graus
   const ROTATE_SPEED = 0.5;        // graus por pixel arrastado na horizontal
   const PITCH_SPEED = 0.3;         // graus por pixel arrastado na vertical
   const ZOOM_STEP = 1.15;          // por clique da roda
@@ -409,8 +409,8 @@ if (!window.CITY_FALLBACK) (() => {
   // --- Zoom e desfoque ---
   const MIN_ZOOM = 0.4;
   const SELECT_ZOOM_PROGRESS = 0.5;     // zoom ao clicar num elemento (50% no indicador)
-  const DEFAULT_ZOOM_PROGRESS = 0.35;   // zoom inicial (e ao recentralizar), na mesma escala do indicador de zoom
-  const DEFAULT_ZOOM_BOOST = 1.15;      // multiplica o zoom inicial (e ao recentralizar): +15% sobre o enquadramento da cidade
+  const DEFAULT_ZOOM_EXACT_FROM_PX = 900;   // a partir desta largura de widget o zoom inicial é exatamente DEFAULT_ZOOM; abaixo, o ajuste à tela reduz (celular)
+  const DEFAULT_ZOOM = 3.42;            // zoom inicial (e ao recentralizar), o valor lido no painel (45,5% no indicador de zoom); em telas pequenas o ajuste à tela reduz
   const MAX_ZOOM_5x5 = 45;         // zoom máximo (era 14); escala com o tamanho da cidade
   const BLUR_FULL_ZOOM_5x5 = 14;   // o desfoque das bordas chega ao máximo neste zoom e fica assim daí em diante
   const BLUR_START = 0.5;          // desfoque começa na metade do caminho até BLUR_FULL_ZOOM (já aparece ao focar)
@@ -4142,9 +4142,9 @@ if (!window.CITY_FALLBACK) (() => {
   // (no celular, quadrado e estreito, a cidade comprida precisaria de menos zoom)
   const FIT_MARGIN = 1.08;
   function defaultZoom() {
-    const preferred = MIN_ZOOM * Math.pow(maxZoom() / MIN_ZOOM, DEFAULT_ZOOM_PROGRESS);
+    const preferred = DEFAULT_ZOOM;
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (!w || !h) return preferred * DEFAULT_ZOOM_BOOST;
+    if (!w || !h || w >= DEFAULT_ZOOM_EXACT_FROM_PX) return preferred;   // widget largo: o zoom escolhido vale como está
     const a = DEFAULT_ANGLE * Math.PI / 180, p = DEFAULT_PITCH * Math.PI / 180;
     const W = cityWidth() + 2 * PEDESTAL_MARGIN, D = cityDepth() + 2 * PEDESTAL_MARGIN;
     const spanX = W * Math.abs(Math.cos(a)) + D * Math.abs(Math.sin(a));                         // largura na tela
@@ -4152,7 +4152,7 @@ if (!window.CITY_FALLBACK) (() => {
     const halfW = w >= h ? w / h : 1, halfH = w >= h ? 1 : h / w;   // meia largura/altura visível por unidade de viewSize/zoom
     const fitX = 2 * viewSize() * halfW / (spanX * FIT_MARGIN);
     const fitY = 2 * viewSize() * halfH / (spanY * FIT_MARGIN);
-    return Math.min(preferred, fitX, fitY) * DEFAULT_ZOOM_BOOST;
+    return Math.min(preferred, fitX, fitY);
   }
   function maxZoom() { return MAX_ZOOM_5x5 * citySize() / VIEW_SCALE; }
 
@@ -4199,7 +4199,7 @@ if (!window.CITY_FALLBACK) (() => {
       const msg = {
         type: 'city:camera',
         zoom: Math.round(currentZoom * 1000) / 1000,
-        zoomPercent: Math.round(progress * 1000) / 10,   // na escala do indicador de zoom (DEFAULT_ZOOM_PROGRESS = 0.35 → 35%)
+        zoomPercent: Math.round(progress * 1000) / 10,   // na escala do indicador de zoom (0% = zoom mínimo, 100% = zoom máximo)
         pitch: Math.round(currentPitch * 10) / 10,
         angle: Math.round((((currentAngle % 360) + 360) % 360) * 10) / 10
       };
