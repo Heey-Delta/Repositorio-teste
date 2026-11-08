@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Portfolio — Wireframe</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#1A1A1A}a:hover{color:#000000}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1A1A1A; background: #FFFFFF; width: 100%;">
+
+  <!-- NAV -->
+  <header style="border-bottom: 1px solid #D4D4D4;">
+    <nav aria-label="Principal" style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div aria-hidden="true" style="width: 40px; height: 40px; border-radius: 8px; background: #D4D4D4;"></div>
+        <span style="font-weight: 700; font-size: 18px;">[SEU NOME]</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; font-size: 15px;">
+        <a href="#sobre" style="text-decoration: none; color: #4A4A4A;">Sobre</a>
+        <a href="#servicos" style="text-decoration: none; color: #4A4A4A;">Serviços</a>
+        <a href="#portfolio" style="text-decoration: none; color: #4A4A4A;">Portfolio</a>
+        <a href="#stacks" style="text-decoration: none; color: #4A4A4A;">Stacks</a>
+        <a href="#contato" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 8px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; font-weight: 600;">Fale comigo</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section id="hero" aria-labelledby="hero-title" style="max-width: 1200px; margin: 0 auto; padding: 96px 24px; box-sizing: border-box;">
+    <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">01 — HERO</p>
+    </sc-if>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 56px;">
+      <div style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 24px;">
+        <span style="align-self: flex-start; padding: 6px 12px; border: 1px solid #BDBDBD; border-radius: 999px; font-size: 13px; color: #4A4A4A;">[Disponível para projetos]</span>
+        <h1 id="hero-title" style="margin: 0; font-size: 56px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em;">[Headline: o que você faz e para quem]</h1>
+        <p style="margin: 0; font-size: 19px; line-height: 1.55; color: #4A4A4A; max-width: 560px;">[Subtítulo de 1–2 linhas explicando o resultado que você entrega.]</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+          <a href="#portfolio" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 8px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; font-weight: 600;">Ver projetos</a>
+          <a href="#contato" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 8px; border: 1.5px solid #1A1A1A; color: #1A1A1A; text-decoration: none; font-weight: 600;">Entrar em contato</a>
+        </div>
+      </div>
+      <div role="img" aria-label="Espaço para foto ou visual principal" style="flex: 1 1 380px; min-width: 0; height: 440px; border-radius: 16px; background: #EDEDED; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Foto / visual principal]</div>
+    </div>
+  </section>
+
+  <!-- SOBRE -->
+  <section id="sobre" aria-labelledby="sobre-title" style="background: #F5F5F5;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 96px 24px; box-sizing: border-box;">
+      <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+        <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">02 — SOBRE MIM</p>
+      </sc-if>
+      <div style="display: flex; flex-wrap: wrap; gap: 56px; align-items: flex-start;">
+        <div role="img" aria-label="Espaço para retrato" style="flex: 0 1 360px; min-width: 240px; height: 420px; border-radius: 16px; background: #E0E0E0; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Retrato]</div>
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+          <h2 id="sobre-title" style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700;">Sobre mim</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #4A4A4A;">[Parágrafo 1: quem você é, trajetória e foco atual.]</p>
+          <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #4A4A4A;">[Parágrafo 2: como você trabalha e o que te diferencia.]</p>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 8px;">
+            <div style="padding: 20px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4D4D4;">
+              <div style="font-size: 32px; font-weight: 700;">[X]</div>
+              <div style="font-size: 14px; color: #5C5C5C;">[anos de experiência]</div>
+            </div>
+            <div style="padding: 20px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4D4D4;">
+              <div style="font-size: 32px; font-weight: 700;">[X]</div>
+              <div style="font-size: 14px; color: #5C5C5C;">[projetos entregues]</div>
+            </div>
+            <div style="padding: 20px; border-radius: 12px; background: #FFFFFF; border: 1px solid #D4D4D4;">
+              <div style="font-size: 32px; font-weight: 700;">[X]</div>
+              <div style="font-size: 14px; color: #5C5C5C;">[clientes atendidos]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVIÇOS -->
+  <section id="servicos" aria-labelledby="servicos-title" style="max-width: 1200px; margin: 0 auto; padding: 96px 24px; box-sizing: border-box;">
+    <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">03 — SERVIÇOS</p>
+    </sc-if>
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; max-width: 640px;">
+      <h2 id="servicos-title" style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700;">Serviços</h2>
+      <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #4A4A4A;">[Uma linha resumindo como você ajuda.]</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+      <article style="padding: 32px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <div aria-hidden="true" style="width: 48px; height: 48px; border-radius: 10px; background: #E0E0E0;"></div>
+        <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Serviço 1]</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Descrição curta do que está incluso e o resultado.]</p>
+      </article>
+      <article style="padding: 32px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <div aria-hidden="true" style="width: 48px; height: 48px; border-radius: 10px; background: #E0E0E0;"></div>
+        <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Serviço 2]</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Descrição curta do que está incluso e o resultado.]</p>
+      </article>
+      <article style="padding: 32px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <div aria-hidden="true" style="width: 48px; height: 48px; border-radius: 10px; background: #E0E0E0;"></div>
+        <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Serviço 3]</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Descrição curta do que está incluso e o resultado.]</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section id="portfolio" aria-labelledby="portfolio-title" style="background: #F5F5F5;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 96px 24px; box-sizing: border-box;">
+      <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+        <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">04 — PORTFOLIO</p>
+      </sc-if>
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 640px;">
+          <h2 id="portfolio-title" style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700;">Projetos selecionados</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #4A4A4A;">[Linha de apoio sobre os cases.]</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: none; background: #1A1A1A; color: #FFFFFF; font: inherit; font-size: 14px;">Todos</button>
+          <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #BDBDBD; background: #FFFFFF; color: #1A1A1A; font: inherit; font-size: 14px;">[Categoria A]</button>
+          <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #BDBDBD; background: #FFFFFF; color: #1A1A1A; font: inherit; font-size: 14px;">[Categoria B]</button>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 32px;">
+        <article style="display: flex; flex-direction: column; gap: 16px;">
+          <div role="img" aria-label="Capa do projeto 1" style="aspect-ratio: 16 / 10; border-radius: 16px; background: #E0E0E0; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Capa do projeto]</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #5C5C5C;"><span>[Categoria]</span><span aria-hidden="true">·</span><span>[Ano]</span></div>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Projeto 1]</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Problema → solução → resultado em uma linha.]</p>
+          <a href="#" style="font-weight: 600; font-size: 15px;">Ver case →</a>
+        </article>
+        <article style="display: flex; flex-direction: column; gap: 16px;">
+          <div role="img" aria-label="Capa do projeto 2" style="aspect-ratio: 16 / 10; border-radius: 16px; background: #E0E0E0; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Capa do projeto]</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #5C5C5C;"><span>[Categoria]</span><span aria-hidden="true">·</span><span>[Ano]</span></div>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Projeto 2]</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Problema → solução → resultado em uma linha.]</p>
+          <a href="#" style="font-weight: 600; font-size: 15px;">Ver case →</a>
+        </article>
+        <article style="display: flex; flex-direction: column; gap: 16px;">
+          <div role="img" aria-label="Capa do projeto 3" style="aspect-ratio: 16 / 10; border-radius: 16px; background: #E0E0E0; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Capa do projeto]</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #5C5C5C;"><span>[Categoria]</span><span aria-hidden="true">·</span><span>[Ano]</span></div>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Projeto 3]</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Problema → solução → resultado em uma linha.]</p>
+          <a href="#" style="font-weight: 600; font-size: 15px;">Ver case →</a>
+        </article>
+        <article style="display: flex; flex-direction: column; gap: 16px;">
+          <div role="img" aria-label="Capa do projeto 4" style="aspect-ratio: 16 / 10; border-radius: 16px; background: #E0E0E0; border: 1.5px dashed #9E9E9E; display: flex; align-items: center; justify-content: center; color: #5C5C5C; font-size: 14px;">[Capa do projeto]</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #5C5C5C;"><span>[Categoria]</span><span aria-hidden="true">·</span><span>[Ano]</span></div>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 600;">[Projeto 4]</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A4A4A;">[Problema → solução → resultado em uma linha.]</p>
+          <a href="#" style="font-weight: 600; font-size: 15px;">Ver case →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- STACKS -->
+  <section id="stacks" aria-labelledby="stacks-title" style="max-width: 1200px; margin: 0 auto; padding: 96px 24px; box-sizing: border-box;">
+    <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">05 — STACKS</p>
+    </sc-if>
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; max-width: 640px;">
+      <h2 id="stacks-title" style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700;">Stacks e ferramentas</h2>
+      <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #4A4A4A;">[Linha sobre as tecnologias que você domina.]</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+      <div style="padding: 28px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600;">[Front-end]</h3>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px;">
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+        </ul>
+      </div>
+      <div style="padding: 28px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600;">[Back-end]</h3>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px;">
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+        </ul>
+      </div>
+      <div style="padding: 28px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600;">[Design]</h3>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px;">
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+        </ul>
+      </div>
+      <div style="padding: 28px; border-radius: 16px; border: 1px solid #D4D4D4; display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600;">[Ferramentas]</h3>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px;">
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+          <li style="padding: 8px 14px; border-radius: 999px; background: #EDEDED; font-size: 14px;">[Tech]</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="contato" aria-labelledby="cta-title" style="max-width: 1200px; margin: 0 auto; padding: 0 24px 96px; box-sizing: border-box;">
+    <sc-if value="{{showLabels}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 0 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #5C5C5C;">06 — CTA</p>
+    </sc-if>
+    <div style="padding: 72px 40px; border-radius: 24px; background: #1A1A1A; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px;">
+      <h2 id="cta-title" style="margin: 0; font-size: 44px; line-height: 1.1; font-weight: 700; max-width: 720px;">[Chamada: vamos tirar seu projeto do papel?]</h2>
+      <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #D4D4D4; max-width: 560px;">[Linha de apoio com o próximo passo e prazo de resposta.]</p>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px;">
+        <a href="#" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 8px; background: #FFFFFF; color: #1A1A1A; text-decoration: none; font-weight: 600;">[Agendar conversa]</a>
+        <a href="#" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 8px; border: 1.5px solid #FFFFFF; color: #FFFFFF; text-decoration: none; font-weight: 600;">[WhatsApp / E-mail]</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="border-top: 1px solid #D4D4D4;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 32px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; font-size: 14px; color: #5C5C5C;">
+      <span>© 2026 [SEU NOME]</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <a href="#" style="color: #4A4A4A;">[LinkedIn]</a>
+        <a href="#" style="color: #4A4A4A;">[GitHub]</a>
+        <a href="#" style="color: #4A4A4A;">[Instagram]</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"showLabels":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":3900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { showLabels: this.props.showLabels ?? true };
+  }
+}
+</script>
+</body>
+</html>
