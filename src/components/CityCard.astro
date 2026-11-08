@@ -1,17 +1,17 @@
 ---
 // Card dos prédios por fora da cidade. A cidade (iframe ?card=out) monta o card e manda o conteúdo por
-// postMessage; aqui ele aparece embaixo da cidade, com o mesmo visual do card interno (card.css).
+// postMessage; aqui ele aparece por cima da seção de baixo, preso à borda inferior da seção da cidade
+// (position: absolute, sem empurrar o conteúdo), com o mesmo visual do card interno (card.css).
+// A seção da cidade precisa ser `relative` e ter z-index acima da seção seguinte.
 // Mensagens: { type: 'city:card', open, html, bodyClass, bodyStyle, plain, fonts } e { type: 'city:card-live', updates }.
 // Respostas para a cidade: { type: 'city:card-back' } e { type: 'city:card-act', act: 'feed' }.
 ---
-<div id="cityCardWrap" class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 data-[open=true]:grid-rows-[1fr] motion-reduce:transition-none" data-open="false" aria-hidden="true" inert>
-  <div class="min-h-0 overflow-hidden">
-    <div class="wrap py-5">
-      <section id="cityCard" class="card-panel relative h-[clamp(300px,52vh,460px)] overflow-hidden rounded-2xl bg-white text-[#1f2937] shadow-[0_10px_30px_rgba(0,0,0,0.18)] md:h-[clamp(260px,34vh,360px)]" aria-label="Detalhes do elemento selecionado" aria-live="polite">
-        <button type="button" class="card-back" id="cardBack">← Voltar</button>
-        <div class="card-body" id="cardOutBody"></div>
-      </section>
-    </div>
+<div id="cityCardWrap" class="pointer-events-none invisible absolute inset-x-0 top-full z-10 translate-y-3 opacity-0 transition-[opacity,translate,visibility] duration-300 data-[open=true]:pointer-events-auto data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:opacity-100 motion-reduce:transition-none" data-open="false" aria-hidden="true" inert>
+  <div class="wrap pt-4">
+    <section id="cityCard" class="card-panel relative h-[clamp(300px,52vh,460px)] overflow-hidden rounded-2xl bg-white text-[#1f2937] shadow-[0_24px_60px_rgba(0,0,0,0.28)] md:h-[clamp(260px,34vh,360px)]" aria-label="Detalhes do elemento selecionado" aria-live="polite">
+      <button type="button" class="card-back" id="cardBack">← Voltar</button>
+      <div class="card-body" id="cardOutBody"></div>
+    </section>
   </div>
 </div>
 <style is:global>
@@ -68,5 +68,11 @@
     });
     back.addEventListener('click', function () { send({ type: 'city:card-back' }); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && wrap.dataset.open === 'true') send({ type: 'city:card-back' }); });
+    // clicar fora do card (na página, fora da cidade) também fecha; cliques dentro da cidade já são tratados por ela
+    document.addEventListener('pointerdown', function (e) {
+      if (wrap.dataset.open !== 'true' || !e.target.closest) return;
+      if (e.target.closest('#cityCard') || e.target.closest('#cityFrame')) return;
+      send({ type: 'city:card-back' });
+    });
   })();
 </script>

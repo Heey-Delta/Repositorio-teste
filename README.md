@@ -54,7 +54,8 @@ Sem `?hold=1` (widget aberto sozinho) a animação dispara assim que a cidade ap
 
 ## Card dos prédios por fora
 
-Ao clicar num prédio, o card abre fora da cidade, embaixo dela (`src/components/CityCard.astro`).
+Ao clicar num prédio, o card abre fora da cidade, por cima da seção de baixo (`src/components/CityCard.astro`).
+Ele é `position: absolute` preso à borda inferior da seção `#portfolio` (que é `relative z-30`), então não empurra o conteúdo. Fecha com Voltar, Esc ou clicando fora.
 O iframe usa `&card=out`: a cidade continua montando o card (dados, horários, valores ao vivo) e manda para a página
 `{ type: 'city:card', open, html, ... }` e `{ type: 'city:card-live', updates }`; a página responde `{ type: 'city:card-back' }`
 (voltar) e `{ type: 'city:card-act', act: 'feed' }` (alimentar os pássaros). Com o card por fora a câmera não sobe para abrir espaço.
