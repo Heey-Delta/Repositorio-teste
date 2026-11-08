@@ -53,7 +53,7 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--header-h, 0px); }   /* âncoras (#portfolio...) param abaixo do cabeçalho fixo */
   html.loading { overflow: hidden; }
   body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
   /* Faixa do topo (área segura do celular) pintada com o fundo do cabeçalho */

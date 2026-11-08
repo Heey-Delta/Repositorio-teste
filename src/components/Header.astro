@@ -16,3 +16,13 @@ const links = [['#projetos', 'Projetos'], ['#servicos', 'Serviços'], ['#como-tr
     <DevPanel />
   </div>
 </header>
+<script is:inline>
+  // Altura do cabeçalho fixo em --header-h: o html usa como scroll-padding-top, então as âncoras não ficam escondidas atrás dele
+  (function () {
+    var header = document.querySelector('body > header');
+    if (!header) return;
+    function setH() { document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px'); }
+    setH();
+    if (window.ResizeObserver) new ResizeObserver(setH).observe(header); else window.addEventListener('resize', setH);
+  })();
+</script>

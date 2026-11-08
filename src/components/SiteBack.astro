@@ -1,12 +1,9 @@
 ---
-// Botão fixo "Voltar à cidade" dos sites de demonstração. As cores vêm da marca de cada site (via class).
-interface Props { class?: string; }
-const { class: extra = '' } = Astro.props;
+// Link fixo "Voltar à cidade" dos sites de demonstração. Leva de volta para a landing page, na seção
+// de projetos (#portfolio), onde fica a cidade, para a pessoa continuar de onde parou.
+// O caminho é relativo à pasta deste site (widgets/cidade-isometrica/<site>/): três níveis acima fica a raiz.
+// As cores vêm da marca de cada site (via class).
+interface Props { class?: string; href?: string; }
+const { class: extra = '', href = '../../../index.html#portfolio' } = Astro.props;
 ---
-<button class:list={['fixed bottom-4 left-4 z-50 inline-flex cursor-pointer leading-[normal] items-center gap-2 rounded-full border-0 px-4 py-2.5 text-[14px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:bg-black', extra]} type="button" id="back" aria-label="Voltar para a cidade">← Voltar à cidade</button>
-<script is:inline>
-  document.getElementById('back').addEventListener('click', () => {
-    if (document.referrer && history.length > 1) history.back();
-    else location.href = '../';
-  });
-</script>
+<a class:list={['fixed bottom-4 left-4 z-50 inline-flex cursor-pointer items-center gap-2 rounded-full border-0 px-4 py-2.5 text-[14px] leading-[normal] no-underline shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:bg-black', extra]} href={href} id="back" aria-label="Voltar para a cidade, na página inicial">← Voltar à cidade</a>

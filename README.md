@@ -62,6 +62,13 @@ O iframe usa `&card=out`: a cidade continua montando o card (dados, horários, v
 O visual do card fica em `public/widgets/cidade-isometrica/card.css`, usado pela cidade (card interno) e pela página.
 Sem `&card=out` (widget aberto sozinho) o card continua abrindo dentro da cidade.
 
+## Voltar à cidade
+
+O botão "← Voltar à cidade" dos 3 sites (`src/components/SiteBack.astro`) é um link para `../../../index.html#portfolio`:
+leva de volta à landing page, na seção de projetos onde fica a cidade, em vez da página solta da cidade.
+O cabeçalho fixo publica a própria altura em `--header-h`, que o `html` usa como `scroll-padding-top`,
+então a âncora `#portfolio` para logo abaixo do cabeçalho.
+
 ## Painel temporário da câmera
 
 `src/components/DevPanel.astro` mostra zoom, inclinação e giro da cidade ao vivo (o iframe usa `&debug=1`).
