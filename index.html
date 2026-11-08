@@ -77,7 +77,8 @@
   .city-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; padding-block: 56px 24px; }
   .city-head > div { display: grid; gap: 12px; max-width: 600px; min-width: 0; }
   .city-head p { color: var(--ink-soft); }
-  .city-frame { display: block; width: 100%; height: clamp(420px, 62vw, 620px); border: 0; background: transparent; }
+  .city-frame { display: block; width: 100%; height: clamp(420px, 62vw, 620px); border: 0; background: transparent;
+    color-scheme: light; /* igual ao da cidade: sem isso o navegador pinta o iframe de branco no tema escuro */ }
   .city-links { padding-block: 8px 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; list-style: none; margin-block: 0; }
   .city-links li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
   .city-links a { font: 600 19px/1.2 var(--display); text-decoration: none; color: var(--ink); }
