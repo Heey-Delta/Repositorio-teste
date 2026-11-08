@@ -77,14 +77,8 @@
   .city-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; padding-block: 56px 24px; }
   .city-head > div { display: grid; gap: 12px; max-width: 600px; min-width: 0; }
   .city-head p { color: var(--ink-soft); }
-  .city-frame { display: block; width: 100%; height: clamp(420px, 62vw, 620px); border: 0; background: transparent;
+  .city-frame { display: block; width: 100%; height: clamp(600px, 88vh, 940px); border: 0; background: transparent;
     color-scheme: light; /* igual ao da cidade: sem isso o navegador pinta o iframe de branco no tema escuro */ }
-  .city-links { padding-block: 8px 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; list-style: none; margin-block: 0; }
-  .city-links li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
-  .city-links a { font: 600 19px/1.2 var(--display); text-decoration: none; color: var(--ink); }
-  .city-links a:hover { color: var(--teal); }
-  .city-links .hours { font: 500 12.5px/1.3 var(--mono); color: var(--lamp); }
-  .city-links p { font-size: 15px; color: var(--ink-soft); }
 
   /* Serviços */
   section.block { padding-block: clamp(64px, 9vw, 104px); }
@@ -159,31 +153,9 @@
       </div>
       <a class="btn btn-ghost" href="widgets/cidade-isometrica/index.html">Abrir em tela cheia</a>
     </div>
-    <div class="wrap">
+    <div>
       <iframe class="city-frame" src="widgets/cidade-isometrica/index.html" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque" loading="lazy"></iframe>
     </div>
-    <ul class="wrap city-links" aria-label="Projetos nesta cidade">
-      <li>
-        <span class="hours">Pizzaria · 18:00–23:30</span>
-        <a href="widgets/cidade-isometrica/pizzaria/index.html">del figlio di Lourenzo</a>
-        <p>Delivery com cardápio filtrável, promoções e horário ao vivo.</p>
-      </li>
-      <li>
-        <span class="hours">Cafeteria · 07:00–19:00</span>
-        <a href="widgets/cidade-isometrica/cafeteria/index.html">Un buon caffè</a>
-        <p>Cardápio em abas, o rito do balcão e cartão fidelidade interativo.</p>
-      </li>
-      <li>
-        <span class="hours">Restaurante japonês · 11:30–15:00, 18:00–23:00</span>
-        <a href="widgets/cidade-isometrica/restaurante/index.html">Hanami Sushi</a>
-        <p>Reservas com menu omakase e cardápio do salão.</p>
-      </li>
-      <li>
-        <span class="hours">Lote disponível</span>
-        <a href="#contato">Seu negócio aqui</a>
-        <p>O próximo prédio da rua pode ser o seu.</p>
-      </li>
-    </ul>
   </section>
 
   <section id="servicos" class="block" aria-labelledby="servicos-title">
