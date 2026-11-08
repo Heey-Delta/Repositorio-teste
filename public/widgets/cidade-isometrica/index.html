@@ -4507,6 +4507,13 @@ if (!window.CITY_FALLBACK) (() => {
     introState = 'ready';
   }
   let introReleased = !HOLD_INTRO;   // com ?hold=1, só dispara depois do aviso da página
+  // O aviso { type: 'city:start' } pode chegar antes de a cidade terminar de carregar (a página libera depois de 5 s):
+  // por isso o ouvinte fica aqui, desde o começo, e a animação dispara assim que a cidade estiver pronta.
+  if (HOLD_INTRO) window.addEventListener('message', (e) => {
+    if (e.source !== window.parent || !e.data || e.data.type !== 'city:start') return;
+    introReleased = true;
+    startExperience();
+  });
   function startExperience() {
     if (!introReleased || !cityReady || !cityInView || introState === 'playing' || introState === 'finished') return;
     if (introState === 'ready') {
@@ -4958,13 +4965,9 @@ if (!window.CITY_FALLBACK) (() => {
     if (DEBUG_CAMERA) scheduleCameraReport();
     if (HOLD_INTRO) {
       // modelos prontos e cidade já desenhada: avisa a página e espera a tela de carregamento sair
-      window.addEventListener('message', (e) => {
-        if (e.source !== window.parent || !e.data || e.data.type !== 'city:start') return;
-        introReleased = true;
-        startExperience();
-      });
       setTimeout(() => { if (!introReleased) { introReleased = true; startExperience(); } }, 30000);   // segurança
       notifyParentLoaded();
+      if (introReleased) startExperience();   // a página já tinha liberado antes de a cidade ficar pronta
     } else {
       startExperience();
     }

@@ -68,7 +68,7 @@ Todo projeto com seção de Projetos (`<section id="portfolio">`) precisa carreg
 A landing page cobre a tela até os modelos 3D da cidade terminarem de carregar (`src/components/Loader.astro`).
 O iframe usa `widgets/cidade-isometrica/index.html?hold=1`: com esse parâmetro a cidade manda `{ type: 'city:loaded' }`
 para a página, que tira a tela de carregamento e responde `{ type: 'city:start' }` para disparar a animação de entrada.
-Sem `?hold=1` (widget aberto sozinho) a animação dispara assim que a cidade aparece. Se a cidade não avisar, aparece o botão "Entrar sem esperar" depois de 6 s e a página libera sozinha após 15 s.
+Sem `?hold=1` (widget aberto sozinho) a animação dispara assim que a cidade aparece. Se a cidade não tiver avisado em 5 s, a página abre sozinha; a cidade anima assim que ficar pronta (o aviso `city:start` pode chegar antes de ela terminar de carregar).
 A cidade avisa mesmo estando fora da tela dentro de outro site (o navegador pausa `requestAnimationFrame` em iframes de outra origem que não estão visíveis, então o aviso não depende dele).
 
 ## Card dos prédios por fora
