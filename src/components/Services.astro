@@ -1,19 +1,19 @@
 ---
 const services = [
-  ['Web Design', 'Visual interfaces that inspire.'],
-  ['Web Development', 'Performance and scalability.'],
-  ['Landing Pages', 'Focus on results.'],
-  ['E-commerce', 'Sell more, beautifully.'],
-  ['Creative Dev', 'Interactive experiences.'],
-  ['Digital Branding', 'Build a stronger presence.'],
+  ['Web Design', 'Interfaces visuais que inspiram.'],
+  ['Desenvolvimento Web', 'Desempenho e escalabilidade.'],
+  ['Landing Pages', 'Foco em resultados.'],
+  ['E-commerce', 'Venda mais, com beleza.'],
+  ['Creative Dev', 'Experiências interativas.'],
+  ['Branding Digital', 'Construa uma presença mais forte.'],
 ];
 ---
 <section id="services" class="border-b border-line" aria-labelledby="services-title">
   <div class="wrap flex flex-col gap-5 py-8 lg:grid lg:min-h-[360px] lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
     <div class="flex items-baseline justify-between gap-3 lg:flex-col lg:items-start lg:gap-5">
-      <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Services</h2>
-      <p class="hidden max-w-[260px] text-[15px] text-muted lg:block">From concept to code, I offer a complete range of digital solutions.</p>
-      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">Explore all →</span><span class="hidden lg:inline">View all services →</span></a>
+      <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Serviços</h2>
+      <p class="hidden max-w-[260px] text-[15px] text-muted lg:block">Do conceito ao código, ofereço uma gama completa de soluções digitais.</p>
+      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">Explorar tudo →</span><span class="hidden lg:inline">Ver todos os serviços →</span></a>
     </div>
     <ol class="m-0 grid list-none grid-flow-col grid-cols-2 grid-rows-3 gap-x-5 p-0 lg:gap-x-14">
       {services.map(([name, text], i) => (
