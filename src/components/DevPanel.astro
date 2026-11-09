@@ -2,17 +2,17 @@
 // PAINEL TEMPORÁRIO da câmera da cidade (zoom, inclinação e giro ao vivo). Fica escondido: aparece só com ?camera na URL
 // (ex.: index.html?camera). Para remover: apague este arquivo, o <DevPanel /> do index.astro e o `debug=1` do iframe em Works.astro.
 ---
-<div class="fixed right-4 bottom-4 z-90 hidden max-w-[calc(100vw-32px)] flex-wrap items-center gap-x-5 gap-y-2 border border-dashed border-lime bg-surface px-3.5 py-2.5" id="devpanel" role="group" aria-label="Temporary city camera panel">
-  <span class="label-ui text-[11px] text-lime">Camera</span>
+<div class="fixed right-4 bottom-4 z-90 hidden max-w-[calc(100vw-32px)] flex-wrap items-center gap-x-5 gap-y-2 border border-dashed border-lime bg-surface px-3.5 py-2.5" id="devpanel" role="group" aria-label="Painel temporário da câmera da cidade">
+  <span class="label-ui text-[11px] text-lime">Câmera</span>
   <dl class="m-0 flex flex-wrap gap-x-5 gap-y-1.5">
-    {[['Zoom', 'dpZoom'], ['Tilt', 'dpPitch'], ['Angle', 'dpAngle']].map(([label, id]) => (
+    {[['Zoom', 'dpZoom'], ['Inclinação', 'dpPitch'], ['Giro', 'dpAngle']].map(([label, id]) => (
       <div class="flex items-baseline gap-2">
         <dt class="label-ui text-[11px] text-muted">{label}</dt>
         <dd class="m-0 min-w-[6ch] font-mono text-[16px] leading-none tabular-nums" id={id}>—</dd>
       </div>
     ))}
   </dl>
-  <button type="button" id="dpCopy" class="label-ui min-h-9 cursor-pointer border border-ink bg-transparent px-3.5 text-[11px] hover:border-lime hover:text-lime">Copy values</button>
+  <button type="button" id="dpCopy" class="label-ui min-h-9 cursor-pointer border border-ink bg-transparent px-3.5 text-[11px] hover:border-lime hover:text-lime">Copiar valores</button>
 </div>
 <script is:inline>
   (function () {
@@ -32,9 +32,9 @@
     });
     copyBtn.addEventListener('click', function () {
       if (!last) return;
-      var text = 'zoom ' + last.zoom.toFixed(2) + ' (' + last.zoomPercent.toFixed(1) + '%), tilt ' + last.pitch.toFixed(1) + '°, angle ' + last.angle.toFixed(1) + '°';
-      var reset = function () { setTimeout(function () { copyBtn.textContent = 'Copy values'; }, 1400); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = 'Copied'; reset(); }, function () { copyBtn.textContent = 'Could not copy'; reset(); });
+      var text = 'zoom ' + last.zoom.toFixed(2) + ' (' + last.zoomPercent.toFixed(1) + '%), inclinação ' + last.pitch.toFixed(1) + '°, giro ' + last.angle.toFixed(1) + '°';
+      var reset = function () { setTimeout(function () { copyBtn.textContent = 'Copiar valores'; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = 'Copiado'; reset(); }, function () { copyBtn.textContent = 'Não copiou'; reset(); });
     });
   })();
 </script>
