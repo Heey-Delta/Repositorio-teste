@@ -26,7 +26,9 @@ const small = [
 
     <div id="worksTrack" class="-mx-5 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-5 pb-1 lg:mx-0 lg:grid lg:grid-cols-[1.25fr_1fr] lg:items-stretch lg:gap-6 lg:overflow-visible lg:p-0">
       <!-- NEXUS: a cidade isométrica -->
-      <article class="works-card relative min-h-[400px] min-w-[88%] shrink-0 snap-start overflow-hidden border border-line bg-surface sm:min-w-[70%] lg:min-h-[520px] lg:min-w-0">
+      <article class="works-card relative rounded-3xl min-h-[420px] min-w-[88%] shrink-0 snap-start overflow-hidden border border-line bg-surface sm:min-w-[70%] lg:min-h-[546px] lg:min-w-0">
+        <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
+        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--lime)_30%,transparent),color-mix(in_oklab,var(--lime)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
         <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&card=out&debug=1" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 border-t border-r border-line bg-bg/90 p-4 lg:p-6">
