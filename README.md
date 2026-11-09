@@ -33,6 +33,12 @@ Abaixo disso o layout segue o wireframe mobile (hero com a imagem atrás do tít
 menu hambúrguer, Process vertical com 5 etapas, Services em 2 colunas só com os nomes). Do `lg` para cima segue o wireframe desktop
 (Works em grade, Process horizontal com 6 etapas, descrições nos serviços).
 
+## Cor de destaque animada
+
+O lime (`--lime`) muda devagar: lime → laranja → azul → lime, em 3 trechos de 30 s (90 s no total), sempre vívido (cada tom no limite do sRGB).
+Está em `src/styles/global.css` (`@keyframes accent-cycle`, com a cor montada em OKLCH). Para mudar a velocidade, troque os `90s`; para mudar os tons,
+edite os valores L, C e H de cada etapa. Com "reduzir movimento" a cor fica fixa no lime.
+
 ## Fontes
 
 Anton (títulos e números), Drunk (menu, rótulos e botões) e Arial (textos). A Drunk não está no Google Fonts: ela aparece se estiver
