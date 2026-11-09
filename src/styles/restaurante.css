@@ -2,37 +2,94 @@
 @source "../pages/widgets/cidade-isometrica/restaurante.astro";
 @source "../components/SiteBack.astro";
 
-/* Identidade visual Hanami Sushi: washi 60% · sumi 25% · beni 10% · sakura/kin/matcha 5% */
+/* Identidade visual Kaoru Kaze (香る風): preto quente, dourado e o vermelho do bordo. Cormorant Garamond, Jost e Noto Serif JP. */
 @theme {
-  --color-washi: #F6F0E8;
-  --color-washi-deep: #EDE3D6;
-  --color-sumi: #1F1A1C;
-  --color-sumi-muted: #6B5F5C;
-  --color-sumi-soft: #B8ABA6;
-  --color-beni: #A8322F;
-  --color-beni-dark: #8C2926;
-  --color-sakura: #EBA7B3;
-  --color-sakura-light: #F8E1E5;
-  --color-matcha: #4F6B43;
-  --color-kin: #C9A46A;
-  --font-display: "Shippori Mincho", "Noto Serif JP", Georgia, serif;
-  --font-sans: "Zen Kaku Gothic New", "Helvetica Neue", Arial, sans-serif;
-  --radius-sm: 2px;
-  --radius-md: 6px;
-  /* o site só muda de layout em 880px (tablet) e 520px (celular), como o desenho original */
-  --breakpoint-sm: 521px;
-  --breakpoint-md: 881px;
-  /* pétalas caindo: a deriva e o giro de cada uma vêm de variáveis CSS definidas pelo script */
-  --animate-fall: fall 20s linear infinite;
-  @keyframes fall { to { transform: translate(var(--drift, 60px), 760px) rotate(var(--spin, 260deg)); } }
+  --color-bg: #0E0805;
+  --color-deep: #0A0603;
+  --color-ink: #C7A283;
+  --color-pale: #E3C9AE;
+  --color-gold: #D4B497;
+  --color-muted: #B29578;
+  --color-label: #AC8B71;
+  --color-dim: #8F755F;
+  --color-rule: #9A7556;
+  --color-amber: #C79A5E;
+  --color-wine: #5D1A15;
+  --color-wine-dark: #74241B;
+  --color-seal: #802D21;
+  --color-seal-text: #A8483A;
+  --color-off: #4E3D31;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: Jost, system-ui, sans-serif;
+  --font-jp: "Noto Serif JP", serif;
+  /* o site vira "desktop" a partir de 1000px, como o desenho original */
+  --breakpoint-lg: 1000px;
 }
 
-@utility wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+@utility wrap { width: min(1360px, 100%); margin-inline: auto; }
 
 @layer base {
-  html { color-scheme: light; scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0.01em; }
+  html { color-scheme: dark; scroll-behavior: smooth; }
+  section[id], div[id] { scroll-margin-top: 78px; }
+  h1, h2, h3 { font-weight: 400; }
   a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--color-beni); outline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--color-amber); outline-offset: 3px; }
+  input, select, button { font: inherit; color: inherit; }
+}
+
+/* ---------- Efeitos (animações e hover) ---------- */
+@keyframes kzReveal { from { clip-path: inset(0 100% 0 0); filter: blur(6px); } to { clip-path: inset(0 0 0 0); filter: blur(0); } }
+@keyframes kzRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes kzFloat { 0% { opacity: 0; transform: translate(0, 0); } 25% { opacity: .9; } 100% { opacity: 0; transform: translate(90px, -60px); } }
+@keyframes kzSpine { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes kzWheel { 0% { transform: translateY(0); opacity: 1; } 80% { transform: translateY(10px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes kzOpen { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes kzBob { 0%, 100% { translate: 0 0; box-shadow: 0 0 18px rgba(222,176,90,.12), 0 0 2px rgba(222,176,90,.25); } 50% { translate: 0 -7px; box-shadow: 0 0 28px rgba(222,176,90,.22), 0 0 3px rgba(222,176,90,.35); } }
+@keyframes kzGlow { 0%, 100% { filter: drop-shadow(0 6px 24px rgba(0,0,0,.6)) drop-shadow(0 0 0 rgba(199,154,94,0)); } 50% { filter: drop-shadow(0 6px 24px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(199,154,94,.22)); } }
+.kz-reveal { animation: kzReveal 3.2s cubic-bezier(.65,0,.25,1) both; }
+.kz-in { opacity: 0; animation: kzRise 1.3s cubic-bezier(.2,.7,.2,1) forwards; }
+.kz-wheel { animation: kzWheel 2s ease-in-out infinite; }
+.kz-open { animation: kzOpen .7s ease both; }
+.kz-glow { animation: kzGlow 6s ease-in-out 3.4s infinite; }
+.kz-p { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #C79A5E; opacity: 0; animation: kzFloat 8s linear infinite; pointer-events: none; z-index: 3; }
+.kz-spine path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+@supports (animation-timeline: view()) {
+  .rv { animation: kzRise linear both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+  .kz-spine path { stroke-dashoffset: 1; animation: kzSpine linear both; animation-timeline: scroll(); }
+  @keyframes kzPar { from { transform: translateY(-4%) scale(1.08); } to { transform: translateY(4%) scale(1.08); } }
+  .kz-par { animation: kzPar linear both; animation-timeline: view(); }
+}
+.kz-title { font-weight: 700 !important; color: #E3C9AE !important; text-shadow: 0 0 14px rgba(232,186,110,.45), 0 0 32px rgba(222,176,90,.22); }
+.kz-label { font-weight: 600 !important; color: #D9B98C !important; text-shadow: 0 0 10px rgba(232,186,110,.4); }
+.kz-card { transition: border-color .5s, transform .6s cubic-bezier(.2,.7,.2,1), box-shadow .6s; }
+.kz-card:hover { border-color: rgba(222,180,105,.7) !important; transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.5), 0 0 34px rgba(222,176,90,.32) !important; }
+.kz-bob { border-color: rgba(222,180,105,.32) !important; animation: kzBob 6s ease-in-out infinite; }
+.kz-b2 { animation-delay: -2s; }
+.kz-b3 { animation-delay: -4s; }
+.kz-card img { transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter 1s; }
+.kz-card:hover img { transform: scale(1.06); filter: brightness(1.12); }
+.kz-card .jp { display: inline-block; transition: transform .8s cubic-bezier(.2,.7,.2,1), color .6s; }
+.kz-card:hover .jp { transform: translateY(-6px); color: #E3C9AE; }
+.kz-gal figure img { transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter 1s; }
+.kz-gal figure:hover img { transform: scale(1.06); filter: brightness(1.12); }
+.kz-btn-red, .kz-btn-line { position: relative; overflow: hidden; }
+.kz-btn-red { transition: background .3s; }
+.kz-btn-red:hover { background: #74241B; }
+.kz-btn-red::before { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(227,201,174,.18), transparent); transform: skewX(-20deg); transition: left .9s ease; }
+.kz-btn-red:hover::before { left: 120%; }
+.kz-btn-line { transition: border-color .3s, background .3s; }
+.kz-btn-line:hover { border-color: #C7A283; background: rgba(199,162,131,.06); }
+.kz-link { position: relative; }
+.kz-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: 6px; height: 1px; background: #C79A5E; transform: scaleX(0); transform-origin: right; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.kz-link:hover::after { transform: scaleX(1); transform-origin: left; }
+/* cabeçalho: transparente no topo, sólido depois de rolar */
+.kz-head { background: linear-gradient(to bottom, rgba(10,6,3,.75), rgba(10,6,3,0)); border-bottom: 1px solid transparent; backdrop-filter: blur(8px); transition: background .6s ease, box-shadow .6s ease, border-color .6s ease; }
+.kz-head[data-solid="true"] { background: rgba(10,6,3,.94); border-bottom-color: rgba(199,162,131,.12); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.kz-logo { transition: height .5s cubic-bezier(.2,.7,.2,1); height: 50px; }
+.kz-head[data-solid="true"] .kz-logo { height: 42px; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .kz-in, .rv { opacity: 1; }
+  .kz-spine path { stroke-dashoffset: 0; }
+  html { scroll-behavior: auto; }
 }

@@ -21,6 +21,7 @@ npm run check:widgets
 - `src/styles/global.css` — tema do site principal (preto, branco e lime; Anton, Drunk e Arial). Cada demo tem o seu CSS (`pizzaria.css`, `cafeteria.css`, `restaurante.css`).
 - `src/layouts/` — `Base` (site principal) e `Site` (demos).
 - `src/pages/widgets/cidade-isometrica/{pizzaria,cafeteria,restaurante}.astro` — os 3 sites de demonstração, em `widgets/cidade-isometrica/<nome>/index.html`.
+  O `restaurante` é o **Kaoru Kaze** (香る風): conteúdo e imagens do artefato "Kaoru Kaze — Wireframe" (landing final). As imagens ficam em `public/widgets/cidade-isometrica/restaurante/img/`.
 - `public/widgets/cidade-isometrica/` — a cidade 3D (HTML, modelos, texturas) e as imagens das demos. Copiado como está para `dist/`.
 - `widgets.json` — lista os widgets e diz quais são obrigatórios e em que seção.
 - `scripts/` — `check-widgets.sh` e `artifact-fragment.py` (prepara `dist/index.html` para publicar como artefato).

@@ -116,7 +116,7 @@
     <ul>
       <li><a data-slug="pizzaria" href="pizzaria/index.html">del figlio di Lourenzo</a> — pizzaria com forno a lenha: site de delivery com cardápio filtrável, promoções, horário ao vivo e identidade visual própria.</li>
       <li><a data-slug="cafeteria" href="cafeteria/index.html">Un buon caffè</a> — cafeteria italiana: site com cardápio em abas, o rito do bar, cartão fidelidade interativo e identidade visual própria.</li>
-      <li><a data-slug="restaurante" href="restaurante/index.html">Hanami Sushi</a> — restaurante japonês: página de reservas com menu omakase, cardápio do salão e identidade visual própria.</li>
+      <li><a data-slug="restaurante" href="restaurante/index.html">Kaoru Kaze</a> — restaurante japonês: fachada em movimento, menu em três momentos, galeria do espaço, reserva com calendário e identidade visual própria.</li>
       <li><a data-slug="seu-negocio" href="#contato">Seu negócio aqui: quero um site assim</a> — site sob medida com identidade visual, rápido no celular e pensado para trazer clientes.</li>
     </ul>
   </nav>
@@ -154,7 +154,7 @@
   const FALLBACK_SPOTS = [
     { slug: 'pizzaria', label: 'Pizzaria', x: 26, y: 31 },
     { slug: 'cafeteria', label: 'Cafeteria', x: 40, y: 33 },
-    { slug: 'restaurante', label: 'Sushi', x: 54, y: 37 },
+    { slug: 'restaurante', label: 'Kaoru Kaze', x: 54, y: 37 },
     { slug: 'seu-negocio', label: 'Seu negócio aqui', x: 64, y: 39 }
   ];
   function cityHasWebGL() {
@@ -274,7 +274,7 @@ if (!window.CITY_FALLBACK) (() => {
            info: { kind: 'Cafeteria', hours: [[7, 19]], peaks: [8.5, 16] } },
      4:  { name: 'Restaurante', modelUrl: 'models/restaurante.glb', underlay: SOIL_URL, faceRoad: true,
            door: [0.03, 0, 0.3],
-           info: { kind: 'Restaurante japonês', hours: [[11.5, 15], [18, 23]], peaks: [12.5, 20.5] } },
+           info: { kind: 'Restaurante japonês', hours: [[19, 22]], peaks: [20.5] } },   // janela de reservas do Kaoru Kaze: 19h às 22h
      5:  { name: 'Área Verde', modelUrl: 'models/parque.glb', fillCell: true,
            info: { kind: 'Parque', hours: [[5, 22]], peaks: [8, 17.5] } }
   };
@@ -308,15 +308,15 @@ if (!window.CITY_FALLBACK) (() => {
            bg: '#F4EBDD', ink: '#2A1A14', muted: '#6E5A4E', line: '#E8DAC4', chip: '#E8DAC4', onAccent: '#F4EBDD',
            bannerBg: '#2A1A14', logo: 'cafeteria/caffe-mark.svg', tagline: 'CAFFETTERIA ITALIANA', petal: 'cafeteria/caffe-chicco.svg', rule: '#C8A15A',
          } },
-    4: { slug: 'restaurante', title: 'Hanami Sushi', category: 'Restaurante japonês',
-         description: 'Peixe do dia, cortado na hora. Página de reservas com menu omakase, cardápio do salão e confirmação na hora, com identidade visual própria.',
-         stack: ['HTML', 'CSS', 'JavaScript', 'Responsivo', 'Identidade visual'], accent: '#A8322F', banner: 'restaurante/predio.webp',
-         // Identidade visual Hanami Sushi (design system): washi, sumi, beni, sakura, kin; Shippori Mincho + Zen Kaku Gothic New
+    4: { slug: 'restaurante', title: 'Kaoru Kaze', category: 'Restaurante japonês · Jantar',
+         description: 'O vento que carrega o aroma. Site com a fachada em movimento, o menu em três momentos (Aroma, Vento e Lua), galeria do espaço e reserva com calendário, com identidade visual própria.',
+         stack: ['HTML', 'CSS', 'JavaScript', 'Responsivo', 'Identidade visual'], accent: '#C79A5E', banner: 'restaurante/img/fachada-mobile.jpg',
+         // Identidade visual Kaoru Kaze (香る風): preto quente, dourado e o vermelho do bordo; Cormorant Garamond + Jost
          brand: {
-           fonts: 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap',
-           display: '"Shippori Mincho", "Noto Serif JP", Georgia, serif', body: '"Zen Kaku Gothic New", "Helvetica Neue", Arial, sans-serif',
-           bg: '#F6F0E8', ink: '#1F1A1C', muted: '#6B5F5C', line: '#EDE3D6', chip: '#EDE3D6', onAccent: '#F6F0E8',
-           bannerBg: '#1F1A1C', logo: 'restaurante/hanami-mark.svg', tagline: 'SUSHI · 花見寿司', petal: 'restaurante/hanami-blossom.svg', rule: '#C9A46A',
+           fonts: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Jost:wght@300;400;500&display=swap',
+           display: '"Cormorant Garamond", Georgia, serif', body: 'Jost, system-ui, sans-serif',
+           bg: '#0E0805', ink: '#E3C9AE', muted: '#B29578', line: '#2A1C14', chip: '#1A110B', onAccent: '#0E0805',
+           bannerBg: '#0A0603', logo: 'restaurante/img/kaoru-mark.png', kicker: '香る風', tagline: 'O VENTO QUE CARREGA O AROMA', rule: '#9A7556',
          } },
   };
 
