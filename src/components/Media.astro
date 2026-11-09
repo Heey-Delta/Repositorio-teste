@@ -1,12 +1,16 @@
 ---
 // Espaço de imagem. Sem `src` mostra um marcador (caixa escura com X); com `src` mostra a imagem.
-// A posição (relative/absolute) vem de quem usa, porque os enfeites internos (blocos lime) se posicionam em relação a este elemento.
+// Com `src`, o elemento vira um quadro (relative, overflow hidden) com a imagem preenchendo tudo; `imgClass` ajusta o enquadramento
+// (ex.: object-[60%_20%]). Sem `src` mostra o marcador. Os enfeites (blocos lime) entram pelo slot nos dois casos.
 // Para trocar: coloque o arquivo em public/img/ e passe src="img/nome.jpg" (caminho relativo à raiz do site).
-interface Props { label: string; alt?: string; src?: string; class?: string; }
-const { label, alt, src, class: extra = '' } = Astro.props;
+interface Props { label: string; alt?: string; src?: string; class?: string; imgClass?: string; eager?: boolean; }
+const { label, alt, src, class: extra = '', imgClass = '', eager = false } = Astro.props;
 ---
 {src
-  ? <img src={src} alt={alt ?? label} class:list={['size-full object-cover', extra]} loading="lazy">
+  ? <div class:list={['overflow-hidden', extra]}>
+      <img src={src} alt={alt ?? label} class:list={['absolute inset-0 size-full object-cover', imgClass]} loading={eager ? 'eager' : 'lazy'} decoding="async">
+      <slot />
+    </div>
   : <div role="img" aria-label={alt ?? label} class:list={['flex items-center justify-center overflow-hidden bg-[linear-gradient(to_top_right,transparent_calc(50%-1px),#2E2E2E,transparent_calc(50%+1px)),linear-gradient(to_top_left,transparent_calc(50%-1px),#2E2E2E,transparent_calc(50%+1px)),#161616] p-3 text-center', extra]}>
       <span class="label-ui bg-[#161616] px-2.5 py-1.5 text-[11px] text-muted">[ {label} ]</span>
       <slot />
