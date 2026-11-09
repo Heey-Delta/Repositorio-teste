@@ -59,13 +59,17 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; scroll-padding-top: var(--header-h, 0px); }   /* âncoras param abaixo do cabeçalho fixo */
-  html.loading { overflow: hidden; }
-  body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.5; }
   body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--bg); }
   h1, h2, h3 { font-weight: 400; text-wrap: balance; }
   a { color: inherit; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
   ::selection { background: var(--lime); color: #000; }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 }
+
+/* html e body ficam FORA de @layer de propósito: o esqueleto que a plataforma de artefatos coloca em volta da página
+   define `body { background: #fff; color: #000; font: 14px ... }` e `html { scroll-padding-top: ... }` sem camada,
+   e regra sem camada vence regra em camada. Aqui elas vêm depois, com a mesma especificidade, então valem as nossas. */
+html { scroll-behavior: smooth; scroll-padding-top: var(--header-h, 0px); }   /* âncoras param abaixo do cabeçalho fixo */
+html.loading { overflow: hidden; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.5; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

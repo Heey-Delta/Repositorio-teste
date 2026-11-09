@@ -30,6 +30,17 @@
     transform: translateY(105%); visibility: hidden; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.35s; }
   .info-card.open { transform: translateY(0); visibility: visible; transition-delay: 0s; }
   .card-outside .info-card { display: none; }   /* card por fora: o card interno não aparece */
+  /* Dentro da página principal (iframe): a cidade ocupa o quadro todo, sem as margens da página de teste, e a moldura
+     em volta vira vidro (translúcido com desfoque) por cima dela, então a cidade continua aparecendo por trás ao mover */
+  html.embedded body { height: 100%; overflow: hidden; flex-direction: row; }
+  html.embedded .city-widget { flex: 1; height: 100%; margin: 0; border-radius: 0; }
+  .glass-frame { display: none; }
+  html.embedded .glass-frame { display: block; position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+  .glass-frame i { position: absolute; background: rgba(255, 255, 255, 0.07); -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4); }
+  .glass-frame i:nth-child(1) { top: 0; left: 0; right: 0; height: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
+  .glass-frame i:nth-child(2) { bottom: 0; left: 0; right: 0; height: 14px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+  .glass-frame i:nth-child(3) { top: 14px; bottom: 14px; left: 0; width: 14px; border-right: 1px solid rgba(255, 255, 255, 0.16); }
+  .glass-frame i:nth-child(4) { top: 14px; bottom: 14px; right: 0; width: 14px; border-left: 1px solid rgba(255, 255, 255, 0.16); }
   /* Desfoque das bordas no zoom: uma máscara de CSS por cima do canvas (o navegador desfoca o que está
      atrás dela). O centro fica nítido e o desfoque cresce em círculo até as bordas. */
   .city-edge-blur { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: none;
@@ -93,6 +104,7 @@
 <div class="city-widget" id="cityWidget">
   <div id="canvas-container"></div>
   <div class="city-edge-blur" id="cityEdgeBlur" aria-hidden="true"></div>
+  <div class="glass-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="city-toast" id="cityToast" role="status" aria-live="polite"></div>
   <div class="feed-ui" id="feedUi" hidden>
     <button type="button" class="feed-bread" id="btnBread" aria-label="Jogar um pão">🍞</button>
@@ -129,6 +141,7 @@
   // Card por fora: com ?card=out o card dos prédios abre na página que embute a cidade, não dentro dela.
   const CARD_OUTSIDE = HOLD_INTRO && new URLSearchParams(location.search).get('card') === 'out';
   if (CARD_OUTSIDE) document.documentElement.classList.add('card-outside');
+  if (HOLD_INTRO) document.documentElement.classList.add('embedded');   // dentro da página principal: cidade em tela cheia com moldura de vidro
   function notifyParentLoaded() {
     if (!HOLD_INTRO) return;
     try { window.parent.postMessage({ type: 'city:loaded' }, '*'); } catch (e) {}
