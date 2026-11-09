@@ -1,0 +1,20 @@
+---
+import Media from './Media.astro';
+---
+<section id="top" class="relative overflow-hidden border-b border-line" aria-label="Hero">
+  <div class="wrap lg:grid lg:grid-cols-[1.08fr_1fr] lg:gap-6">
+    <!-- Imagem: atrás do título no celular, coluna da direita no desktop -->
+    <Media label="Hero image: marble bust, glitch" class="absolute top-0 right-0 h-full w-[62%] border-l border-line lg:relative lg:order-2 lg:mt-6 lg:h-auto lg:min-h-[780px] lg:w-auto lg:border">
+      <span class="absolute top-0 right-0 size-14 bg-lime lg:size-[120px]" aria-hidden="true"></span>
+      <span class="absolute right-0 bottom-0 hidden size-16 bg-ink lg:block" aria-hidden="true"></span>
+    </Media>
+    <div class="relative z-10 flex min-h-[540px] lg:order-1 flex-col justify-between gap-10 py-8 lg:min-h-[880px] lg:py-[72px]">
+      <div class="flex flex-col gap-4 lg:gap-7">
+        <span class="label-ui text-[11px] text-muted lg:hidden">Independent digital designer</span>
+        <h1 class="font-display text-[clamp(52px,15.5vw,72px)] leading-[0.98] uppercase lg:text-[clamp(96px,8.6vw,124px)]">I build<br><span class="text-lime">Digital</span><br>Experiences.</h1>
+        <p class="max-w-[230px] text-sm text-ink lg:max-w-[330px] lg:text-lg lg:text-muted">Transforming ideas into bold and functional web experiences.</p>
+      </div>
+      <a href="#works" class="label-ui flex items-center gap-3 text-[11px]"><span class="text-2xl leading-none lg:text-[26px]" aria-hidden="true">↓</span>Scroll to explore</a>
+    </div>
+  </div>
+</section>

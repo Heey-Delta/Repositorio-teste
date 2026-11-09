@@ -1,66 +1,35 @@
 ---
 import Base from '../layouts/Base.astro';
-import Header from '../components/Header.astro';
 import Loader from '../components/Loader.astro';
-import Button from '../components/Button.astro';
-import CityCard from '../components/CityCard.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Works from '../components/Works.astro';
 import About from '../components/About.astro';
 import Services from '../components/Services.astro';
 import Process from '../components/Process.astro';
-import Stacks from '../components/Stacks.astro';
-import BlogLatest from '../components/BlogLatest.astro';
+import Lab from '../components/Lab.astro';
 import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import DevPanel from '../components/DevPanel.astro';
 
-const fonts = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap';
-
-const h2 = 'text-[clamp(30px,4vw,44px)] leading-[1.05] font-extrabold';
+const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
 ---
-<Base title="Sites que Abrem as Portas" description="Sites sob medida para pizzarias, cafés, restaurantes e negócios do bairro: identidade visual própria, rápidos no celular e feitos para trazer clientes." fonts={fonts}>
+<Base title="/DV · Digital Experience Designer" description="I build digital experiences: web design, web development, landing pages, e-commerce, creative dev and digital branding." fonts={fonts} lang="en">
   <script slot="head" is:inline>document.documentElement.classList.add('loading');</script>
-  <!-- Visual do card dos prédios (o mesmo da cidade); o card abre aqui por fora, ver CityCard -->
+  <!-- Visual do card dos prédios da cidade (o mesmo do card interno); o card abre por fora, ver CityCard -->
   <link slot="head" rel="stylesheet" href="widgets/cidade-isometrica/card.css">
 
   <Loader />
   <Header />
-
-  <main id="inicio">
-    <div class="wrap grid justify-items-start gap-7 pt-[clamp(56px,9vw,104px)] pb-[clamp(40px,6vw,64px)]">
-      <span class="eyebrow">Sites para negócios do bairro</span>
-      <h1 class="max-w-[820px] text-[clamp(40px,6.4vw,76px)] font-extrabold">Seu negócio merece um site que abre as portas.</h1>
-      <p class="max-w-[620px] text-[clamp(18px,2vw,21px)] text-ink-soft">Eu crio o site da sua pizzaria, café ou restaurante com identidade visual própria, rápido no celular e pensado para trazer clientes de verdade.</p>
-      <div class="flex flex-wrap gap-3">
-        <Button href="#projetos">Passear pela cidade</Button>
-        <Button href="#contato" variant="ghost">Quero um site assim</Button>
-      </div>
-    </div>
-
+  <main>
+    <Hero />
+    <Works />
     <About />
-
-    <section id="portfolio" class="relative z-30 border-y border-line bg-linear-to-b from-sky-top to-sky-bottom" aria-labelledby="projetos-title">
-      <span id="projetos"></span>
-      <div class="wrap flex flex-wrap items-end justify-between gap-x-8 gap-y-4 pt-14 pb-6">
-        <div class="grid min-w-0 max-w-[600px] gap-3">
-          <span class="eyebrow">Projetos</span>
-          <h2 id="projetos-title" class={h2}>Cada prédio desta rua é um site que eu fiz.</h2>
-          <p class="text-ink-soft">Clique num prédio para ver o projeto. Arraste para girar e use a roda do mouse ou dois dedos para aproximar.</p>
-        </div>
-        <Button href="widgets/cidade-isometrica/index.html" variant="ghost">Abrir em tela cheia</Button>
-      </div>
-      <div>
-        <!-- Widget obrigatório: Cidade Isométrica 3D. O color-scheme igual ao da cidade evita o fundo branco no tema escuro. -->
-        <iframe class="block h-[clamp(300px,44vh,470px)] w-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&debug=1&card=out" title="Cidade isométrica 3D com os projetos: pizzaria, cafeteria, restaurante japonês, um lote disponível e um parque"></iframe>
-      </div>
-      <CityCard />
-    </section>
-
     <Services />
     <Process />
-    <Stacks />
-    <BlogLatest />
+    <Lab />
     <Contact />
   </main>
-
-  <footer class="py-6 text-[14px] text-ink-soft">
-    <div class="wrap">© [Seu nome]. Sites para negócios do bairro.</div>
-  </footer>
+  <Footer />
+  <DevPanel />
 </Base>

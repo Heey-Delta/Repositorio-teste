@@ -5,7 +5,7 @@
       "entry": "widgets/cidade-isometrica/index.html",
       "component": "CidadeIsometrica",
       "required": true,
-      "requiredIn": "section#portfolio"
+      "requiredIn": "section#works"
     }
   }
 }

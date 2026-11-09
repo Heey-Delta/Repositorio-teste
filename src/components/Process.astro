@@ -1,23 +1,37 @@
 ---
-import SectionHead from './SectionHead.astro';
-// A ordem aqui é informação: cada etapa vem depois da anterior.
-const steps = [
-  ['Conversa', 'Entendo o seu negócio, seus clientes e o que o site precisa resolver.'],
-  ['Identidade e layout', 'Você vê a proposta visual antes de qualquer página ficar pronta.'],
-  ['Site no ar', 'Publico o site e mostro como atualizar cardápio e horários.'],
-];
+// No celular: 5 etapas em linha vertical. No desktop: 6 etapas em linha horizontal, cada uma com seu verbo.
+const desktop = [['Discover', 'Understand'], ['Plan', 'Strategize'], ['Design', 'Create'], ['Develop', 'Build'], ['Test', 'Optimize'], ['Launch', 'Deliver']];
+const mobile = ['Discovery', 'Strategy', 'Design', 'Develop', 'Launch'];
 ---
-<section id="processo" class="section-y border-y border-line bg-surface" aria-labelledby="processo-title">
-  <div class="wrap">
-    <SectionHead eyebrow="Processo de trabalho" title="Um site feito com você, do começo ao fim." id="processo-title" class="mb-10" />
-    <ol class="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-10 gap-y-8 p-0">
-      {steps.map(([title, text], i) => (
-        <li class="grid content-start gap-3">
-          <span class="grid size-11 place-items-center rounded-full bg-ink font-mono text-[15px] leading-none font-medium text-paper">{i + 1}</span>
-          <h3 class="text-[22px] leading-[1.05] font-semibold">{title}</h3>
-          <p class="text-ink-soft">{text}</p>
-        </li>
-      ))}
-    </ol>
+<section id="process" class="relative overflow-hidden border-b border-line bg-surface" aria-labelledby="process-title">
+  <!-- globo decorativo (aramado) -->
+  <svg class="pointer-events-none absolute -top-16 -right-24 size-[260px] text-line lg:-top-24 lg:right-0 lg:size-[360px]" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="100" cy="100" r="96"/><ellipse cx="100" cy="100" rx="96" ry="38"/><ellipse cx="100" cy="100" rx="38" ry="96"/><ellipse cx="100" cy="100" rx="66" ry="96"/><path d="M4 100h192M100 4v192"/></svg>
+  <div class="wrap relative grid min-h-[300px] grid-cols-2 items-start gap-4 py-8 lg:min-h-[380px] lg:grid-cols-[1fr_2fr] lg:items-center lg:gap-16 lg:py-16">
+    <div class="flex flex-col gap-3.5 lg:gap-5">
+      <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ The<br>Process</h2>
+      <p class="text-[13px] text-muted lg:max-w-[240px] lg:text-[15px]">A strategic and collaborative process for exceptional results.</p>
+      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">View process →</span><span class="hidden lg:inline">View the process →</span></a>
+    </div>
+    <!-- celular: vertical -->
+    <div class="relative pl-[18px] lg:hidden">
+      <div class="absolute top-2.5 bottom-2.5 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
+      <ol class="m-0 flex list-none flex-col gap-[22px] p-0">
+        {mobile.map((step, i) => (
+          <li class="relative flex gap-3.5 font-ui text-sm"><span class:list={['absolute top-1 -left-[18px] size-[11px] rounded-full border border-ink', i === mobile.length - 1 ? 'border-lime bg-lime' : 'bg-surface']} aria-hidden="true"></span><span class="text-muted">{String(i + 1).padStart(2, '0')}</span>{step}</li>
+        ))}
+      </ol>
+    </div>
+    <!-- desktop: horizontal -->
+    <div class="relative hidden lg:block">
+      <div class="absolute top-[22px] right-[4%] left-[4%] h-px bg-line" aria-hidden="true"></div>
+      <ol class="relative m-0 grid list-none grid-cols-6 gap-2 p-0">
+        {desktop.map(([name, verb], i) => (
+          <li class="flex flex-col items-center gap-3.5 text-center">
+            <span class:list={['grid size-11 place-items-center rounded-full border font-ui text-[13px]', i === desktop.length - 1 ? 'border-lime bg-lime text-black' : 'border-ink bg-surface']}>{String(i + 1).padStart(2, '0')}</span>
+            <span><span class="block font-ui text-[15px] font-medium">{name}</span><span class="block text-xs text-muted">{verb}</span></span>
+          </li>
+        ))}
+      </ol>
+    </div>
   </div>
 </section>

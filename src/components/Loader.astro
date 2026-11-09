@@ -1,20 +1,21 @@
 ---
 // Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar.
 // A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' }; aí a tela sai e a página responde
-// { type: 'city:start' } para disparar a animação de entrada. Há um limite de 5 s: se a cidade não tiver carregado, a página abre sozinha e a cidade anima quando ficar pronta.
+// { type: 'city:start' } para disparar a animação de entrada. Limite de 5 s: se a cidade não tiver carregado,
+// a página abre sozinha e a cidade anima quando ficar pronta.
 ---
-<div class="loader fixed inset-0 z-100 grid place-content-center place-items-center gap-7 bg-paper px-[max(16px,env(safe-area-inset-right,0px))] py-6" id="loader" role="status" aria-live="polite">
+<div class="loader fixed inset-0 z-100 grid place-content-center place-items-center gap-7 bg-bg px-[max(20px,env(safe-area-inset-right,0px))] py-6" id="loader" role="status" aria-live="polite">
   <div class="grid justify-items-center gap-5 text-center">
-    <svg class="size-14 text-ink" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="12" width="10" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="5" width="14" height="23" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="18" y="20" width="6" height="8" fill="currentColor"/></svg>
-    <div class="font-display text-[clamp(24px,4vw,32px)] leading-[1.1] font-extrabold text-balance">Montando a cidade</div>
-    <div class="loader-bar h-1 w-[min(260px,70vw)] overflow-hidden rounded bg-line" aria-hidden="true"></div>
-    <span class="eyebrow">Carregando os modelos 3D</span>
+    <span class="font-display text-[56px] leading-none">/DV</span>
+    <div class="font-display text-[clamp(24px,5vw,32px)] leading-[1.1] uppercase">Building the city</div>
+    <div class="loader-bar h-1 w-[min(260px,70vw)] overflow-hidden bg-line" aria-hidden="true"></div>
+    <span class="label-ui text-[11px] text-muted">Loading 3D models</span>
   </div>
 </div>
 <style is:global>
   .loader { transition: opacity .45s ease, visibility 0s linear .45s; }
   html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
-  .loader-bar::before { content: ""; display: block; height: 100%; width: 40%; border-radius: 4px; background: var(--accent); animation: loader-slide 1.3s ease-in-out infinite; }
+  .loader-bar::before { content: ""; display: block; height: 100%; width: 40%; background: var(--lime); animation: loader-slide 1.3s ease-in-out infinite; }
   @keyframes loader-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
   @media (prefers-reduced-motion: reduce) {
     .loader { transition: none; }
@@ -37,6 +38,5 @@
       if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
     });
     setTimeout(finish, MAX_MS);   // limite: depois de 5 s a página abre sozinha, mesmo sem a cidade pronta
-
   })();
 </script>

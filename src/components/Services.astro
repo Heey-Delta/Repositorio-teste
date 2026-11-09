@@ -1,21 +1,27 @@
 ---
-import SectionHead from './SectionHead.astro';
 const services = [
-  ['Site sob medida', 'Cardápio, reservas, delivery ou fidelidade: as páginas que o seu negócio usa no dia a dia, sem modelo pronto.'],
-  ['Identidade visual própria', 'Cores, fontes e marca pensadas para o seu ponto, do letreiro ao botão de pedir.'],
-  ['Rápido no celular', 'A maioria dos clientes chega pelo telefone. O site abre rápido e funciona bem na tela pequena.'],
+  ['Web Design', 'Visual interfaces that inspire.'],
+  ['Web Development', 'Performance and scalability.'],
+  ['Landing Pages', 'Focus on results.'],
+  ['E-commerce', 'Sell more, beautifully.'],
+  ['Creative Dev', 'Interactive experiences.'],
+  ['Digital Branding', 'Build a stronger presence.'],
 ];
 ---
-<section id="servicos" class="section-y" aria-labelledby="servicos-title">
-  <div class="wrap">
-    <SectionHead eyebrow="Serviços" title="O que vem no seu site" id="servicos-title" class="mb-10" />
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-x-10 gap-y-8">
-      {services.map(([title, text]) => (
-        <article class="grid content-start gap-2.5 border-t-2 border-ink pt-[18px]">
-          <h3 class="text-[22px] leading-[1.05] font-semibold">{title}</h3>
-          <p class="text-ink-soft">{text}</p>
-        </article>
-      ))}
+<section id="services" class="border-b border-line" aria-labelledby="services-title">
+  <div class="wrap flex flex-col gap-5 py-8 lg:grid lg:min-h-[360px] lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
+    <div class="flex items-baseline justify-between gap-3 lg:flex-col lg:items-start lg:gap-5">
+      <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Services</h2>
+      <p class="hidden max-w-[260px] text-[15px] text-muted lg:block">From concept to code, I offer a complete range of digital solutions.</p>
+      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">Explore all →</span><span class="hidden lg:inline">View all services →</span></a>
     </div>
+    <ol class="m-0 grid list-none grid-flow-col grid-cols-2 grid-rows-3 gap-x-5 p-0 lg:gap-x-14">
+      {services.map(([name, text], i) => (
+        <li class="grid grid-cols-[28px_1fr] gap-1.5 border-b border-line py-3 lg:grid-cols-[56px_1fr] lg:py-[18px]">
+          <span class="font-ui text-[13px] text-muted lg:text-sm">{String(i + 1).padStart(2, '0')}</span>
+          <div><div class="font-ui text-sm font-medium lg:text-[17px]">{name}</div><div class="hidden text-[13px] text-muted lg:block">{text}</div></div>
+        </li>
+      ))}
+    </ol>
   </div>
 </section>

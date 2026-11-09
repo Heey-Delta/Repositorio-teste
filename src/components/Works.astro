@@ -1,0 +1,72 @@
+---
+// Seleção de trabalhos. O card do Nexus é a cidade isométrica 3D (widget obrigatório, ver widgets.json).
+// No celular os 3 cards viram um carrossel; no desktop, uma grade. O card dos prédios abre por cima da seção
+// de baixo (CityCard), preso à borda inferior desta seção (por isso `relative z-30`).
+import CityCard from './CityCard.astro';
+import Media from './Media.astro';
+const small = [
+  { title: 'Vértice', kind: 'Brand & website', year: '2026' },
+  { title: 'Aurora', kind: 'Landing page', year: '2026' },
+];
+---
+<section id="works" class="relative z-30 border-b border-line" aria-labelledby="works-title">
+  <div class="wrap flex flex-col gap-5 py-8 lg:gap-10 lg:py-16">
+    <div class="flex items-end justify-between gap-6">
+      <h2 id="works-title" class="font-display text-[clamp(40px,11vw,56px)] leading-none uppercase lg:text-[72px]">/ Selected<br>Works</h2>
+      <div class="hidden w-[280px] flex-col gap-4 lg:flex">
+        <p class="text-[15px] text-muted">A curated selection of projects that define my creative process.</p>
+        <a href="#works" class="link-ui self-start">View all works →</a>
+      </div>
+      <div class="flex gap-1 lg:hidden">
+        <button type="button" id="worksPrev" class="size-11 cursor-pointer border border-ink text-lg hover:border-lime hover:text-lime" aria-label="Previous project">←</button>
+        <button type="button" id="worksNext" class="size-11 cursor-pointer border border-ink text-lg hover:border-lime hover:text-lime" aria-label="Next project">→</button>
+      </div>
+    </div>
+    <p id="worksCount" class="label-ui lg:hidden" aria-live="polite">01 — 03</p>
+
+    <div id="worksTrack" class="-mx-5 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-5 pb-1 lg:mx-0 lg:grid lg:grid-cols-[1.25fr_1fr] lg:items-stretch lg:gap-6 lg:overflow-visible lg:p-0">
+      <!-- NEXUS: a cidade isométrica -->
+      <article class="works-card relative min-h-[400px] min-w-[88%] shrink-0 snap-start overflow-hidden border border-line bg-surface sm:min-w-[70%] lg:min-h-[520px] lg:min-w-0">
+        <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&card=out&debug=1" title="Interactive 3D isometric city with the projects: pizzeria, café, Japanese restaurant, a vacant lot and a park"></iframe>
+        <div class="pointer-events-none absolute bottom-0 left-0">
+          <div class="pointer-events-auto flex flex-col gap-1.5 border-t border-r border-line bg-bg/90 p-4 lg:p-6">
+            <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Nexus</h3>
+            <p class="label-ui text-[11px] text-muted lg:text-xs">Corporate website<br>2026</p>
+            <a href="widgets/cidade-isometrica/index.html" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">View project →</a>
+          </div>
+        </div>
+      </article>
+      <div class="contents lg:grid lg:grid-rows-2 lg:gap-6">
+        {small.map((p) => (
+          <article class="works-card grid min-h-[190px] min-w-[88%] shrink-0 snap-start grid-cols-2 border border-line sm:min-w-[70%] lg:min-h-[248px] lg:min-w-0">
+            <div class="flex flex-col justify-center gap-1.5 p-4 lg:p-7">
+              <h3 class="font-display text-[28px] leading-none uppercase lg:text-[32px]">{p.title}</h3>
+              <p class="label-ui text-[11px] text-muted lg:text-xs">{p.kind}<br>{p.year}</p>
+              <a href="#contact" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">View project →</a>
+            </div>
+            <Media label={`${p.title} project`} class="relative border-l border-line" />
+          </article>
+        ))}
+      </div>
+    </div>
+    <p class="label-ui hidden lg:block">01 — 03</p>
+  </div>
+  <CityCard />
+</section>
+<script is:inline>
+  // Carrossel do celular: setas e contador (no desktop os cards ficam numa grade e nada disso é usado)
+  (function () {
+    var track = document.getElementById('worksTrack'), count = document.getElementById('worksCount');
+    var prev = document.getElementById('worksPrev'), next = document.getElementById('worksNext');
+    if (!track) return;
+    var cards = track.querySelectorAll('.works-card');
+    function step() { return cards[0].getBoundingClientRect().width + 16; }
+    function update() {
+      var i = Math.min(cards.length - 1, Math.round(track.scrollLeft / step()));
+      count.textContent = '0' + (i + 1) + ' — 0' + cards.length;
+    }
+    track.addEventListener('scroll', update, { passive: true });
+    prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+    next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+  })();
+</script>

@@ -1,37 +1,40 @@
 ---
-// PAINEL TEMPORÁRIO: mostra a câmera da cidade ao vivo (zoom, inclinação e giro) para escolher o enquadramento.
-// Para remover: apague este arquivo, o <DevPanel /> do Header e o `&debug=1` do iframe da cidade.
+// PAINEL TEMPORÁRIO da câmera da cidade (zoom, inclinação e giro ao vivo). Fica escondido: aparece só com ?camera na URL
+// (ex.: index.html?camera). Para remover: apague este arquivo, o <DevPanel /> do index.astro e o `debug=1` do iframe em Works.astro.
 ---
-<div class="flex basis-full flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border-[1.5px] border-dashed border-lamp bg-surface px-3.5 py-2.5" id="devpanel" role="group" aria-label="Painel temporário da câmera da cidade">
-  <span class="font-mono text-[11px] leading-none font-medium tracking-[0.14em] text-lamp uppercase">Temporário · câmera</span>
-  <dl class="m-0 flex flex-wrap gap-x-6 gap-y-1.5">
-    {[['Zoom', 'dpZoom'], ['Inclinação', 'dpPitch'], ['Giro', 'dpAngle']].map(([label, id]) => (
+<div class="fixed right-4 bottom-4 z-90 hidden max-w-[calc(100vw-32px)] flex-wrap items-center gap-x-5 gap-y-2 border border-dashed border-lime bg-surface px-3.5 py-2.5" id="devpanel" role="group" aria-label="Temporary city camera panel">
+  <span class="label-ui text-[11px] text-lime">Camera</span>
+  <dl class="m-0 flex flex-wrap gap-x-5 gap-y-1.5">
+    {[['Zoom', 'dpZoom'], ['Tilt', 'dpPitch'], ['Angle', 'dpAngle']].map(([label, id]) => (
       <div class="flex items-baseline gap-2">
-        <dt class="font-mono text-[12px] leading-none tracking-[0.06em] text-ink-soft uppercase">{label}</dt>
-        <dd class="m-0 min-w-[6ch] font-mono text-[18px] leading-none font-medium tabular-nums" id={id}>—</dd>
+        <dt class="label-ui text-[11px] text-muted">{label}</dt>
+        <dd class="m-0 min-w-[6ch] font-mono text-[16px] leading-none tabular-nums" id={id}>—</dd>
       </div>
     ))}
   </dl>
-  <button type="button" id="dpCopy" class="ml-auto min-h-9 cursor-pointer rounded-full border-[1.5px] border-ink bg-transparent px-3.5 text-[13px] leading-none font-semibold text-ink hover:bg-paper">Copiar valores</button>
+  <button type="button" id="dpCopy" class="label-ui min-h-9 cursor-pointer border border-ink bg-transparent px-3.5 text-[11px] hover:border-lime hover:text-lime">Copy values</button>
 </div>
 <script is:inline>
   (function () {
+    var panel = document.getElementById('devpanel');
+    if (!/[?&]camera\b/.test(location.search)) return;
+    panel.classList.remove('hidden'); panel.classList.add('flex');
     var last = null;
     var zoomEl = document.getElementById('dpZoom'), pitchEl = document.getElementById('dpPitch'), angleEl = document.getElementById('dpAngle');
     var copyBtn = document.getElementById('dpCopy');
     window.addEventListener('message', function (e) {
-      var d = e.data, frame = document.getElementById('cityFrame');   // o iframe vem depois deste script
+      var d = e.data, frame = document.getElementById('cityFrame');
       if (!frame || e.source !== frame.contentWindow || !d || d.type !== 'city:camera') return;
       last = d;
-      zoomEl.innerHTML = d.zoom.toFixed(2) + '×<small class="ml-1 text-xs text-ink-soft">' + d.zoomPercent.toFixed(1) + '%</small>';
+      zoomEl.innerHTML = d.zoom.toFixed(2) + '×<small class="ml-1 text-xs text-muted">' + d.zoomPercent.toFixed(1) + '%</small>';
       pitchEl.textContent = d.pitch.toFixed(1) + '°';
       angleEl.textContent = d.angle.toFixed(1) + '°';
     });
     copyBtn.addEventListener('click', function () {
       if (!last) return;
-      var text = 'zoom ' + last.zoom.toFixed(2) + ' (' + last.zoomPercent.toFixed(1) + '% no indicador), inclinação ' + last.pitch.toFixed(1) + '°, giro ' + last.angle.toFixed(1) + '°';
-      var reset = function () { setTimeout(function () { copyBtn.textContent = 'Copiar valores'; }, 1400); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = 'Copiado'; reset(); }, function () { copyBtn.textContent = 'Não copiou'; reset(); });
+      var text = 'zoom ' + last.zoom.toFixed(2) + ' (' + last.zoomPercent.toFixed(1) + '%), tilt ' + last.pitch.toFixed(1) + '°, angle ' + last.angle.toFixed(1) + '°';
+      var reset = function () { setTimeout(function () { copyBtn.textContent = 'Copy values'; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = 'Copied'; reset(); }, function () { copyBtn.textContent = 'Could not copy'; reset(); });
     });
   })();
 </script>

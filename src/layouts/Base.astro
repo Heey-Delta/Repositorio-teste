@@ -2,7 +2,7 @@
 // Estrutura comum das páginas: <head>, fontes do Google e o slot do conteúdo.
 import '../styles/global.css';
 interface Props { title: string; description?: string; fonts?: string; lang?: string; icon?: string; bodyClass?: string; }
-const { title, description, fonts, lang = 'pt-BR', icon, bodyClass } = Astro.props;
+const { title, description, fonts, lang = 'en', icon, bodyClass } = Astro.props;
 ---
 <html lang={lang}>
 <head>
