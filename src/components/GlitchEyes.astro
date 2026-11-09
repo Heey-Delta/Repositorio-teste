@@ -1,0 +1,52 @@
+---
+// Efeito de glitch nos olhos da escultura: faixas horizontais da própria imagem, deslocadas de lado, uma barra preta e um
+// traço lime piscam em rajadas curtas (a cada ~4 s). As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
+// (a imagem preenche o quadro pela altura, então a proporção vale no desktop e no celular).
+// Vai dentro do <Media> da imagem; `src` e `position` precisam ser os mesmos da imagem.
+interface Props { src: string; position?: string; }
+const { src, position = '62% center' } = Astro.props;
+const bg = `background-image:url(${src}); background-position:${position};`;
+---
+<div class="glitch pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
+  <div class="gl-layer gl-a" style={bg}></div>
+  <div class="gl-layer gl-b" style={bg}></div>
+  <div class="gl-layer gl-c" style={bg}></div>
+  <div class="gl-bar"></div>
+  <div class="gl-lime"></div>
+</div>
+<style is:global>
+  .glitch { --gl-t: 4.4s; }
+  .gl-layer { position: absolute; inset: 0; background-size: cover; background-repeat: no-repeat; will-change: transform, clip-path; }
+  .gl-a { clip-path: inset(24% 0 69% 0); animation: glA var(--gl-t) steps(1, end) infinite; }
+  .gl-b { clip-path: inset(26% 0 67% 0); filter: contrast(1.5) brightness(1.25); animation: glB var(--gl-t) steps(1, end) infinite; }
+  .gl-c { clip-path: inset(25% 0 68% 0); filter: grayscale(1) contrast(1.8) brightness(0.8); animation: glC var(--gl-t) steps(1, end) infinite; }
+  .gl-bar { position: absolute; left: 0; right: 0; top: 26.4%; height: 2.4%; background: #000; opacity: 0; animation: glBar var(--gl-t) steps(1, end) infinite; }
+  .gl-lime { position: absolute; left: 14%; right: 6%; top: 29.4%; height: 3px; background: var(--lime); opacity: 0; animation: glLime var(--gl-t) steps(1, end) infinite; }
+  /* rajada principal em ~83-92% do ciclo, uma menor em ~38-42% */
+  @keyframes glA {
+    0%, 38%, 43%, 83%, 93%, 100% { transform: none; clip-path: inset(24% 0 69% 0); }
+    39% { transform: translateX(-10px); clip-path: inset(25% 0 70% 0); }
+    41% { transform: translateX(8px); clip-path: inset(24% 0 69% 0); }
+    84% { transform: translateX(-24px); clip-path: inset(24% 0 68% 0); }
+    86% { transform: translateX(18px); clip-path: inset(23% 0 71% 0); }
+    88% { transform: translateX(-9px); clip-path: inset(25% 0 67% 0); }
+    90% { transform: translateX(14px); clip-path: inset(24% 0 69% 0); }
+  }
+  @keyframes glB {
+    0%, 40%, 44%, 84%, 94%, 100% { transform: none; clip-path: inset(26% 0 67% 0); }
+    41% { transform: translateX(12px); clip-path: inset(27% 0 66% 0); }
+    85% { transform: translateX(26px); clip-path: inset(26% 0 64% 0); }
+    87% { transform: translateX(-16px); clip-path: inset(25% 0 68% 0); }
+    89% { transform: translateX(10px); clip-path: inset(27% 0 65% 0); }
+    91% { transform: translateX(-20px); clip-path: inset(26% 0 67% 0); }
+  }
+  @keyframes glC {
+    0%, 85%, 92%, 100% { transform: none; clip-path: inset(25% 0 68% 0); opacity: 0; }
+    86% { transform: translateX(-30px); opacity: .9; }
+    88% { transform: translateX(22px); opacity: .9; clip-path: inset(26% 0 66% 0); }
+    90% { transform: translateX(-12px); opacity: .9; }
+  }
+  @keyframes glBar { 0%, 85%, 91%, 100% { opacity: 0; } 86% { opacity: .95; top: 26.2%; } 88% { opacity: 0; } 89% { opacity: .9; top: 27.6%; } 90% { opacity: 0; } }
+  @keyframes glLime { 0%, 40%, 42%, 86%, 92%, 100% { opacity: 0; } 41% { opacity: 1; top: 28.2%; } 87% { opacity: 1; top: 29.6%; } 89% { opacity: 1; top: 25.4%; left: 30%; } 91% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .gl-layer, .gl-bar, .gl-lime { animation: none; } .gl-bar, .gl-lime, .gl-c { opacity: 0; } }
+</style>
