@@ -22,13 +22,11 @@ const label = 'text-xs text-muted';
     </div>
     <form id="contactForm" class="flex flex-col justify-center gap-2.5 lg:gap-3.5 lg:border-l lg:border-line lg:pl-16" novalidate>
       <label for="c-name" class={label}>Seu nome</label>
-      <input id="c-name" type="text" class={field} placeholder="Seu nome" autocomplete="name">
+      <input id="c-name" type="text" class={field} placeholder="Seu nome" autocomplete="name" required>
       <label for="c-mail" class={label}>Seu e-mail</label>
-      <input id="c-mail" type="email" class={field} placeholder="Seu e-mail" autocomplete="email">
-      <label for="c-type" class={label}>Tipo de projeto</label>
-      <select id="c-type" class={`${field} text-muted`}><option>Tipo de projeto</option><option>Web Design</option><option>Desenvolvimento Web</option><option>Landing Page</option><option>E-commerce</option></select>
-      <label for="c-msg" class={label}>Mensagem</label>
-      <textarea id="c-msg" class={`${field} h-[120px] resize-none py-3 lg:h-[150px]`} placeholder="Conte sobre o seu projeto..."></textarea>
+      <input id="c-mail" type="email" class={field} placeholder="voce@exemplo.com" autocomplete="email" inputmode="email" required>
+      <label for="c-msg" class={label}>Por qual motivo você entrou em contato comigo?</label>
+      <textarea id="c-msg" class={`${field} h-[160px] resize-none py-3 lg:h-[200px]`} placeholder="Conte o problema que você quer resolver..." required></textarea>
       <button type="submit" class="label-ui mt-1.5 min-h-12 cursor-pointer self-start bg-lime px-7 text-xs font-bold text-black hover:brightness-110">Enviar mensagem →</button>
       <p id="contactMsg" class="m-0 min-h-6 text-sm text-lime" role="status" aria-live="polite"></p>
     </form>
@@ -40,19 +38,21 @@ const label = 'text-xs text-muted';
   // pré-preenchido", preencha cada pergunta com um texto qualquer, copie o link e leia os códigos entry.NNN do endereço.
   // O Google não devolve resposta legível ao navegador (modo no-cors): o site assume que deu certo se a rede não falhou.
   (function () {
-    var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeWgni8mtr7nTNJBwrc_8MI0IzqSMocNcIaOEL_CkG-ehyNxw/formResponse';
-    var ENTRY = { name: '', mail: '', type: '', msg: '' };   // ex.: name: 'entry.1111111111'
+    var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdWEqi2Mp42GP7E2M0zHxAC-iZIEbmM3oBxq3JFR9ENutgqGw/formResponse';
+    var ENTRY = { name: '', mail: '', msg: '' };   // ex.: name: 'entry.1111111111'
     var form = document.getElementById('contactForm'), out = document.getElementById('contactMsg');
     var btn = form.querySelector('button[type=submit]'), busy = false;
     function say(t, bad) { out.textContent = t; out.classList.toggle('text-lime', !bad); out.classList.toggle('text-[#ff6b6b]', !!bad); }
     form.addEventListener('submit', function (e) {
       e.preventDefault(); if (busy) return;
-      var v = { name: form['c-name'].value.trim(), mail: form['c-mail'].value.trim(), type: form['c-type'].value, msg: form['c-msg'].value.trim() };
-      if (!v.name || !v.msg) { say('Preencha seu nome e a mensagem.', true); return; }
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.mail)) { say('Confira o seu e-mail.', true); return; }
-      if (!ENTRY.name || !ENTRY.mail || !ENTRY.type || !ENTRY.msg) { say('Formulário ainda não configurado: faltam os códigos das perguntas.', true); return; }
+      var v = { name: form['c-name'].value.trim(), mail: form['c-mail'].value.trim(), msg: form['c-msg'].value.trim() };
+      if (!v.name) { say('Preencha o seu nome.', true); form['c-name'].focus(); return; }
+      // e-mail válido: regra do próprio navegador (type=email) + domínio com ponto e terminação de 2 letras ou mais
+      if (!form['c-mail'].checkValidity() || !/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)*\.[a-z]{2,}$/i.test(v.mail)) { say('Digite um e-mail válido (ex.: voce@exemplo.com).', true); form['c-mail'].focus(); return; }
+      if (v.msg.length < 10) { say('Conte um pouco mais sobre o motivo do contato.', true); form['c-msg'].focus(); return; }
+      if (!ENTRY.name || !ENTRY.mail || !ENTRY.msg) { say('Formulário ainda não configurado: faltam os códigos das perguntas.', true); return; }
       var body = new URLSearchParams();
-      body.set(ENTRY.name, v.name); body.set(ENTRY.mail, v.mail); body.set(ENTRY.type, v.type === 'Tipo de projeto' ? '' : v.type); body.set(ENTRY.msg, v.msg);
+      body.set(ENTRY.name, v.name); body.set(ENTRY.mail, v.mail); body.set(ENTRY.msg, v.msg);
       busy = true; btn.disabled = true; btn.classList.add('opacity-60'); say('Enviando…');
       fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: body }).then(function () {
         form.reset(); say('Obrigado, ' + v.name + '! Recebi sua mensagem e respondo em breve.');
