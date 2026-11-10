@@ -3707,7 +3707,7 @@ if (!window.CITY_FALLBACK) (() => {
       // desenho: o corpo inteiro, e cada asa girando no ombro
       _birdE.set(b.state === 'ground' ? b.peck : b.pitch, b.yaw, 0);
       _birdQ.setFromEuler(_birdE);
-      const fat = Math.min(b.fed || 0, 7);   // cada pão deixa o pássaro mais redondo
+      const fat = b.fed || 0;   // cada pão deixa o pássaro mais redondo, sem limite: quanto mais pão, maior ele fica
       _birdM.compose(b.pos, _birdQ, _birdFat.set(1 + 0.17 * fat, 1 + 0.14 * fat, 1 + 0.07 * fat).multiplyScalar(BIRDS.scale));
       birdParts.forEach(part => {
         if (!part.wing) { part.mesh.setMatrixAt(n, _birdM); return; }
