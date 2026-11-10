@@ -26,19 +26,19 @@ const courses = [
   { name: 'Curso 07', school: 'Instituição', year: '2024', tag: 'Motion' },
   { name: 'Curso 08', school: 'Instituição', year: '2024', tag: 'Web' },
 ];
-const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]';
+const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]';
 ---
 <section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
   <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
     <h2 id="stacks-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Stacks <span class="amp text-lime">&amp;</span> Cursos</h2>
-    <div class="grid gap-10 lg:grid-cols-2 lg:gap-8">
+    <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
       <!-- STACKS: bolinhas com física -->
-      <div class="flex flex-col gap-4">
-        <div class="flex items-baseline justify-between gap-4">
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h3 class="label-ui text-[11px] text-muted lg:text-xs">Stacks</h3>
-          <p class="label-ui m-0 text-[10px] text-muted lg:text-[11px]">Arraste e jogue · clique para ver</p>
+          <p class="label-ui m-0 hidden text-[10px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
         </div>
-        <div id="stackBox" class={`${box} touch-none select-none`}>
+        <div id="stackBox" class={`${box} touch-none select-none rounded-3xl`}>
           {stacks.map((s, i) => (
             <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-lime focus-visible:border-lime active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
@@ -58,18 +58,18 @@ const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]'
         </div>
       </div>
       <!-- CURSOS: rolagem infinita -->
-      <div class="flex flex-col gap-4">
-        <div class="flex items-baseline justify-between gap-4">
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h3 class="label-ui text-[11px] text-muted lg:text-xs">Cursos</h3>
-          <p class="label-ui m-0 text-[10px] text-muted lg:text-[11px]">Role para ver todos</p>
+          <p class="label-ui m-0 hidden text-[10px] text-muted sm:block lg:text-[11px]">Role para ver todos</p>
         </div>
         <div id="courseBox" class={`${box} courses-fade overflow-y-auto overscroll-contain [scrollbar-width:none]`} tabindex="0" aria-label="Lista de cursos (rolagem infinita)">
           {[0, 1].map((copy) => (
-            <ul class="m-0 grid list-none grid-cols-1 gap-3 p-3 pb-0 sm:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
+            <ul class="m-0 grid list-none grid-cols-1 gap-2 p-2 pb-0 sm:gap-3 sm:p-3 sm:pb-0 xl:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
               {courses.map((c, i) => (
-                <li class="flex min-h-[132px] flex-col justify-between gap-3 border border-line bg-surface p-4 hover:border-lime">
+                <li class="flex min-h-[120px] flex-col justify-between gap-3 border border-line bg-surface p-3 hover:border-lime sm:min-h-[132px] sm:p-4">
                   <div class="flex items-center justify-between gap-2"><span class="label-ui text-[10px] text-lime">{c.tag}</span><span class="font-ui text-xs text-muted">{String(i + 1).padStart(2, '0')}</span></div>
-                  <div><div class="font-display text-2xl leading-none uppercase">{c.name}</div><div class="mt-1.5 flex justify-between text-[13px] text-muted"><span>{c.school}</span><span>{c.year}</span></div></div>
+                  <div><div class="font-display text-xl leading-none uppercase sm:text-2xl">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
                 </li>
               ))}
             </ul>
@@ -93,11 +93,12 @@ const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]'
     var card = document.getElementById('stackCard'), closeBtn = document.getElementById('stackCardClose');
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var G = 2200, BOUNCE = 0.45, AIR = 0.995, FLOOR_FRICTION = 0.9;
+    var gx = 0, gy = G;   // gravidade na tela; no celular segue o giroscópio (inclinar/girar o aparelho)
     var W = 0, H = 0, R = 36, balls = [], drag = null, running = false, started = false, last = 0, opener = null;
 
     function size() {
       W = box.clientWidth; H = box.clientHeight;
-      R = W < 420 ? 30 : 38;
+      R = W < 240 ? 24 : (W < 420 ? 30 : 38);
       els.forEach(function (el) { el.style.width = el.style.height = (R * 2) + 'px'; });
       balls.forEach(function (b) { b.r = R; b.x = Math.min(Math.max(b.x, R), W - R); b.y = Math.min(b.y, H - R); });
     }
@@ -118,11 +119,13 @@ const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]'
       var n = balls.length, i, j, a, b;
       for (i = 0; i < n; i++) {
         a = balls[i]; if (a === drag) continue;
-        a.vy += G * dt; a.vx *= AIR; a.vy *= AIR;
+        a.vx += gx * dt; a.vy += gy * dt; a.vx *= AIR; a.vy *= AIR;
         a.x += a.vx * dt; a.y += a.vy * dt;
         if (a.x < a.r) { a.x = a.r; a.vx = -a.vx * BOUNCE; }
         if (a.x > W - a.r) { a.x = W - a.r; a.vx = -a.vx * BOUNCE; }
         if (a.y > H - a.r) { a.y = H - a.r; a.vy = -a.vy * BOUNCE; a.vx *= FLOOR_FRICTION; if (Math.abs(a.vy) < 30) a.vy = 0; }
+        if (a.y >= a.r) a.inside = true;   // já entrou na caixa: a partir daí o teto também segura
+        if (a.inside && a.y < a.r) { a.y = a.r; a.vy = -a.vy * BOUNCE; a.vx *= FLOOR_FRICTION; }
       }
       for (var it = 0; it < 3; it++) {   // algumas passadas para as pilhas se acomodarem
         for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
@@ -139,7 +142,7 @@ const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]'
             if (b !== drag) { b.vx += imp * nx; b.vy += imp * ny; }
           }
         }
-        for (i = 0; i < n; i++) { a = balls[i]; if (a === drag) continue; a.x = Math.min(Math.max(a.x, a.r), W - a.r); a.y = Math.min(a.y, H - a.r); }
+        for (i = 0; i < n; i++) { a = balls[i]; if (a === drag) continue; a.x = Math.min(Math.max(a.x, a.r), W - a.r); a.y = Math.min(a.y, H - a.r); if (a.inside && a.y < a.r) a.y = a.r; }
       }
       balls.forEach(place);
     }
@@ -151,6 +154,28 @@ const box = 'relative h-[380px] overflow-hidden border border-line lg:h-[480px]'
     }
     function start() { if (running || reduce) return; running = true; last = 0; requestAnimationFrame(loop); }
     function stop() { running = false; }
+
+
+    // Giroscópio (celular): a inclinação do aparelho vira a direção da gravidade. beta = frente/trás, gamma = esquerda/direita.
+    // No iPhone o navegador pede permissão: o pedido sai no primeiro toque na caixa.
+    function onTilt(e) {
+      if (e.beta == null || e.gamma == null) return;
+      var b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+      var x = G * Math.cos(b) * Math.sin(g), y = G * Math.sin(b);
+      var ang = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;   // tela deitada
+      var sx = x * Math.cos(ang) + y * Math.sin(ang), sy = -x * Math.sin(ang) + y * Math.cos(ang);
+      gx += (sx - gx) * 0.25; gy += (sy - gy) * 0.25;   // suaviza o sensor
+    }
+    // Escuta sempre; onde o navegador exige permissão (iPhone), os dados só chegam depois que a pessoa aceita,
+    // e o pedido sai no primeiro toque na caixa.
+    window.addEventListener('deviceorientation', onTilt);
+    var askedTilt = false;
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      box.addEventListener('pointerup', function () {
+        if (askedTilt) return; askedTilt = true;
+        try { DeviceOrientationEvent.requestPermission().catch(function () {}); } catch (e) {}
+      });
+    }
 
     // arrastar e jogar
     function local(e) { var r = box.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
