@@ -4,19 +4,37 @@
 // { type: 'city:start' } para disparar a animação de entrada. Limite de 5 s: se a cidade não tiver carregado,
 // a página abre sozinha e a cidade anima quando ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
+// Fundo: "DANTE" repetido em diagonal, num tom só um pouco mais claro que o preto, subindo em laço. A tela some em 1 s.
+const line = Array(14).fill('DANTE').join(' ');
+const rows = Array.from({ length: 20 }, (_, i) => i);
 ---
-<div class="loader fixed inset-0 z-100 bg-black" id="loader" role="status" aria-live="polite" aria-label="Carregando"></div>
+<div class="loader fixed inset-0 z-100 overflow-hidden bg-black" id="loader" role="status" aria-live="polite" aria-label="Carregando">
+  <!-- fundo: "DANTE" repetido em diagonal, subindo sem parar (duas cópias iguais para o laço não ter emenda) -->
+  <div class="loader-words" aria-hidden="true">
+    <div class="loader-words-track">
+      {[0, 1].map(() => (
+        <div>{rows.map((r) => <p class:list={['loader-row', r % 2 && 'pl-[1.6em]']}>{line}</p>)}</div>
+      ))}
+    </div>
+  </div>
+</div>
 <div class="fixed inset-0 z-101 grid place-items-center overflow-hidden pointer-events-none" id="ouroWrap" aria-hidden="true">
   <div id="ouro"><img class="loader-ouro" src="img/ouroboros.webp" alt="" width="700" height="700" decoding="async" fetchpriority="high" /></div>
 </div>
 <style is:global>
-  .loader { transition: opacity .45s ease, visibility 0s linear .45s; }
+  .loader { transition: opacity 1s ease, visibility 0s linear 1s; }
   html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
   .loader { background: #000; }
+  .loader-words { position: absolute; inset: -60%; transform: rotate(-24deg); display: flex; justify-content: center; }
+  .loader-words-track { animation: loader-words 26s linear infinite; will-change: transform; }
+  .loader-row { margin: 0; font-family: Anton, Impact, "Arial Narrow", sans-serif; font-size: clamp(56px, 9vw, 120px); line-height: 1.05;
+    text-transform: uppercase; white-space: nowrap; color: #141414; letter-spacing: .02em; }
+  @keyframes loader-words { to { transform: translateY(-50%); } }
   .loader-ouro { width: 23vmin; height: 23vmin; animation: loader-spin 6s linear infinite; }
   @keyframes loader-spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .loader { transition: none; }
+    .loader-words-track { animation: none; }
     .loader-ouro { animation-duration: 24s; }
   }
 </style>
