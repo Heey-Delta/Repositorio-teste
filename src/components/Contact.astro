@@ -31,6 +31,7 @@ const label = 'text-xs text-muted';
       <textarea id="c-msg" class={`${field} h-[160px] resize-none py-3 lg:h-[200px]`} placeholder="Conte o problema que você quer resolver..." required></textarea>
       <button type="submit" class="label-ui mt-1.5 min-h-12 cursor-pointer self-start bg-lime px-7 text-xs font-bold text-black hover:brightness-110">Enviar mensagem →</button>
       <p id="contactMsg" class="m-0 min-h-6 text-sm text-lime" role="status" aria-live="polite"></p>
+      <a id="contactFallback" href="#" target="_blank" rel="noopener" class="label-ui hidden self-start border border-ink px-5 py-3 text-xs hover:border-lime hover:text-lime">Enviar pelo Google Forms ↗</a>
     </form>
   </div>
 </section>
@@ -39,12 +40,14 @@ const label = 'text-xs text-muted';
   // Para ligar: troque os códigos de ENTRY (formato 'entry.1234567890') pelos do seu formulário. No Google Forms: ⋮ > "Obter link
   // pré-preenchido", preencha cada pergunta com um texto qualquer, copie o link e leia os códigos entry.NNN do endereço.
   // O Google não devolve resposta legível ao navegador (modo no-cors): o site assume que deu certo se a rede não falhou.
+  // Se o envio for bloqueado (ex.: dentro do artefato do claude.ai, que não deixa a página falar com outros sites), aparece um botão
+  // que abre o Google Form já preenchido numa aba nova; a pessoa só confirma o envio lá.
   (function () {
     var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdWEqi2Mp42GP7E2M0zHxAC-iZIEbmM3oBxq3JFR9ENutgqGw/formResponse';
     // Códigos das perguntas do Google Form (nome, e-mail, telefone e motivo)
     var ENTRY = { name: 'entry.682636224', mail: 'entry.1382003374', phone: 'entry.997714580', msg: 'entry.1761479786' };
     var form = document.getElementById('contactForm'), out = document.getElementById('contactMsg');
-    var btn = form.querySelector('button[type=submit]'), busy = false;
+    var btn = form.querySelector('button[type=submit]'), busy = false, fallback = document.getElementById('contactFallback');
     function say(t, bad) { out.textContent = t; out.classList.toggle('text-lime', !bad); out.classList.toggle('text-[#ff6b6b]', !!bad); }
     // máscara do telefone: (00) 00000-0000 ou (00) 0000-0000
     form['c-phone'].addEventListener('input', function () {
@@ -65,11 +68,14 @@ const label = 'text-xs text-muted';
       if (!ENTRY.name || !ENTRY.mail || !ENTRY.phone || !ENTRY.msg) { say('Formulário ainda não configurado: faltam os códigos das perguntas.', true); return; }
       var body = new URLSearchParams();
       body.set(ENTRY.name, v.name); body.set(ENTRY.mail, v.mail); body.set(ENTRY.phone, v.phone); body.set(ENTRY.msg, v.msg);
+      fallback.classList.add('hidden');
       busy = true; btn.disabled = true; btn.classList.add('opacity-60'); say('Enviando…');
       fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: body }).then(function () {
         form.reset(); say('Obrigado, ' + v.name + '! Recebi sua mensagem e respondo em breve.');
       }, function () {
-        say('Não consegui enviar. Tente de novo ou escreva por e-mail ou WhatsApp.', true);
+        say('O envio direto foi bloqueado neste navegador. Use o botão abaixo: o formulário abre já preenchido, é só enviar.', true);
+        fallback.href = FORM_URL.replace('/formResponse', '/viewform') + '?usp=pp_url&' + body.toString();
+        fallback.classList.remove('hidden');
       }).then(function () { busy = false; btn.disabled = false; btn.classList.remove('opacity-60'); });
     });
   })();
