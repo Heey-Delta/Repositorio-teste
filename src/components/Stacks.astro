@@ -1,0 +1,38 @@
+---
+// Stacks & Cursos: as ferramentas que uso e os cursos feitos. Edite as duas listas abaixo.
+// O "&" do título fica num <span class="amp"> para ser trocado depois pela arte do e comercial.
+const stacks = ['Astro', 'Tailwind CSS', 'Three.js', 'JavaScript', 'TypeScript', 'HTML & CSS', 'Figma', 'Git'];
+const courses = [
+  { name: 'Curso 01', school: 'Instituição', year: '2026' },
+  { name: 'Curso 02', school: 'Instituição', year: '2025' },
+  { name: 'Curso 03', school: 'Instituição', year: '2025' },
+  { name: 'Curso 04', school: 'Instituição', year: '2024' },
+];
+---
+<section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
+  <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
+    <h2 id="stacks-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Stacks <span class="amp text-lime">&amp;</span> Cursos</h2>
+    <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div class="flex flex-col gap-4">
+        <h3 class="label-ui text-[11px] text-muted lg:text-xs">Stacks</h3>
+        <ul class="m-0 grid list-none grid-cols-2 border-t border-l border-line p-0 sm:grid-cols-4">
+          {stacks.map((s) => (
+            <li class="grid min-h-[72px] place-items-center border-r border-b border-line px-3 text-center font-ui text-sm font-medium hover:bg-lime hover:text-black lg:min-h-[96px] lg:text-[15px]">{s}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="flex flex-col gap-4">
+        <h3 class="label-ui text-[11px] text-muted lg:text-xs">Cursos</h3>
+        <ol class="m-0 list-none border-t border-line p-0">
+          {courses.map((c, i) => (
+            <li class="grid grid-cols-[28px_1fr_auto] items-baseline gap-3 border-b border-line py-4 lg:grid-cols-[56px_1fr_auto] lg:py-5">
+              <span class="font-ui text-[13px] text-muted lg:text-sm">{String(i + 1).padStart(2, '0')}</span>
+              <span><span class="block font-ui text-sm font-medium lg:text-[17px]">{c.name}</span><span class="block text-[13px] text-muted">{c.school}</span></span>
+              <span class="label-ui text-[11px] text-muted">{c.year}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>

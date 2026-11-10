@@ -1,20 +1,20 @@
 ---
-const links = [['#works', 'Trabalhos'], ['#about', 'Sobre'], ['#services', 'Serviços'], ['#process', 'Processo'], ['#lab', 'Laboratório'], ['#contact', 'Contato']];
+const links = [['#works', 'Trabalhos'], ['#stacks', 'Stacks & Cursos'], ['#about', 'Sobre'], ['#services', 'Serviços'], ['#process', 'Processo'], ['#lab', 'Laboratório'], ['#contact', 'Contato']];
 ---
 <header class="sticky top-[env(safe-area-inset-top,0px)] z-50 border-b border-line bg-bg/85 backdrop-blur-md">
-  <div class="wrap flex h-16 items-center justify-between gap-3 lg:grid lg:h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:gap-6">
+  <div class="wrap flex h-16 items-center justify-between gap-3 xl:grid xl:h-[72px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6">
     <a href="#top" class="font-display text-[28px] leading-none lg:text-[30px]" aria-label="/DANTE, voltar ao topo">/DANTE</a>
-    <nav class="hidden gap-9 lg:flex" aria-label="Principal">
-      {links.map(([href, label]) => <a href={href} class="label-ui text-ink hover:text-lime">{label}</a>)}
+    <nav class="hidden gap-6 xl:flex 2xl:gap-9" aria-label="Principal">
+      {links.map(([href, label]) => <a href={href} class="label-ui whitespace-nowrap text-ink hover:text-lime">{label}</a>)}
     </nav>
-    <div class="flex items-center gap-1 lg:justify-self-end">
-      <span class="label-ui flex items-center gap-2 text-[10px] tracking-[0.1em] lg:text-[11px] lg:tracking-[0.14em]"><span class="size-2 rounded-full bg-lime" aria-hidden="true"></span>Disponível para projetos</span>
-      <button type="button" id="menuBtn" class="grid size-11 cursor-pointer place-items-center lg:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileNav">
+    <div class="flex items-center gap-1 xl:justify-self-end">
+      <span class="label-ui flex items-center gap-2 whitespace-nowrap text-[10px] tracking-[0.1em] lg:text-[11px] lg:tracking-[0.14em]"><span class="size-2 rounded-full bg-lime" aria-hidden="true"></span>Disponível para projetos</span>
+      <button type="button" id="menuBtn" class="grid size-11 cursor-pointer place-items-center xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileNav">
         <svg width="24" height="16" viewBox="0 0 24 16" aria-hidden="true"><path d="M0 1h24M0 8h24M0 15h24" stroke="currentColor" stroke-width="2"/></svg>
       </button>
     </div>
   </div>
-  <nav id="mobileNav" class="hidden border-t border-line bg-bg lg:hidden!" aria-label="Menu móvel">
+  <nav id="mobileNav" class="hidden border-t border-line bg-bg xl:hidden!" aria-label="Menu móvel">
     <div class="wrap grid py-2">
       {links.map(([href, label]) => <a href={href} class="label-ui border-b border-line py-4 text-[13px] last:border-b-0">{label}</a>)}
     </div>
