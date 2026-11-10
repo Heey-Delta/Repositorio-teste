@@ -41,9 +41,8 @@ const label = 'text-xs text-muted';
   // O Google não devolve resposta legível ao navegador (modo no-cors): o site assume que deu certo se a rede não falhou.
   (function () {
     var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdWEqi2Mp42GP7E2M0zHxAC-iZIEbmM3oBxq3JFR9ENutgqGw/formResponse';
-    // Códigos das perguntas do Google Form. O e-mail não é uma pergunta: o Form está com "Coletar endereços de e-mail" ligado,
-    // e esse campo vai com o nome fixo emailAddress (precisa estar no modo "Informado pelo participante", não "Verificado").
-    var ENTRY = { name: 'entry.682636224', mail: 'emailAddress', phone: 'entry.997714580', msg: 'entry.1761479786' };
+    // Códigos das perguntas do Google Form (nome, e-mail, telefone e motivo)
+    var ENTRY = { name: 'entry.682636224', mail: 'entry.1382003374', phone: 'entry.997714580', msg: 'entry.1761479786' };
     var form = document.getElementById('contactForm'), out = document.getElementById('contactMsg');
     var btn = form.querySelector('button[type=submit]'), busy = false;
     function say(t, bad) { out.textContent = t; out.classList.toggle('text-lime', !bad); out.classList.toggle('text-[#ff6b6b]', !!bad); }
