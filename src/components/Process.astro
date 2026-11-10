@@ -12,8 +12,8 @@ const steps = [
 const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);mask-image:url(img/proc-${icon}.webp)`;
 ---
 <section id="process" class="relative overflow-hidden border-b border-line bg-surface" aria-labelledby="process-title">
-  <!-- função zeta de Riemann sendo desenhada (widget widgets/zeta-riemann), no lugar do antigo globo aramado -->
-  <iframe id="zetaFrame" src="widgets/zeta-riemann/index.html" title="Desenho animado da função zeta de Riemann" tabindex="-1" aria-hidden="true" class="pointer-events-none absolute -top-12 -right-16 block size-[280px] border-0 bg-transparent [color-scheme:light] opacity-70 lg:-top-20 lg:right-0 lg:size-[420px] lg:opacity-100"></iframe>
+  <!-- função zeta de Riemann sendo desenhada com a rolagem (widget widgets/zeta-riemann), no lugar do antigo globo aramado -->
+  <iframe id="zetaFrame" src="widgets/zeta-riemann/index.html" title="Desenho animado da função zeta de Riemann" tabindex="-1" aria-hidden="true" class="pointer-events-none absolute -top-12 -right-16 block size-[280px] border-0 bg-transparent [color-scheme:light] lg:-top-20 lg:right-0 lg:size-[420px]"></iframe>
   <div class="wrap relative grid min-h-[300px] grid-cols-2 items-start gap-4 py-8 lg:min-h-[380px] lg:grid-cols-[1fr_2fr] lg:items-center lg:gap-16 lg:py-16">
     <div class="flex flex-col gap-3.5 lg:gap-5">
       <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ O<br>Processo</h2>
@@ -50,22 +50,22 @@ const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);ma
   </div>
 </section>
 <script is:inline>
-  // Passa a cor de destaque do site (que muda com o tempo) para o desenho da zeta dentro do iframe
+  // A zeta é desenhada conforme a rolagem: manda para o iframe quanto da curva já deve aparecer (0 a 1).
+  // Começa quando o topo da seção chega a 85% da altura da tela e termina quando ele chega a 15%.
   (function () {
-    var frame = document.getElementById('zetaFrame'); if (!frame) return;
-    var probe = document.createElement('canvas'); probe.width = probe.height = 1;
-    var pc = probe.getContext('2d', { willReadFrequently: true });
+    var frame = document.getElementById('zetaFrame'), section = document.getElementById('process'); if (!frame || !section) return;
+    var ticking = false, lastSent = -1;
     function send() {
-      try {
-        var c = getComputedStyle(document.documentElement).getPropertyValue('--lime').trim(); if (!c) return;
-        pc.clearRect(0, 0, 1, 1); pc.fillStyle = '#000'; pc.fillStyle = c; pc.fillRect(0, 0, 1, 1);
-        var d = pc.getImageData(0, 0, 1, 1).data;
-        frame.contentWindow.postMessage({ type: 'zeta:accent', color: 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')' }, '*');
-      } catch (e) {}
+      ticking = false;
+      var vh = window.innerHeight, top = section.getBoundingClientRect().top;
+      var v = (0.85 * vh - top) / (0.7 * vh); v = Math.max(0, Math.min(1, v));
+      if (Math.abs(v - lastSent) < 0.0005) return; lastSent = v;
+      try { frame.contentWindow.postMessage({ type: 'zeta:progress', value: v }, '*'); } catch (e) {}
     }
-    window.addEventListener('message', function (e) { if (e.source === frame.contentWindow && e.data && e.data.type === 'zeta:ready') send(); });
-    frame.addEventListener('load', send);
-    setInterval(send, 500);
+    function queue() { if (!ticking) { ticking = true; requestAnimationFrame(send); } }
+    window.addEventListener('scroll', queue, { passive: true }); window.addEventListener('resize', queue);
+    window.addEventListener('message', function (e) { if (e.source === frame.contentWindow && e.data && e.data.type === 'zeta:ready') { lastSent = -1; send(); } });
+    frame.addEventListener('load', function () { lastSent = -1; send(); });
   })();
 </script>
 <style is:global>
