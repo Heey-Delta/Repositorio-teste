@@ -23,6 +23,7 @@ npm run check:widgets
 - `src/pages/widgets/cidade-isometrica/{pizzaria,cafeteria,restaurante}.astro` — os 3 sites de demonstração, em `widgets/cidade-isometrica/<nome>/index.html`.
   O `restaurante` é o **Kaoru Kaze** (香る風): conteúdo e imagens do artefato "Kaoru Kaze — Wireframe" (landing final). As imagens ficam em `public/widgets/cidade-isometrica/restaurante/img/`.
 - `public/widgets/cidade-isometrica/` — a cidade 3D (HTML, modelos, texturas) e as imagens das demos. Copiado como está para `dist/`.
+- `public/widgets/zeta-riemann/` — projeto à parte (HTML único, sem dependências): desenha a curva da função zeta de Riemann, ζ(½ + it), passo a passo. A seção #process o chama por `<iframe>` e passa a cor de destaque do site por `postMessage` (`zeta:accent`); sem a página, usa o lime.
 - `widgets.json` — lista os widgets e diz quais são obrigatórios e em que seção.
 - `scripts/` — `check-widgets.sh` e `artifact-fragment.py` (prepara `dist/index.html` para publicar como artefato).
 

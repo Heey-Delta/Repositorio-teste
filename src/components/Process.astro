@@ -12,8 +12,8 @@ const steps = [
 const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);mask-image:url(img/proc-${icon}.webp)`;
 ---
 <section id="process" class="relative overflow-hidden border-b border-line bg-surface" aria-labelledby="process-title">
-  <!-- globo decorativo (aramado) -->
-  <svg class="pointer-events-none absolute -top-16 -right-24 size-[260px] text-line lg:-top-24 lg:right-0 lg:size-[360px]" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="100" cy="100" r="96"/><ellipse cx="100" cy="100" rx="96" ry="38"/><ellipse cx="100" cy="100" rx="38" ry="96"/><ellipse cx="100" cy="100" rx="66" ry="96"/><path d="M4 100h192M100 4v192"/></svg>
+  <!-- função zeta de Riemann sendo desenhada (widget widgets/zeta-riemann), no lugar do antigo globo aramado -->
+  <iframe id="zetaFrame" src="widgets/zeta-riemann/index.html" title="Desenho animado da função zeta de Riemann" tabindex="-1" aria-hidden="true" class="pointer-events-none absolute -top-12 -right-16 block size-[280px] border-0 bg-transparent [color-scheme:light] opacity-70 lg:-top-20 lg:right-0 lg:size-[420px] lg:opacity-100"></iframe>
   <div class="wrap relative grid min-h-[300px] grid-cols-2 items-start gap-4 py-8 lg:min-h-[380px] lg:grid-cols-[1fr_2fr] lg:items-center lg:gap-16 lg:py-16">
     <div class="flex flex-col gap-3.5 lg:gap-5">
       <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ O<br>Processo</h2>
@@ -49,6 +49,25 @@ const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);ma
     </div>
   </div>
 </section>
+<script is:inline>
+  // Passa a cor de destaque do site (que muda com o tempo) para o desenho da zeta dentro do iframe
+  (function () {
+    var frame = document.getElementById('zetaFrame'); if (!frame) return;
+    var probe = document.createElement('canvas'); probe.width = probe.height = 1;
+    var pc = probe.getContext('2d', { willReadFrequently: true });
+    function send() {
+      try {
+        var c = getComputedStyle(document.documentElement).getPropertyValue('--lime').trim(); if (!c) return;
+        pc.clearRect(0, 0, 1, 1); pc.fillStyle = '#000'; pc.fillStyle = c; pc.fillRect(0, 0, 1, 1);
+        var d = pc.getImageData(0, 0, 1, 1).data;
+        frame.contentWindow.postMessage({ type: 'zeta:accent', color: 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')' }, '*');
+      } catch (e) {}
+    }
+    window.addEventListener('message', function (e) { if (e.source === frame.contentWindow && e.data && e.data.type === 'zeta:ready') send(); });
+    frame.addEventListener('load', send);
+    setInterval(send, 500);
+  })();
+</script>
 <style is:global>
   .proc-icon { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
 </style>
