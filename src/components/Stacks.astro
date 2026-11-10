@@ -93,7 +93,6 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     var card = document.getElementById('stackCard'), closeBtn = document.getElementById('stackCardClose');
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var G = 2200, BOUNCE = 0.45, AIR = 0.995, FLOOR_FRICTION = 0.9;
-    var gx = 0, gy = G;   // gravidade na tela; no celular segue o giroscópio (inclinar/girar o aparelho)
     var W = 0, H = 0, R = 36, balls = [], drag = null, running = false, started = false, last = 0, opener = null;
 
     function size() {
@@ -119,7 +118,7 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
       var n = balls.length, i, j, a, b;
       for (i = 0; i < n; i++) {
         a = balls[i]; if (a === drag) continue;
-        a.vx += gx * dt; a.vy += gy * dt; a.vx *= AIR; a.vy *= AIR;
+        a.vy += G * dt; a.vx *= AIR; a.vy *= AIR;
         a.x += a.vx * dt; a.y += a.vy * dt;
         if (a.x < a.r) { a.x = a.r; a.vx = -a.vx * BOUNCE; }
         if (a.x > W - a.r) { a.x = W - a.r; a.vx = -a.vx * BOUNCE; }
@@ -155,27 +154,6 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     function start() { if (running || reduce) return; running = true; last = 0; requestAnimationFrame(loop); }
     function stop() { running = false; }
 
-
-    // Giroscópio (celular): a inclinação do aparelho vira a direção da gravidade. beta = frente/trás, gamma = esquerda/direita.
-    // No iPhone o navegador pede permissão: o pedido sai no primeiro toque na caixa.
-    function onTilt(e) {
-      if (e.beta == null || e.gamma == null) return;
-      var b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
-      var x = G * Math.cos(b) * Math.sin(g), y = G * Math.sin(b);
-      var ang = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;   // tela deitada
-      var sx = x * Math.cos(ang) + y * Math.sin(ang), sy = -x * Math.sin(ang) + y * Math.cos(ang);
-      gx += (sx - gx) * 0.25; gy += (sy - gy) * 0.25;   // suaviza o sensor
-    }
-    // Escuta sempre; onde o navegador exige permissão (iPhone), os dados só chegam depois que a pessoa aceita,
-    // e o pedido sai no primeiro toque na caixa.
-    window.addEventListener('deviceorientation', onTilt);
-    var askedTilt = false;
-    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      box.addEventListener('pointerup', function () {
-        if (askedTilt) return; askedTilt = true;
-        try { DeviceOrientationEvent.requestPermission().catch(function () {}); } catch (e) {}
-      });
-    }
 
     // arrastar e jogar
     function local(e) { var r = box.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
