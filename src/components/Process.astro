@@ -1,7 +1,15 @@
 ---
-// No celular: 5 etapas em linha vertical. No desktop: 6 etapas em linha horizontal, cada uma com seu verbo.
-const desktop = [['Descobrir', 'Entender'], ['Planejar', 'Estruturar'], ['Desenhar', 'Criar'], ['Desenvolver', 'Construir'], ['Testar', 'Otimizar'], ['Lançar', 'Entregar']];
-const mobile = ['Descoberta', 'Estratégia', 'Design', 'Desenvolvimento', 'Lançamento'];
+// No celular: 5 etapas em linha vertical. No desktop: as mesmas 5 etapas em linha horizontal, ligadas por uma linha com pontos.
+// As 5 etapas, com os ícones recortados da imagem de referência (public/img/proc-*.webp). Os ícones são usados como máscara,
+// então pegam a cor do texto (ou a de destaque, na última etapa).
+const steps = [
+  { name: 'Descoberta', icon: 'descoberta', w: 58, h: 58 },
+  { name: 'Estratégia', icon: 'estrategia', w: 48, h: 58 },
+  { name: 'Design', icon: 'design', w: 62, h: 64 },
+  { name: 'Desenvolvimento', icon: 'desenvolvimento', w: 70, h: 52 },
+  { name: 'Lançamento', icon: 'lancamento', w: 60, h: 66 },
+];
+const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);mask-image:url(img/proc-${icon}.webp)`;
 ---
 <section id="process" class="relative overflow-hidden border-b border-line bg-surface" aria-labelledby="process-title">
   <!-- globo decorativo (aramado) -->
@@ -14,24 +22,33 @@ const mobile = ['Descoberta', 'Estratégia', 'Design', 'Desenvolvimento', 'Lanç
     </div>
     <!-- celular: vertical -->
     <div class="relative pl-[18px] lg:hidden">
-      <div class="absolute top-2.5 bottom-2.5 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
-      <ol class="m-0 flex list-none flex-col gap-[22px] p-0">
-        {mobile.map((step, i) => (
-          <li class="relative flex gap-3.5 font-ui text-sm"><span class:list={['absolute top-1 -left-[18px] size-[11px] rounded-full border border-ink', i === mobile.length - 1 ? 'border-lime bg-lime' : 'bg-surface']} aria-hidden="true"></span><span class="text-muted">{String(i + 1).padStart(2, '0')}</span>{step}</li>
+      <div class="absolute top-4 bottom-4 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
+      <ol class="m-0 flex list-none flex-col gap-5 p-0">
+        {steps.map((st, i) => (
+          <li class="relative flex items-center gap-3 font-ui text-sm">
+            <span class:list={['absolute top-1/2 -left-[18px] size-[11px] -translate-y-1/2 rounded-full border', i === steps.length - 1 ? 'border-lime bg-lime' : 'border-ink bg-surface']} aria-hidden="true"></span>
+            <span class:list={['proc-icon block size-8 shrink-0', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={mask(st.icon)} aria-hidden="true"></span>
+            <span>{st.name}</span>
+          </li>
         ))}
       </ol>
     </div>
-    <!-- desktop: horizontal -->
+    <!-- desktop: horizontal, com a linha e os pontos entre os ícones -->
     <div class="relative hidden lg:block">
-      <div class="absolute top-[22px] right-[4%] left-[4%] h-px bg-line" aria-hidden="true"></div>
-      <ol class="relative m-0 grid list-none grid-cols-6 gap-2 p-0">
-        {desktop.map(([name, verb], i) => (
-          <li class="flex flex-col items-center gap-3.5 text-center">
-            <span class:list={['grid size-11 place-items-center rounded-full border font-ui text-[13px]', i === desktop.length - 1 ? 'border-lime bg-lime text-black' : 'border-ink bg-surface']}>{String(i + 1).padStart(2, '0')}</span>
-            <span><span class="block font-ui text-[15px] font-medium">{name}</span><span class="block text-xs text-muted">{verb}</span></span>
+      <ol class="relative m-0 grid list-none grid-cols-5 p-0">
+        {steps.map((st, i) => (
+          <li class="relative flex flex-col items-center gap-4 text-center">
+            <span class="flex h-[72px] items-center justify-center"><span class:list={['proc-icon block', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={`${mask(st.icon)};width:${st.w}px;height:${st.h}px`} aria-hidden="true"></span></span>
+            <span class="block font-ui text-[15px] font-medium"><span class="mr-1.5 text-muted">{String(i + 1).padStart(2, '0')}</span>{st.name}</span>
+            {i < steps.length - 1 && (
+              <span class="absolute top-9 left-[calc(50%+56px)] flex h-px w-[calc(100%-112px)] items-center bg-ink/40" aria-hidden="true"><span class="mx-auto size-[7px] rounded-full bg-ink"></span></span>
+            )}
           </li>
         ))}
       </ol>
     </div>
   </div>
 </section>
+<style is:global>
+  .proc-icon { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
+</style>
