@@ -35,10 +35,30 @@ const label = 'text-xs text-muted';
   </div>
 </section>
 <script is:inline>
-  // Formulário de demonstração: ainda não envia nada (falta ligar a um serviço de e-mail)
-  document.getElementById('contactForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var name = document.getElementById('c-name').value.trim();
-    document.getElementById('contactMsg').textContent = 'Obrigado' + (name ? ', ' + name : '') + '. (Demonstração: nada foi enviado ainda.)';
-  });
+  // Envio para o Google Forms (sem servidor): os dados vão por POST para o endereço "formResponse" do formulário e caem na planilha.
+  // Para ligar: troque os códigos de ENTRY (formato 'entry.1234567890') pelos do seu formulário. No Google Forms: ⋮ > "Obter link
+  // pré-preenchido", preencha cada pergunta com um texto qualquer, copie o link e leia os códigos entry.NNN do endereço.
+  // O Google não devolve resposta legível ao navegador (modo no-cors): o site assume que deu certo se a rede não falhou.
+  (function () {
+    var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeWgni8mtr7nTNJBwrc_8MI0IzqSMocNcIaOEL_CkG-ehyNxw/formResponse';
+    var ENTRY = { name: '', mail: '', type: '', msg: '' };   // ex.: name: 'entry.1111111111'
+    var form = document.getElementById('contactForm'), out = document.getElementById('contactMsg');
+    var btn = form.querySelector('button[type=submit]'), busy = false;
+    function say(t, bad) { out.textContent = t; out.classList.toggle('text-lime', !bad); out.classList.toggle('text-[#ff6b6b]', !!bad); }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); if (busy) return;
+      var v = { name: form['c-name'].value.trim(), mail: form['c-mail'].value.trim(), type: form['c-type'].value, msg: form['c-msg'].value.trim() };
+      if (!v.name || !v.msg) { say('Preencha seu nome e a mensagem.', true); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.mail)) { say('Confira o seu e-mail.', true); return; }
+      if (!ENTRY.name || !ENTRY.mail || !ENTRY.type || !ENTRY.msg) { say('Formulário ainda não configurado: faltam os códigos das perguntas.', true); return; }
+      var body = new URLSearchParams();
+      body.set(ENTRY.name, v.name); body.set(ENTRY.mail, v.mail); body.set(ENTRY.type, v.type === 'Tipo de projeto' ? '' : v.type); body.set(ENTRY.msg, v.msg);
+      busy = true; btn.disabled = true; btn.classList.add('opacity-60'); say('Enviando…');
+      fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: body }).then(function () {
+        form.reset(); say('Obrigado, ' + v.name + '! Recebi sua mensagem e respondo em breve.');
+      }, function () {
+        say('Não consegui enviar. Tente de novo ou escreva por e-mail ou WhatsApp.', true);
+      }).then(function () { busy = false; btn.disabled = false; btn.classList.remove('opacity-60'); });
+    });
+  })();
 </script>
