@@ -93,7 +93,7 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     var card = document.getElementById('stackCard'), closeBtn = document.getElementById('stackCardClose');
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var G = 2200, BOUNCE = 0.45, AIR = 0.995, FLOOR_FRICTION = 0.9;
-    var W = 0, H = 0, R = 36, balls = [], drag = null, running = false, started = false, last = 0, opener = null;
+    var W = 0, H = 0, R = 36, balls = [], drag = null, running = false, last = 0, opener = null;
 
     function size() {
       W = box.clientWidth; H = box.clientHeight;
@@ -202,11 +202,28 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
 
     init();
     window.addEventListener('resize', size);
-    // só anima com a caixa na tela; as bolinhas caem na primeira vez que ela aparece
+    // só anima com a caixa na tela e depois da liberação (5 s após a entrada da cidade)
+    var released = false, inView = !window.IntersectionObserver;
+    function go() { if (released && inView) start(); }
+    window.addEventListener('dante:stacks', function () { released = true; go(); });
     if (window.IntersectionObserver) new IntersectionObserver(function (en) {
-      if (en[0].isIntersecting) { if (!started) { started = true; } start(); } else stop();
+      inView = en[0].isIntersecting; if (inView) go(); else stop();
     }, { threshold: 0.15 }).observe(box);
-    else start();
+  })();
+
+  // ---------- Sequência: cidade termina a entrada → 5 s → bolinhas caem → 5 s → cursos começam a rolar ----------
+  (function () {
+    var STEP = 5000, fired = false;
+    function fire() {
+      if (fired) return; fired = true;
+      setTimeout(function () { window.dispatchEvent(new Event('dante:stacks')); }, STEP);
+      setTimeout(function () { window.dispatchEvent(new Event('dante:courses')); }, STEP * 2);
+    }
+    window.addEventListener('message', function (e) {
+      var f = document.getElementById('cityFrame');
+      if (f && e.source === f.contentWindow && e.data && e.data.type === 'city:intro-done') fire();
+    });
+    setTimeout(fire, 20000);   // se a cidade não avisar (falhou ao carregar, ficou fora da tela), libera mesmo assim
   })();
 
   // ---------- Cursos: rolagem infinita ----------
@@ -221,13 +238,14 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
       else if (box.scrollTop <= 0) box.scrollTop += h;
     }, { passive: true });
     // anda sozinha devagar; para enquanto a pessoa está com o mouse, o dedo ou o foco na lista
-    var paused = false, visible = false, acc = 0, lastT = 0;
+    var paused = false, visible = false, released = false, acc = 0, lastT = 0;
+    window.addEventListener('dante:courses', function () { released = true; });
     ['pointerenter', 'focusin', 'touchstart'].forEach(function (ev) { box.addEventListener(ev, function () { paused = true; }, { passive: true }); });
     ['pointerleave', 'focusout'].forEach(function (ev) { box.addEventListener(ev, function () { paused = false; }); });
     box.addEventListener('touchend', function () { setTimeout(function () { paused = false; }, 2500); });
     function tick(now) {
       var dt = Math.min(0.05, (now - (lastT || now)) / 1000); lastT = now;
-      if (visible && !paused && !reduce) { acc += 22 * dt; var px = Math.floor(acc); if (px) { box.scrollTop += px; acc -= px; } }
+      if (released && visible && !paused && !reduce) { acc += 22 * dt; var px = Math.floor(acc); if (px) { box.scrollTop += px; acc -= px; } }
       requestAnimationFrame(tick);
     }
     if (window.IntersectionObserver) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(box); else visible = true;

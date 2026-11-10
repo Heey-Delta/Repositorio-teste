@@ -4548,13 +4548,16 @@ if (!window.CITY_FALLBACK) (() => {
     if (introState === 'ready') {
       introState = 'playing';
       tweenCamera(introTo, INTRO_MS / 1000);
-      setTimeout(() => { introState = 'finished'; scheduleTip(); }, INTRO_MS);
+      setTimeout(() => { introState = 'finished'; scheduleTip(); introDone(); }, INTRO_MS);
       return;
     }
     introState = 'finished';
     openFromHash();
     scheduleTip();
+    introDone();
   }
+  // avisa a página que a entrada acabou (ela usa isso para soltar as bolinhas das stacks e a lista de cursos)
+  function introDone() { try { window.parent.postMessage({ type: 'city:intro-done' }, '*'); } catch (e) {} }
 
   const tipEl = document.getElementById('cityTip');
   let tipShown = false;   // o balão já foi liberado (depois da entrada)
