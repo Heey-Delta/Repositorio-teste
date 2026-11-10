@@ -39,7 +39,7 @@ const label = 'text-xs text-muted';
   // O Google não devolve resposta legível ao navegador (modo no-cors): o site assume que deu certo se a rede não falhou.
   (function () {
     var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdWEqi2Mp42GP7E2M0zHxAC-iZIEbmM3oBxq3JFR9ENutgqGw/formResponse';
-    var ENTRY = { name: '', mail: '', msg: '' };   // ex.: name: 'entry.1111111111'
+    var ENTRY = { name: 'entry.682636224', mail: 'entry.997714580', msg: 'entry.1761479786' };   // códigos das perguntas do Google Form
     var form = document.getElementById('contactForm'), out = document.getElementById('contactMsg');
     var btn = form.querySelector('button[type=submit]'), busy = false;
     function say(t, bad) { out.textContent = t; out.classList.toggle('text-lime', !bad); out.classList.toggle('text-[#ff6b6b]', !!bad); }
