@@ -24,9 +24,9 @@ const jsonld = [{
   <section class="border-b border-line" aria-labelledby="dep-title">
     <div class="wrap flex flex-col gap-5 py-10 lg:flex-row lg:items-end lg:justify-between lg:py-14">
       <div class="flex flex-col gap-4">
-        <p class="m-0 flex items-center gap-3 font-mono text-[11px] text-lime uppercase"><LabIcon name={dep.icon} class="size-5" />Departamento · prefixo {dep.code}-000</p>
-        <h1 id="dep-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[112px]">{dep.name}</h1>
-        <p class="m-0 max-w-[560px] font-mono text-sm text-muted">{dep.about}</p>
+        <p class="label-ui m-0 flex items-center gap-3 text-[11px] text-muted"><LabIcon name={dep.icon} class="size-5" />Departamento</p>
+        <h1 id="dep-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[104px]">{dep.name}</h1>
+        <p class="m-0 max-w-[560px] text-[15px] text-muted">{dep.about}</p>
       </div>
       <p class="m-0 font-mono text-[11px] text-muted uppercase tabular-nums">{entries.length} {entries.length === 1 ? 'publicação' : 'publicações'}</p>
     </div>
@@ -40,7 +40,7 @@ const jsonld = [{
     )}
     {entries.length > 0
       ? <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{entries.map((e) => <li data-areas={e.data.areas.join('|')}><PubCard entry={e} root={root} /></li>)}</ul>
-      : <div class="wire flex min-h-[220px] items-center justify-center p-4"><span class="bg-bg px-2.5 py-1.5 font-mono text-[11px] text-muted uppercase">[ Primeira publicação deste departamento ]</span></div>}
+      : <div class="wire flex min-h-[220px] items-center justify-center p-4"><span class="bg-bg px-2.5 py-1.5 font-mono text-[11px] text-muted uppercase">[ Ainda não publiquei nada aqui ]</span></div>}
   </section>
   <script is:inline>
     (function () {

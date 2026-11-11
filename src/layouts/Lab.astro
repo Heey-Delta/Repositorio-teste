@@ -59,7 +59,6 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
         ))}
       </nav>
       <div class="flex items-center gap-1">
-        <span class="mr-2 hidden items-center gap-2 font-mono text-[11px] text-muted uppercase sm:flex"><span class="lab-live size-1.5 rounded-full bg-lime" aria-hidden="true"></span>Lab online</span>
         <button type="button" id="labSearchBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime" aria-label="Buscar no laboratório" aria-expanded="false" aria-controls="labSearch"><LabIcon name="search" class="size-5" /></button>
         <button type="button" id="labMenuBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="labMenu">
           <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><path d="M0 1h22M0 7h22M0 13h22" stroke="currentColor" stroke-width="1.6"/></svg>
@@ -73,7 +72,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
     </nav>
     <div id="labSearch" class="hidden border-t border-line bg-bg">
       <div class="wrap flex flex-col gap-3 py-4">
-        <label for="labSearchInput" class="font-mono text-[11px] text-muted uppercase">Buscar por título, código (ex.: RES-001), tag ou área</label>
+        <label for="labSearchInput" class="text-xs text-muted">Buscar por título, assunto ou código (ex.: RES-001)</label>
         <input id="labSearchInput" type="search" autocomplete="off" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-lime" placeholder="percepção, EXP-001, brutalismo…">
         <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0" aria-live="polite"></ul>
       </div>
@@ -81,7 +80,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
   </header>
 
   {crumbs.length > 0 && (
-    <nav class="wrap pt-5 font-mono text-[11px] text-muted uppercase" aria-label="Você está em">
+    <nav class="wrap pt-5 text-xs text-muted" aria-label="Você está em">
       <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
       {crumbs.map((c, i) => <> <span aria-hidden="true">/</span> {i < crumbs.length - 1 ? <a href={`${root}${c.path.slice(1)}`} class="hover:text-lime">{c.name}</a> : <span class="text-ink">{c.name}</span>}</>)}
     </nav>
@@ -91,17 +90,17 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
 
   <footer class="mt-0 border-t border-line">
     <div class="wrap flex flex-col gap-6 py-8 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-      <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none">/HALLAN</a><span class="text-xs text-muted">Experimental Lab<br>por Hallan</span></div>
+      <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none">/HALLAN</a><span class="text-xs text-muted">Experimental Lab</span></div>
       <nav class="flex flex-wrap gap-x-5 gap-y-2 text-[13px]" aria-label="Rodapé do laboratório">
         <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
         <a href={`${root}#works`} class="hover:text-lime">Trabalhos</a>
         <a href={`${root}#about`} class="hover:text-lime">Sobre</a>
         <a href={`${root}#contact`} class="hover:text-lime">Contato</a>
       </nav>
-      <p class="m-0 font-mono text-[11px] text-muted uppercase lg:justify-self-end">Observe. Question. Experiment. Discover.</p>
+      <a href={`${root}#contact`} class="label-ui self-start text-xs hover:text-lime lg:justify-self-end">Falar comigo →</a>
     </div>
     <div class="wrap flex flex-wrap justify-between gap-2 border-t border-line py-5 text-xs text-muted">
-      <span class="tabular-nums">© 2026 Hallan</span><span>A space for ideas beyond the limits.</span>
+      <span class="tabular-nums">© 2026 Hallan</span>
     </div>
   </footer>
 
@@ -124,7 +123,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
         var q = norm(input.value.trim()); out.innerHTML = '';
         if (q.length < 2) return;
         var hits = items.filter(function (x) { return q.split(/\s+/).every(function (w) { return x.s.indexOf(w) >= 0; }); }).slice(0, 8);
-        if (!hits.length) { out.innerHTML = '<li class="py-3 text-sm text-muted">Nada encontrado.</li>'; return; }
+        if (!hits.length) { out.innerHTML = '<li class="py-3 text-sm text-muted">Nada com “' + input.value.trim().replace(/[<>&]/g, '') + '”. Tente outra palavra.</li>'; return; }
         hits.forEach(function (x) {
           var li = document.createElement('li'), a = document.createElement('a');
           a.href = x.i.u; a.className = 'flex items-baseline gap-3 border-b border-line py-3 hover:text-lime';
@@ -141,8 +140,5 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
   </script>
 </Base>
 <style is:global>
-  .lab-live { animation: lab-live 2s ease-in-out infinite; }
-  @keyframes lab-live { 50% { opacity: .3; } }
   .wire { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / .05) 14px 15px), #0b0b0b; border: 1px dashed var(--line); }
-  @media (prefers-reduced-motion: reduce) { .lab-live { animation: none; } }
 </style>

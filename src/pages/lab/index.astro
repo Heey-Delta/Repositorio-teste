@@ -1,18 +1,19 @@
 ---
 // Experimental Lab: página de abertura (wireframe). Hierarquia da seção 6.1 do documento de conceito.
 // Caixas hachuradas ([ ... ]) são espaços de imagem do wireframe. As publicações vêm de src/content/lab.
+// Estilo: títulos em Anton, rótulos em Chakra, texto em Arial; fonte mono só em códigos e datas; verde só no destaque e nos botões.
 import Lab from '../../layouts/Lab.astro';
 import LabIcon from '../../components/lab/LabIcon.astro';
 import Wire from '../../components/lab/Wire.astro';
 import PubCard from '../../components/lab/PubCard.astro';
 import { getCollection } from 'astro:content';
-import { departments, departmentBySlug, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
+import { departments, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 const root = up(1);
 const all = (await getCollection('lab')).sort((a, b) => +b.data.date - +a.data.date);
 const of = (slug: string) => all.filter((e) => e.data.department === slug);
 const href = (e: (typeof all)[number]) => `${root}lab/${e.data.department}/${e.id.split('/').pop()}/`;
-const featured = of('experiments')[0];
+const featured = of('experiments').find((e) => e.data.status === 'in-progress') ?? of('experiments')[0];
 const research = of('research').slice(0, 2);
 const notes = of('field-notes').slice(0, 3);
 const archive = of('visual-archive');
@@ -26,189 +27,194 @@ const jsonld = [{
   isPartOf: { '@type': 'WebSite', name: 'Hallan', url: new URL('/', Astro.site).href },
   author: { '@type': 'Person', name: 'Hallan' },
 }];
-const label = 'font-mono text-[11px] uppercase tracking-wide';
+// escala única do laboratório
+const eyebrow = 'label-ui m-0 text-[11px] text-muted';
+const h2 = 'm-0 font-display text-[40px] leading-[0.95] uppercase lg:text-[64px]';
+const lead = 'm-0 max-w-[480px] text-[15px] text-muted';
+const mono = 'font-mono text-[11px] uppercase tabular-nums';
 ---
-<Lab title="Pesquisa, experimentos e ideias" description={LAB_DESCRIPTION} depth={1} noindex={noindex} jsonld={jsonld}>
+<Lab title="Experimentos, ensaios e pesquisas" description={LAB_DESCRIPTION} depth={1} noindex={noindex} jsonld={jsonld}>
   <!-- ABERTURA -->
-  <section class="relative overflow-hidden border-b border-line" aria-labelledby="lab-title">
-    <div class="wrap grid gap-8 py-10 lg:min-h-[640px] lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-10 lg:py-16">
-      <div class="relative z-10 flex flex-col gap-5 lg:gap-7">
-        <p class={`${label} m-0 text-muted`}>Hallan · Creative Research Division · 2026</p>
-        <h1 id="lab-title" class="m-0 font-display text-[clamp(56px,17vw,84px)] leading-[0.92] uppercase lg:text-[clamp(96px,9vw,136px)]">Experimental<br><span class="text-lime">Lab</span></h1>
-        <p class="m-0 max-w-[420px] font-mono text-sm text-ink lg:text-[15px]">Um espaço de pesquisa, experimentação e novas perspectivas sobre design, tecnologia e percepção.</p>
-        <a href="#departamentos" class="label-ui flex items-center gap-3 self-start text-xs hover:text-lime"><span class="text-2xl leading-none text-lime" aria-hidden="true">↓</span>Explorar o laboratório</a>
+  <section class="border-b border-line" aria-labelledby="lab-title">
+    <div class="wrap grid gap-8 py-10 lg:min-h-[600px] lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:py-16">
+      <div class="flex flex-col gap-6 lg:gap-8">
+        <h1 id="lab-title" class="m-0 font-display text-[clamp(52px,15vw,84px)] leading-[0.92] uppercase lg:text-[clamp(96px,9vw,136px)]">Experimental<br><span class="text-lime">Lab</span></h1>
+        <p class="m-0 max-w-[480px] text-base text-ink lg:text-lg">Onde eu testo ideias antes de elas virarem projeto: experimentos em 3D, ensaios sobre design e pesquisas sobre como a gente enxerga uma tela.</p>
+        <p class="m-0 max-w-[480px] text-sm text-muted">Nem tudo aqui dá certo, e está tudo documentado do mesmo jeito.</p>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+          {featured && <a href="#andamento" class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110">Ver o que está em andamento</a>}
+          <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Ler as notas</a>
+        </div>
       </div>
-      <Wire label="Imagem: estátua com glitch nos olhos e blocos verdes" class="min-h-[320px] lg:min-h-[520px]">
-        <span class="absolute top-6 right-6 size-16 bg-lime/80 lg:size-24" aria-hidden="true"></span>
-        <span class="absolute bottom-10 left-6 h-20 w-10 bg-lime/80 lg:h-28 lg:w-14" aria-hidden="true"></span>
-      </Wire>
+      <Wire label="Imagem de abertura: estátua com glitch" class="min-h-[300px] lg:min-h-[480px]" />
     </div>
   </section>
 
   <!-- DEPARTAMENTOS -->
-  <section id="departamentos" class="border-b border-line" aria-label="Departamentos do laboratório">
-    <div class="mx-auto grid max-w-[1440px] grid-cols-2 gap-px bg-line sm:grid-cols-3 lg:grid-cols-6">
-      {departments.map((d, i) => (
-        <a href={`${root}lab/${d.slug}/`} class="group relative flex min-h-[150px] flex-col justify-between gap-4 bg-bg p-5 hover:bg-[#0b0b0b] lg:min-h-[180px]">
-          {i === 0 && <span class="absolute inset-y-0 left-0 w-1 bg-lime" aria-hidden="true"></span>}
-          <LabIcon name={d.icon} class="size-7 group-hover:text-lime" />
-          <span class="label-ui text-xs leading-tight text-ink group-hover:text-lime">{d.name}</span>
-          <span class="flex items-center justify-between font-mono text-xs text-muted tabular-nums"><span>{String(i + 1).padStart(2, '0')} · {d.code}</span><span class="text-lime transition-transform group-hover:translate-x-1" aria-hidden="true">→</span></span>
-        </a>
-      ))}
-    </div>
-  </section>
+  <nav class="border-b border-line" aria-label="Departamentos do laboratório">
+    <ul class="m-0 mx-auto grid max-w-[1440px] list-none grid-cols-2 gap-px bg-line p-0 sm:grid-cols-3 lg:grid-cols-6">
+      {departments.map((d) => {
+        const n = of(d.slug).length;
+        return (
+          <li class="bg-bg">
+            <a href={`${root}lab/${d.slug}/`} class="group flex h-full min-h-[150px] flex-col justify-between gap-4 p-5 hover:bg-[#0b0b0b] lg:min-h-[170px]">
+              <LabIcon name={d.icon} class="size-7 text-muted transition-colors group-hover:text-lime" />
+              <span class="flex flex-col gap-1">
+                <span class="label-ui text-xs text-ink group-hover:text-lime">{d.name}</span>
+                <span class="text-[13px] leading-snug text-muted">{d.short}</span>
+              </span>
+              <span class={`${mono} flex items-center justify-between text-muted`}><span>{n} {n === 1 ? 'publicação' : 'publicações'}</span><span class="transition-transform group-hover:translate-x-1 group-hover:text-lime" aria-hidden="true">→</span></span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
 
-  <!-- 01 · EXPERIMENTO EM DESTAQUE -->
+  <!-- EM ANDAMENTO (experimento em destaque) -->
   {featured && (
-    <section class="border-b border-line" aria-labelledby="featured-title">
-      <div class="wrap grid gap-8 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:py-16">
-        <div class="flex flex-col gap-5">
-          <p class={`${label} m-0 text-lime`}>// 01 · Featured experiment</p>
-          <h2 id="featured-title" class="m-0 font-display text-[clamp(44px,12vw,64px)] leading-[0.95] uppercase lg:text-[88px]">Ideias<br>em <span class="text-lime">progresso</span></h2>
-          <div class="flex flex-col gap-2 border-l-2 border-lime pl-4">
-            <p class={`${label} m-0 text-muted`}>{featured.data.code} · {statuses[featured.data.status].label}</p>
-            <p class="m-0 text-lg">{featured.data.title}</p>
-            <p class="m-0 text-sm text-muted">{featured.data.description}</p>
-          </div>
-          <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-lime hover:text-lime">Ver documentação →</a>
+    <section id="andamento" class="scroll-mt-16 border-b border-line" aria-labelledby="featured-title">
+      <div class="wrap grid gap-8 py-12 lg:grid-cols-[1.25fr_0.75fr] lg:items-center lg:gap-14 lg:py-20">
+        <Wire label="Render do experimento" class="min-h-[300px] lg:order-2 lg:min-h-[520px]" />
+        <div class="flex flex-col gap-5 lg:order-1">
+          <p class={eyebrow}>Em andamento</p>
+          <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-lime">{featured.data.title}</a></h2>
+          <p class={lead}>{featured.data.description}</p>
+          <p class={`${mono} m-0 text-muted`}>{featured.data.code} · {statuses[featured.data.status].label} · {fmtDate(featured.data.date)}</p>
+          <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-lime hover:text-lime">Ver o experimento →</a>
         </div>
-        <Wire label="Imagem grande do experimento (render 3D)" class="min-h-[300px] lg:min-h-[460px]">
-          <span class="absolute top-0 right-0 h-1/2 w-1/3 bg-lime/70" aria-hidden="true"></span>
-        </Wire>
       </div>
     </section>
   )}
 
-  <!-- 02 · INVESTIGAÇÕES RECENTES -->
+  <!-- PESQUISAS -->
   <section class="border-b border-line" aria-labelledby="research-title">
-    <div class="wrap flex items-end justify-between gap-6 pt-10 pb-6 lg:pt-14">
-      <div class="flex flex-col gap-3">
-        <p class={`${label} m-0 text-lime`}>// 02 · Research</p>
-        <h2 id="research-title" class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">Investigações recentes</h2>
-      </div>
-      <a href={`${root}lab/research/`} class="link-ui shrink-0 text-[11px] lg:text-xs">Ver todas →</a>
-    </div>
-    {research.map((e, i) => (
-      <article class="border-t border-line">
-        <div class:list={['mx-auto grid max-w-[1440px] lg:grid-cols-[1.1fr_1fr_56px]', i % 2 && 'lg:grid-cols-[56px_1fr_1.1fr]']}>
-          <Wire label={`Imagem da pesquisa ${e.data.code}`} class:list={['min-h-[220px] lg:min-h-[300px]', i % 2 ? 'lg:order-3' : '']} />
-          <div class:list={['flex flex-col justify-center gap-3 p-5 lg:px-10 lg:py-10', i % 2 ? 'lg:order-2' : '']}>
-            <p class={`${label} m-0 text-lime`}>// Research · {e.data.areas.join(' / ')}</p>
-            <h3 class="m-0 font-serif text-[30px] leading-[1.1] lg:text-[40px]"><a href={href(e)} class="hover:text-lime">{e.data.title}</a></h3>
-            <p class="m-0 max-w-[460px] font-mono text-[13px] text-muted">{e.data.description}</p>
-            <a href={href(e)} class="label-ui self-start text-xs text-ink hover:text-lime">Ler a pesquisa <span class="text-lime">→</span></a>
-          </div>
-          <div class:list={['hidden items-center justify-center border-line lg:flex', i % 2 ? 'lg:order-1 border-r' : 'border-l']}>
-            <span class="font-mono text-xs tracking-[0.3em] text-muted [writing-mode:vertical-rl]">{e.data.code}</span>
-          </div>
-        </div>
-      </article>
-    ))}
-  </section>
-
-  <!-- 03 · FIELD NOTES -->
-  <section class="border-b border-line" aria-labelledby="notes-title">
-    <div class="wrap flex flex-col gap-6 py-10 lg:py-14">
-      <div class="flex items-end justify-between gap-6">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
+      <div class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-3">
-          <p class={`${label} m-0 text-lime`}>// 03 · Field Notes</p>
-          <h2 id="notes-title" class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">Notas de campo</h2>
-          <p class="m-0 max-w-[480px] text-sm text-muted">Ensaios, observações, ideias, guias e opiniões. Alguns de poucos parágrafos, outros aprofundados.</p>
+          <h2 id="research-title" class={h2}>Pesquisas</h2>
+          <p class={lead}>Investigações mais longas, com método, análise e referências.</p>
         </div>
-        <a href={`${root}lab/field-notes/`} class="link-ui shrink-0 text-[11px] lg:text-xs">Ver todas →</a>
+        <a href={`${root}lab/research/`} class="link-ui text-xs">Todas as pesquisas</a>
       </div>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {notes.map((e) => <PubCard entry={e} root={root} />)}
-        {Array.from({ length: Math.max(0, 3 - notes.length) }).map(() => (
-          <div class="wire flex min-h-[200px] items-center justify-center p-4"><span class="bg-bg px-2.5 py-1.5 font-mono text-[11px] text-muted uppercase">[ Próxima nota ]</span></div>
+      <ul class="m-0 flex list-none flex-col p-0">
+        {research.map((e) => (
+          <li class="border-t border-line last:border-b">
+            <a href={href(e)} class="group grid gap-5 py-6 md:grid-cols-[280px_1fr] md:items-center lg:grid-cols-[360px_1fr] lg:gap-10">
+              <Wire label="Imagem da pesquisa" class="min-h-[180px] lg:min-h-[220px]" />
+              <span class="flex flex-col gap-3">
+                <span class={`${mono} text-muted`}>{e.data.code} · {e.data.areas.join(' / ')}</span>
+                <span class="text-[26px] leading-[1.15] font-bold group-hover:text-lime lg:text-[34px]">{e.data.title}</span>
+                <span class="max-w-[560px] text-[15px] text-muted">{e.data.description}</span>
+              </span>
+            </a>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   </section>
 
-  <!-- 04 · VISUAL ARCHIVE -->
+  <!-- FIELD NOTES -->
+  <section class="border-b border-line" aria-labelledby="notes-title">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-col gap-3">
+          <h2 id="notes-title" class={h2}>Notas de campo</h2>
+          <p class={lead}>Ensaios, observações e opiniões. Umas de poucos parágrafos, outras mais longas.</p>
+        </div>
+        <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Todas as notas</a>
+      </div>
+      <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{notes.map((e) => <li><PubCard entry={e} root={root} /></li>)}</ul>
+    </div>
+  </section>
+
+  <!-- ARQUIVO VISUAL -->
   <section class="border-b border-line" aria-labelledby="archive-title">
-    <div class="mx-auto grid max-w-[1440px] lg:grid-cols-[1fr_1.4fr]">
-      <div class="relative flex flex-col justify-center gap-5 px-5 py-10 lg:px-14 lg:py-16">
-        <span class="absolute inset-y-0 left-0 w-1 bg-lime" aria-hidden="true"></span>
-        <p class={`${label} m-0 text-lime`}>// 04 · Visual Archive</p>
-        <h2 id="archive-title" class="m-0 font-display text-[44px] leading-[0.95] uppercase lg:text-[64px]">Uma biblioteca<br>de <span class="text-lime">referências</span></h2>
-        <p class="m-0 max-w-[380px] font-mono text-[13px] text-muted">Imagens, materiais e inspirações de várias disciplinas, cada uma com origem, observação e ligação com pesquisas e experimentos.</p>
-        <a href={`${root}lab/visual-archive/`} class="label-ui self-start text-xs hover:text-lime">Explorar o arquivo <span class="text-lime">→</span></a>
+    <div class="wrap grid gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:py-16">
+      <div class="flex flex-col gap-4">
+        <h2 id="archive-title" class={h2}>Arquivo de referências</h2>
+        <p class={lead}>Imagens e materiais que me chamaram atenção, cada um com a origem, o que eu vi nele e onde ele foi usado.</p>
+        <a href={`${root}lab/visual-archive/`} class="link-ui self-start text-xs">Abrir o arquivo</a>
       </div>
-      <div class="grid grid-cols-3 grid-rows-2 gap-px border-t border-line bg-line lg:border-t-0 lg:border-l">
+      <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3">
         {archive.map((e) => (
-          <a href={href(e)} class="group relative block min-h-[140px] bg-bg lg:min-h-[200px]">
-            <Wire label={e.data.code} class="absolute inset-0 border-0" />
-            <span class="absolute inset-x-0 bottom-0 bg-bg/85 p-2 text-[11px] text-muted group-hover:text-lime">{e.data.title}</span>
-          </a>
+          <li>
+            <a href={href(e)} class="group flex flex-col gap-2">
+              <Wire label="Referência" class="aspect-square" />
+              <span class="text-[13px] leading-snug group-hover:text-lime">{e.data.title}</span>
+            </a>
+          </li>
         ))}
-        {Array.from({ length: Math.max(0, 6 - archive.length) }).map((_, i) => <Wire label={`Referência ${String(archive.length + i + 1).padStart(3, '0')}`} class="min-h-[140px] border-0 bg-bg lg:min-h-[200px]" />)}
-      </div>
+        {Array.from({ length: Math.max(0, 6 - archive.length) }).map(() => <li aria-hidden="true"><Wire label="Referência" class="aspect-square opacity-60" /></li>)}
+      </ul>
     </div>
   </section>
 
-  <!-- 05 · OPEN LAB -->
-  <section class="border-b border-line" aria-labelledby="open-title">
-    <div class="wrap grid gap-6 py-10 lg:grid-cols-[1fr_2fr] lg:gap-12 lg:py-14">
-      <div class="flex flex-col gap-3">
-        <p class={`${label} m-0 text-lime`}>// 05 · Open Lab</p>
-        <h2 id="open-title" class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">Experimente você</h2>
-        <p class="m-0 text-sm text-muted">Ferramentas e experiências interativas para usar aqui mesmo, no navegador.</p>
+  <!-- OPEN LAB -->
+  {open.length > 0 && (
+    <section class="border-b border-line" aria-labelledby="open-title">
+      <div class="wrap grid gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:py-16">
+        <div class="flex flex-col gap-4">
+          <h2 id="open-title" class={h2}>Para usar no navegador</h2>
+          <p class={lead}>Ferramentas pequenas que saíram dos experimentos. Abre e mexe, sem instalar nada.</p>
+        </div>
+        <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2">
+          {open.map((e) => (
+            <li>
+              <a href={href(e)} class="group flex h-full flex-col border border-line hover:border-lime">
+                <Wire label="Prévia da ferramenta" class="min-h-[200px] border-0 border-b" />
+                <span class="flex flex-col gap-2 p-5"><span class="text-xl font-bold group-hover:text-lime">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div class="grid gap-4 md:grid-cols-2">
-        {open.map((e) => (
-          <a href={href(e)} class="group flex flex-col border border-line hover:border-lime">
-            <Wire label="Prévia interativa" class="min-h-[180px] border-0 border-b" />
-            <span class="flex flex-col gap-1.5 p-4"><span class="font-mono text-[11px] text-lime">{e.data.code}</span><span class="font-display text-[24px] leading-none uppercase group-hover:text-lime">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
-          </a>
-        ))}
-        <div class="wire flex min-h-[180px] items-center justify-center p-4"><span class="bg-bg px-2.5 py-1.5 font-mono text-[11px] text-muted uppercase">[ Próxima experiência ]</span></div>
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 
-  <!-- 06 · EXPLORE THE UNKNOWN: áreas de conhecimento + observatório -->
+  <!-- POR ASSUNTO: áreas de conhecimento + observatório -->
   <section class="border-b border-line" aria-labelledby="areas-title">
-    <div class="wrap flex flex-col gap-6 py-10 lg:py-14">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
       <div class="flex flex-col gap-3">
-        <p class={`${label} m-0 text-lime`}>// 06 · Explore the unknown</p>
-        <h2 id="areas-title" class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">Áreas de conhecimento</h2>
+        <h2 id="areas-title" class={h2}>Por assunto</h2>
+        <p class={lead}>Os temas atravessam os departamentos: uma pesquisa sobre percepção e um experimento 3D podem estar no mesmo assunto.</p>
       </div>
       <ul class="m-0 grid list-none grid-cols-1 gap-px border border-line bg-line p-0 sm:grid-cols-2 lg:grid-cols-4">
-        {areas.map((a, i) => {
+        {areas.map((a) => {
           const n = all.filter((e) => (e.data.areas as readonly string[]).includes(a.name)).length;
           return (
             <li class="flex flex-col gap-2 bg-bg p-5">
-              <span class="font-mono text-[11px] text-muted tabular-nums">A-{String(i + 1).padStart(2, '0')} · {n} {n === 1 ? 'publicação' : 'publicações'}</span>
               <span class="label-ui text-xs text-ink">{a.name}</span>
               <span class="text-[13px] text-muted">{a.about}</span>
+              <span class={`${mono} mt-auto pt-2 text-muted`}>{n} {n === 1 ? 'publicação' : 'publicações'}</span>
             </li>
           );
         })}
       </ul>
       {observatory && (
         <a href={href(observatory)} class="group flex flex-col gap-2 border border-line p-5 hover:border-lime sm:flex-row sm:items-center sm:justify-between">
-          <span class="flex items-center gap-3"><LabIcon name="eye" class="size-6 text-lime" /><span class={`${label} text-muted`}>Observatory · {observatory.data.code} · {fmtDate(observatory.data.date)}</span></span>
+          <span class="flex items-center gap-3"><LabIcon name="eye" class="size-6 text-muted group-hover:text-lime" /><span class={eyebrow}>Observatório · último registro</span></span>
           <span class="text-[15px] group-hover:text-lime">{observatory.data.title} →</span>
         </a>
       )}
     </div>
   </section>
 
-  <!-- STAY IN THE LAB (wireframe: o envio ainda não está ligado) -->
-  <section aria-labelledby="stay-title">
-    <div class="wrap grid gap-6 py-12 lg:grid-cols-2 lg:items-center lg:py-20">
-      <h2 id="stay-title" class="m-0 font-display text-[56px] leading-[0.92] uppercase lg:text-[96px]">Stay in<br>the <span class="text-lime">lab</span></h2>
-      <div class="flex flex-col gap-4">
-        <p class="m-0 font-mono text-sm text-muted">Receba novos experimentos, artigos e pesquisas por e-mail.</p>
-        <div class="flex flex-col gap-2 sm:flex-row">
-          <input type="email" disabled placeholder="seu@email.com" aria-label="Seu e-mail" class="h-12 flex-1 border border-line bg-bg px-4 text-[15px]">
-          <button type="button" disabled class="label-ui min-h-12 bg-lime px-6 text-xs font-bold text-black opacity-60">Assinar →</button>
-        </div>
-        <p class="m-0 font-mono text-[11px] text-muted uppercase">[ Wireframe: definir o serviço de e-mail ]</p>
+  <!-- POR E-MAIL (wireframe: o envio ainda não está ligado) -->
+  <section aria-labelledby="mail-title">
+    <div class="wrap grid gap-6 py-12 lg:grid-cols-2 lg:items-end lg:py-20">
+      <div class="flex flex-col gap-3">
+        <h2 id="mail-title" class={h2}>Novas publicações por e-mail</h2>
+        <p class={lead}>Mando um e-mail quando sai coisa nova. Sem frequência fixa e sem spam.</p>
       </div>
+      <form class="flex flex-col gap-2" aria-describedby="mail-note" onsubmit="return false">
+        <label for="mail" class="text-xs text-muted">Seu e-mail</label>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <input id="mail" type="email" disabled placeholder="voce@exemplo.com" class="h-12 flex-1 border border-line bg-bg px-4 text-[15px]">
+          <button type="submit" disabled class="label-ui min-h-12 bg-lime px-6 text-xs font-bold text-black disabled:opacity-50">Quero receber</button>
+        </div>
+        <p id="mail-note" class={`${mono} m-0 text-muted`}>[ Wireframe: falta escolher o serviço de e-mail ]</p>
+      </form>
     </div>
   </section>
 </Lab>
