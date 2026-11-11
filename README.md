@@ -81,3 +81,15 @@ O cabeçalho publica a própria altura em `--header-h`, usada como `scroll-paddi
   e funciona em qualquer pasta, inclusive publicada como artefato. Os links entre páginas são relativos, escritos à mão.
 - Tailwind v4 aplica a regra de CSS mais tardia, não a ordem das classes no atributo. Evite duas classes que definem a mesma propriedade no mesmo elemento.
 - O formulário de contato é de demonstração: ainda não envia nada. Os links de redes sociais, WhatsApp e e-mail são marcadores.
+
+## Experimental Lab (`/lab/`)
+
+Área de pesquisa, experimentos e artigos, feita para ranquear no Google. Hoje é um **wireframe**: as caixas hachuradas `[ ... ]`
+são espaços de imagem e as publicações de `src/content/lab/` são exemplos (`draft: true`).
+
+- **Publicar:** crie `src/content/lab/<departamento>/<slug>.md` (o nome do arquivo vira a URL: palavras em português, sem acento,
+  separadas por hífen). Os campos (código, status, áreas, tags, relacionados, referências...) estão em `src/content.config.ts`.
+- **Departamentos:** `experiments` (EXP), `field-notes` (FN), `research` (RES), `visual-archive` (VA), `open-lab` (LAB), `observatory` (OBS).
+- **Google:** cada página tem título, descrição, URL canônica, Open Graph e dados estruturados (Article/TechArticle e trilha).
+  Rascunhos (`draft: true`) saem com `noindex` e ficam fora do `sitemap.xml`; com `draft: false` a página entra no sitemap.
+- Dados fixos (departamentos, áreas, status) em `src/lab/data.ts`; layout em `src/layouts/Lab.astro`.

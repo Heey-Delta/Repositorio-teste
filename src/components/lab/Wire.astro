@@ -1,0 +1,9 @@
+---
+// Caixa de imagem do wireframe: hachurada, com a descrição do que vai entrar ali
+interface Props { label: string; class?: string; }
+const { label, class: cls = '' } = Astro.props;
+---
+<div class:list={['wire relative flex items-center justify-center overflow-hidden p-4 text-center', cls]} role="img" aria-label={`Espaço reservado: ${label}`}>
+  <span class="relative z-[1] bg-bg px-2.5 py-1.5 font-mono text-[11px] tracking-wide text-muted uppercase">[ {label} ]</span>
+  <slot />
+</div>

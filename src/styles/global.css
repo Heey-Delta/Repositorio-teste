@@ -1,8 +1,11 @@
 @import "tailwindcss" source(none);
 /* Só as páginas e componentes do site principal (as demos têm o próprio CSS) */
 @source "../pages/index.astro";
+@source "../pages/lab";
+@source "../lab";
 @source "../components";
 @source "../layouts/Base.astro";
+@source "../layouts/Lab.astro";
 
 /* Identidade do site principal: preto, branco e lime. Títulos em Anton, rótulos em Drunk, textos em Arial. */
 /* Cor de destaque: nasce lime (#B7FF1A) e muda devagar para laranja e azul e volta (90 s no total).

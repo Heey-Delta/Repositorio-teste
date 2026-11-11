@@ -1,0 +1,21 @@
+---
+// Card de publicação: código, departamento, título, resumo, status e data
+import type { CollectionEntry } from 'astro:content';
+import { departmentBySlug, statuses, fmtDate } from '../../lab/data';
+interface Props { entry: CollectionEntry<'lab'>; root: string; compact?: boolean; }
+const { entry, root, compact = false } = Astro.props;
+const d = entry.data, dep = departmentBySlug(d.department);
+const slug = entry.id.split('/').pop();
+---
+<a href={`${root}lab/${d.department}/${slug}/`} class="group flex h-full flex-col gap-3 border border-line p-4 transition-colors hover:border-lime lg:p-5">
+  <span class="flex items-center justify-between gap-3 font-mono text-[11px] text-muted uppercase">
+    <span><span class="text-lime">{d.code}</span> · {dep.name}</span>
+    <span class="tabular-nums">{statuses[d.status].label}</span>
+  </span>
+  <span class:list={['font-display leading-[1.02] uppercase group-hover:text-lime', compact ? 'text-[22px]' : 'text-[26px] lg:text-[30px]']}>{d.title}</span>
+  {!compact && <span class="text-[13px] text-muted">{d.description}</span>}
+  <span class="mt-auto flex items-center justify-between gap-3 pt-1 text-xs text-muted">
+    <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>
+    <span class="label-ui text-[11px] text-ink group-hover:text-lime">Ler →</span>
+  </span>
+</a>

@@ -1,0 +1,85 @@
+---
+// Modelo de publicação do laboratório: ficha (código, departamento, status, datas, áreas, nível, tags), sumário,
+// corpo em Markdown, referências e publicações relacionadas. Dados estruturados: Article (ou TechArticle em Research).
+import Lab from '../../../layouts/Lab.astro';
+import PubCard from '../../../components/lab/PubCard.astro';
+import Wire from '../../../components/lab/Wire.astro';
+import { getCollection, render } from 'astro:content';
+import { departmentBySlug, statuses, fmtDate, up } from '../../../lab/data';
+
+export async function getStaticPaths() {
+  const all = await getCollection('lab');
+  return all.map((entry) => ({ params: { department: entry.data.department, slug: entry.id.split('/').pop() }, props: { entry, all } }));
+}
+const { entry, all } = Astro.props;
+const d = entry.data, dep = departmentBySlug(d.department), root = up(3);
+const { Content, headings } = await render(entry);
+const toc = headings.filter((h) => h.depth === 2);
+const related = all.filter((e) => d.related.includes(e.data.code) || e.data.related.includes(d.code)).filter((e) => e.id !== entry.id);
+const url = new URL(`/lab/${d.department}/${entry.id.split('/').pop()}/`, Astro.site).href;
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': d.department === 'research' ? 'TechArticle' : 'Article',
+  headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
+  datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
+  author: { '@type': 'Person', name: d.author }, publisher: { '@type': 'Person', name: 'Hallan' },
+  articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), identifier: d.code,
+}];
+const meta = [
+  ['Código', d.code], ['Departamento', dep.name], ['Status', `${statuses[d.status].label} · ${statuses[d.status].about}`],
+  ['Publicado', fmtDate(d.date)], ...(d.updated ? [['Atualizado', fmtDate(d.updated)]] : []),
+  ['Autor', d.author], ['Áreas', d.areas.join(' / ')], ['Nível', d.level], ...(d.format ? [['Formato', d.format]] : []),
+];
+---
+<Lab title={d.title} description={d.description} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
+  crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
+  <article>
+    <header class="border-b border-line">
+      <div class="wrap flex flex-col gap-5 py-8 lg:py-12">
+        <p class="m-0 font-mono text-[11px] text-lime uppercase">// {d.code} · {dep.name}{d.format ? ` · ${d.format}` : ''}</p>
+        <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
+        <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
+      </div>
+      <Wire label="Imagem de capa da publicação" class="mx-auto min-h-[240px] max-w-[1440px] border-x-0 lg:min-h-[420px]" />
+    </header>
+    <div class="wrap grid gap-10 py-10 lg:grid-cols-[260px_1fr] lg:gap-16 lg:py-14">
+      <aside class="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start" aria-label="Ficha da publicação">
+        <dl class="m-0 grid grid-cols-[96px_1fr] gap-x-3 gap-y-2 border-t border-line pt-4 text-[13px]">
+          {meta.map(([k, v]) => <><dt class="font-mono text-[11px] text-muted uppercase">{k}</dt><dd class="m-0 tabular-nums">{v}</dd></>)}
+        </dl>
+        {d.tags.length > 0 && <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0" aria-label="Tags">{d.tags.map((t) => <li class="border border-line px-2 py-1 font-mono text-[11px] text-muted">#{t}</li>)}</ul>}
+        {toc.length > 1 && (
+          <nav class="border-t border-line pt-4" aria-label="Nesta publicação">
+            <p class="m-0 mb-2 font-mono text-[11px] text-muted uppercase">Nesta publicação</p>
+            <ol class="m-0 flex list-none flex-col gap-1.5 p-0 text-[13px]">{toc.map((h, i) => <li><a href={`#${h.slug}`} class="hover:text-lime"><span class="mr-2 font-mono text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>)}</ol>
+          </nav>
+        )}
+      </aside>
+      <div class="lab-prose max-w-[720px]"><Content /></div>
+    </div>
+    {d.references.length > 0 && (
+      <section class="wrap border-t border-line py-8" aria-labelledby="refs">
+        <h2 id="refs" class="m-0 mb-4 font-mono text-[11px] text-muted uppercase">Referências</h2>
+        <ol class="m-0 flex flex-col gap-2 pl-5 text-sm">{d.references.map((r) => <li>{r.url ? <a href={r.url} rel="noopener" class="underline hover:text-lime">{r.title}</a> : r.title}</li>)}</ol>
+      </section>
+    )}
+  </article>
+  {related.length > 0 && (
+    <section class="border-t border-line" aria-labelledby="related-title">
+      <div class="wrap flex flex-col gap-5 py-10">
+        <h2 id="related-title" class="m-0 font-display text-[32px] leading-none uppercase lg:text-[44px]">Publicações <span class="text-lime">relacionadas</span></h2>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{related.map((e) => <PubCard entry={e} root={root} compact />)}</div>
+      </div>
+    </section>
+  )}
+</Lab>
+<style is:global>
+  .lab-prose { font-size: 17px; line-height: 1.7; color: var(--ink); }
+  .lab-prose > * + * { margin-top: 1.1em; }
+  .lab-prose h2 { margin-top: 2em; font-family: var(--font-display); font-size: 30px; line-height: 1.05; text-transform: uppercase; scroll-margin-top: 88px; }
+  .lab-prose h3 { margin-top: 1.6em; font-size: 20px; font-weight: 700; }
+  .lab-prose a { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
+  .lab-prose blockquote { border-left: 2px solid var(--lime); padding-left: 16px; color: var(--muted); font-family: var(--font-mono, ui-monospace, monospace); font-size: 14px; }
+  .lab-prose ul, .lab-prose ol { padding-left: 1.3em; } .lab-prose ul { list-style: square; } .lab-prose ol { list-style: decimal; }
+  .lab-prose code { font-family: ui-monospace, monospace; font-size: .9em; background: #111; padding: .1em .35em; }
+  .lab-prose img { border: 1px solid var(--line); }
+</style>
