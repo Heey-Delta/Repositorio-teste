@@ -83,7 +83,7 @@
 .kz-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: 6px; height: 1px; background: #C79A5E; transform: scaleX(0); transform-origin: right; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
 .kz-link:hover::after { transform: scaleX(1); transform-origin: left; }
 /* cabeçalho: transparente no topo, sólido depois de rolar */
-.kz-head { background: linear-gradient(to bottom, rgba(10,6,3,.75), rgba(10,6,3,0)); border-bottom: 1px solid transparent; backdrop-filter: blur(8px); transition: background .6s ease, box-shadow .6s ease, border-color .6s ease; }
+.kz-head { background: linear-gradient(to bottom, rgba(10,6,3,.75), rgba(10,6,3,0)); border-bottom: 1px solid transparent; transition: background .6s ease, box-shadow .6s ease, border-color .6s ease; }
 .kz-head[data-solid="true"] { background: rgba(10,6,3,.94); border-bottom-color: rgba(199,162,131,.12); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 .kz-logo { transition: height .5s cubic-bezier(.2,.7,.2,1); height: 50px; }
 .kz-head[data-solid="true"] .kz-logo { height: 42px; }
