@@ -4,12 +4,12 @@
 // { type: 'city:start' } para disparar a animação de entrada. Limite de 5 s: se a cidade não tiver carregado,
 // a página abre sozinha e a cidade anima quando ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
-// Fundo: "DANTE" repetido em diagonal, num tom só um pouco mais claro que o preto, subindo em laço. A tela some em 1 s.
-const line = Array(14).fill('DANTE').join(' ');
+// Fundo: "HALLAN" repetido em diagonal, num tom só um pouco mais claro que o preto, subindo em laço. A tela some em 1 s.
+const line = Array(14).fill('HALLAN').join(' ');
 const rows = Array.from({ length: 20 }, (_, i) => i);
 ---
 <div class="loader fixed inset-0 z-100 overflow-hidden bg-black" id="loader" role="status" aria-live="polite" aria-label="Carregando">
-  <!-- fundo: "DANTE" repetido em diagonal, subindo sem parar (duas cópias iguais para o laço não ter emenda) -->
+  <!-- fundo: "HALLAN" repetido em diagonal, subindo sem parar (duas cópias iguais para o laço não ter emenda) -->
   <div class="loader-words" aria-hidden="true">
     <div class="loader-words-track">
       {[0, 1].map(() => (

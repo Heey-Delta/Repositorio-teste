@@ -205,7 +205,7 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     // só anima com a caixa na tela e depois da liberação (5 s após a entrada da cidade)
     var released = false, inView = !window.IntersectionObserver;
     function go() { if (released && inView) start(); }
-    window.addEventListener('dante:stacks', function () { released = true; go(); });
+    window.addEventListener('hallan:stacks', function () { released = true; go(); });
     if (window.IntersectionObserver) new IntersectionObserver(function (en) {
       inView = en[0].isIntersecting; if (inView) go(); else stop();
     }, { threshold: 0.15 }).observe(box);
@@ -216,8 +216,8 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     var STEP = 5000, fired = false;
     function fire() {
       if (fired) return; fired = true;
-      setTimeout(function () { window.dispatchEvent(new Event('dante:stacks')); }, STEP);
-      setTimeout(function () { window.dispatchEvent(new Event('dante:courses')); }, STEP * 2);
+      setTimeout(function () { window.dispatchEvent(new Event('hallan:stacks')); }, STEP);
+      setTimeout(function () { window.dispatchEvent(new Event('hallan:courses')); }, STEP * 2);
     }
     window.addEventListener('message', function (e) {
       var f = document.getElementById('cityFrame');
@@ -239,7 +239,7 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     }, { passive: true });
     // anda sozinha devagar; para enquanto a pessoa está com o mouse, o dedo ou o foco na lista
     var paused = false, visible = false, released = false, acc = 0, lastT = 0;
-    window.addEventListener('dante:courses', function () { released = true; });
+    window.addEventListener('hallan:courses', function () { released = true; });
     ['pointerenter', 'focusin', 'touchstart'].forEach(function (ev) { box.addEventListener(ev, function () { paused = true; }, { passive: true }); });
     ['pointerleave', 'focusout'].forEach(function (ev) { box.addEventListener(ev, function () { paused = false; }); });
     box.addEventListener('touchend', function () { setTimeout(function () { paused = false; }, 2500); });
