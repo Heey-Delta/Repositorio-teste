@@ -4,7 +4,7 @@
 // { type: 'city:start' } para disparar a animação de entrada. Limite de 5 s: se a cidade não tiver carregado,
 // a página abre sozinha e a cidade anima quando ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
-// Fundo: imagem com "HALLAN" repetido em diagonal (img/loader-hallan.webp), cobrindo a largura e subindo devagar uma vez só
+// Fundo: imagem com "HALLAN" repetido em diagonal (img/loader-hallan.webp), cobrindo a largura e subindo reto a 15 px/s, uma vez só
 // (a imagem não emenda consigo mesma, e o loader dura no máximo ~6 s). A tela some em 1 s.
 // Ao terminar, a tela e a cobra são removidas da página, para não ficarem animando escondidas.
 ---
@@ -18,8 +18,8 @@
   .loader { transition: opacity 1s ease, visibility 0s linear 1s; }
   html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
   .loader { background: #000; }
-  .loader-bg { position: absolute; top: 0; left: 0; width: 100%; height: auto; max-width: none; animation: loader-rise 30s linear forwards; will-change: transform; }
-  @keyframes loader-rise { to { transform: translateY(calc(-100% + 100vh)); } }
+  .loader-bg { position: absolute; top: 0; left: 0; width: 100%; height: auto; max-width: none; animation: loader-rise 10s linear forwards; will-change: transform; }
+  @keyframes loader-rise { to { transform: translateY(-150px); } }
   .loader-ouro { width: 23vmin; height: 23vmin; animation: loader-spin 6s linear infinite; }
   @keyframes loader-spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
