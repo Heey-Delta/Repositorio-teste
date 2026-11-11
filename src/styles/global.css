@@ -5,31 +5,21 @@
 @source "../layouts/Base.astro";
 
 /* Identidade do site principal: preto, branco e lime. Títulos em Anton, rótulos em Drunk, textos em Arial. */
-/* Cor de destaque: nasce lime (#B7FF1A) e muda devagar para laranja e azul e volta, sempre vívida (cada tom no limite
-   do sRGB). São 3 trechos de 30 s (lime → laranja → azul → lime), 90 s no total. A cor é montada em OKLCH com 3 números
-   registrados, para o navegador poder animá-los; o passo de `steps(300)` atualiza ~10 vezes por segundo (a mudança é
-   lenta, então não aparece e custa pouco). Com "reduzir movimento" fica fixa no lime. */
-@property --accent-l { syntax: '<number>'; inherits: true; initial-value: 0.918; }
-@property --accent-c { syntax: '<number>'; inherits: true; initial-value: 0.235; }
-@property --accent-h { syntax: '<number>'; inherits: true; initial-value: 127.7; }
-@keyframes accent-cycle {
-  0%      { --accent-l: 0.918; --accent-c: 0.235; --accent-h: 127.7; }   /* lime */
-  33.333% { --accent-l: 0.76;  --accent-c: 0.16;  --accent-h: 55; }      /* laranja */
-  66.667% { --accent-l: 0.72;  --accent-c: 0.15;  --accent-h: -115; }    /* azul (245) */
-  100%    { --accent-l: 0.918; --accent-c: 0.235; --accent-h: -232.3; }  /* de volta ao lime (127,7) */
-}
-
+/* Cor de destaque: nasce lime (#B7FF1A) e muda devagar para laranja e azul e volta (90 s no total).
+   Não é mais animada no :root (isso fazia o navegador recalcular a página inteira a cada passo): aqui fica só o lime
+   fixo, e o script de components/Visibility.astro troca a cor apenas nos elementos que usam o destaque (classes com
+   "lime", .link-ui ou a marca .accent) e só enquanto estão na tela. */
 :root {
   --bg: #000000;
   --surface: #121212;
   --line: #2B2B2B;
   --ink: #F2F2EE;
   --muted: #A6A6A0;
-  --lime: oklch(var(--accent-l) var(--accent-c) var(--accent-h));
-  animation: accent-cycle 90s steps(300, end) infinite;
+  --lime: oklch(0.918 0.235 127.7);
   color-scheme: dark;
 }
-@media (prefers-reduced-motion: reduce) { :root { animation: none; } }
+/* Seção fora da tela: todas as animações dela ficam paradas (marcado por components/Visibility.astro) */
+[data-off], [data-off] * { animation-play-state: paused !important; }
 
 @theme inline {
   --color-bg: var(--bg);

@@ -5,6 +5,7 @@
 // a página abre sozinha e a cidade anima quando ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
 // Fundo: "HALLAN" repetido em diagonal, num tom só um pouco mais claro que o preto, subindo em laço. A tela some em 1 s.
+// Ao terminar, a tela e a cobra são removidas da página, para não ficarem animando escondidas.
 const line = Array(14).fill('HALLAN').join(' ');
 const rows = Array.from({ length: 20 }, (_, i) => i);
 ---
@@ -47,7 +48,7 @@ const rows = Array.from({ length: 20 }, (_, i) => i);
     function toss() {
       var wrap = document.getElementById('ouroWrap'), box = document.getElementById('ouro'), img = box.firstElementChild;
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var end = function () { wrap.style.display = 'none'; };
+      var end = function () { wrap.remove(); };   // terminou: tira a cobra da página (nada fica animando escondido)
       if (reduce || !box.animate) { end(); return; }
       var a0 = 0, an = img.getAnimations && img.getAnimations()[0];
       if (an) a0 = ((an.currentTime % 6000) / 6000) * 360;
@@ -64,6 +65,7 @@ const rows = Array.from({ length: 20 }, (_, i) => i);
     function finish() {
       if (done) return; done = true;
       root.classList.remove('loading');
+      setTimeout(function () { var l = document.getElementById('loader'); if (l) l.remove(); }, 1200);   // depois do fade de 1 s, o texto sai da página
       setTimeout(toss, HOLD_MS);
       try { cityFrame().contentWindow.postMessage({ type: 'city:start' }, '*'); } catch (e) {}
     }

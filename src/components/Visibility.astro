@@ -1,0 +1,39 @@
+---
+// Economia de processamento:
+// 1) Cada seção fora da tela recebe data-off, e o CSS pausa todas as animações dela (glitches, pulsos etc.).
+// 2) Cor de destaque animada (lime → laranja → azul → lime em 90 s): em vez de animar o :root, o que recalculava a
+//    página inteira, a cor é aplicada só nos elementos marcados (classes com "lime", .link-ui ou .accent) que estão
+//    na tela, cerca de 3 vezes por segundo. Para um elemento novo seguir a cor, use uma classe *-lime ou .accent.
+---
+<script is:inline>
+  (function () {
+    var regions = [].slice.call(document.querySelectorAll('main > section, body > footer'));
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var groups = new Map(), shown = new Set();
+    [].forEach.call(document.querySelectorAll('[class*="lime"], .link-ui, .accent'), function (el) {
+      var r = null; for (var i = 0; i < regions.length; i++) if (regions[i].contains(el)) { r = regions[i]; break; }
+      if (!groups.has(r)) groups.set(r, []); groups.get(r).push(el);
+    });
+    // lime → laranja → azul → lime (os mesmos valores OKLCH de antes), passos de 0,3 s
+    var K = [[0.918, 0.235, 127.7], [0.76, 0.16, 55], [0.72, 0.15, -115], [0.918, 0.235, -232.3]], CYCLE = 90000, STEP = 300;
+    function color(ms) {
+      var u = (Math.floor((ms % CYCLE) / STEP) * STEP) / CYCLE * 3, i = Math.min(2, Math.floor(u)), f = u - i, a = K[i], b = K[i + 1];
+      return 'oklch(' + (a[0] + (b[0] - a[0]) * f).toFixed(3) + ' ' + (a[1] + (b[1] - a[1]) * f).toFixed(3) + ' ' + (a[2] + (b[2] - a[2]) * f).toFixed(1) + ')';
+    }
+    var current = '';
+    function paint(list) { for (var i = 0; i < list.length; i++) list[i].style.setProperty('--lime', current); }
+    function tick() {
+      var c = color(performance.now()); if (c === current) return; current = c;
+      groups.forEach(function (list, r) { if (r === null || shown.has(r)) paint(list); });
+    }
+    function setVisible(r, on) {
+      if (on) { shown.add(r); r.removeAttribute('data-off'); if (current && groups.has(r)) paint(groups.get(r)); }
+      else { shown.delete(r); r.setAttribute('data-off', ''); }
+    }
+    if (window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (en) { en.forEach(function (e) { setVisible(e.target, e.isIntersecting); }); }, { rootMargin: '150px 0px' });
+      regions.forEach(function (r) { io.observe(r); });
+    } else regions.forEach(function (r) { shown.add(r); });
+    if (!reduce) { tick(); setInterval(tick, STEP); }
+  })();
+</script>
