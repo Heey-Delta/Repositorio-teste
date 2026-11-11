@@ -3,7 +3,8 @@
 // postMessage; aqui ele aparece por cima da seção de baixo, preso à borda inferior da seção da cidade
 // (position: absolute, sem empurrar o conteúdo), com o mesmo visual do card interno (card.css).
 // A seção da cidade precisa ser `relative` e ter z-index acima da seção seguinte.
-// Mensagens: { type: 'city:card', open, html, bodyClass, bodyStyle, plain, fonts } e { type: 'city:card-live', updates }.
+// Prédios que são sites (mensagem com `slug`) abrem o card lateral da seção Trabalhos (window.hallanSiteCard), não este.
+// Mensagens: { type: 'city:card', open, html, bodyClass, bodyStyle, plain, fonts, slug } e { type: 'city:card-live', updates }.
 // Respostas para a cidade: { type: 'city:card-back' } e { type: 'city:card-act', act: 'feed' }.
 ---
 <div id="cityCardWrap" class="pointer-events-none invisible absolute inset-x-0 top-full z-10 translate-y-3 opacity-0 transition-[opacity,translate,visibility] duration-300 data-[open=true]:pointer-events-auto data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:opacity-100 motion-reduce:transition-none" data-open="false" aria-hidden="true" inert>
@@ -33,7 +34,11 @@
       var d = e.data, f = frame();
       if (!f || e.source !== f.contentWindow || !d) return;   // só aceita mensagens da cidade
       if (d.type === 'city:card') {
-        if (!d.open) { setOpen(false); return; }
+        var side = window.hallanSiteCard;
+        if (!d.open) { setOpen(false); if (side) side.close(false); return; }
+        // prédio de um site: abre o card lateral da seção Trabalhos no lugar deste
+        if (d.slug && side && side.open(d.slug)) { setOpen(false); return; }
+        if (side) side.close(false);
         if (d.fonts && !fonts[d.fonts]) {   // fontes da marca do negócio
           fonts[d.fonts] = true;
           var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = d.fonts; document.head.appendChild(link);

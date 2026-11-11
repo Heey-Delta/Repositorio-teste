@@ -19,12 +19,12 @@ const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);ma
     </div>
     <!-- celular: vertical -->
     <div class="relative pl-[18px] lg:hidden">
-      <div class="absolute top-4 bottom-4 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
-      <ol class="m-0 flex list-none flex-col gap-5 p-0">
+      <div class="absolute top-3 bottom-3 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
+      <ol class="m-0 flex list-none flex-col gap-3.5 p-0">
         {steps.map((st, i) => (
-          <li class="relative flex items-center gap-3 text-sm font-bold">
-            <span class:list={['absolute top-1/2 -left-[18px] size-[11px] -translate-y-1/2 rounded-full border', i === steps.length - 1 ? 'border-lime bg-lime' : 'border-ink bg-surface']} aria-hidden="true"></span>
-            <span class:list={['proc-icon block size-8 shrink-0', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={mask(st.icon)} aria-hidden="true"></span>
+          <li class="relative flex items-center gap-2.5 text-[13px]">
+            <span class:list={['absolute top-1/2 -left-[17px] size-[9px] -translate-y-1/2 rounded-full border', i === steps.length - 1 ? 'border-lime bg-lime' : 'border-ink bg-surface']} aria-hidden="true"></span>
+            <span class:list={['proc-icon block size-6 shrink-0', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={mask(st.icon)} aria-hidden="true"></span>
             <span>{st.name}</span>
           </li>
         ))}

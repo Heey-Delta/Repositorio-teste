@@ -2639,7 +2639,7 @@ if (!window.CITY_FALLBACK) (() => {
 
   // ---------- Card por fora (?card=out) ----------
   // A cidade continua montando o card (dados, horários, valores ao vivo), mas em vez de mostrá-lo manda
-  // para a página: { type: 'city:card', open, html, ... } ao abrir e { type: 'city:card-live', updates }
+  // para a página: { type: 'city:card', open, html, slug, ... } ao abrir e { type: 'city:card-live', updates }
   // para os valores que mudam. A página responde com { type: 'city:card-back' } (voltar) e
   // { type: 'city:card-act', act: 'feed' } (alimentar os pássaros).
   function absolutizeStyle(value) {   // url("pizzaria/predio.webp") do banner vira endereço completo
@@ -2665,7 +2665,8 @@ if (!window.CITY_FALLBACK) (() => {
         bodyClass: cardBody.className,
         bodyStyle: absolutizeStyle(cardBody.getAttribute('style') || ''),
         plain: infoCard.classList.contains('card-plain'),
-        fonts: (project && project.brand && project.brand.fonts) || null
+        fonts: (project && project.brand && project.brand.fonts) || null,
+        slug: (project && project.slug) || null   // prédio de um site: a página mostra o card lateral dele no lugar deste
       });
     }
     try { window.parent.postMessage(msg, '*'); } catch (e) {}
