@@ -11,7 +11,7 @@
    "lime", .link-ui ou a marca .accent) e só enquanto estão na tela. */
 :root {
   --bg: #000000;
-  --surface: #121212;
+  --surface: #000000;   /* cards e seções no mesmo preto do fundo: só as linhas (--line) separam */
   --line: #2B2B2B;
   --ink: #F2F2EE;
   --muted: #A6A6A0;

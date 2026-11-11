@@ -22,7 +22,7 @@
    o desenho se repete sozinho. Cor: um tom um pouco mais claro que o fundo do card (TONE). */
 (function () {
   var canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
-  var TONE = [46, 46, 46];   // fundo do card (#121212) + ~10% de branco
+  var TONE = [46, 46, 46];   // cinza escuro, discreto sobre o fundo preto da seção
   var target = 0, shown = -1, standalone = true;
   window.addEventListener('message', function (e) {
     var d = e.data; if (!d || d.type !== 'zeta:progress') return;
