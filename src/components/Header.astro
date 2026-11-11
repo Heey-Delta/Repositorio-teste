@@ -1,7 +1,9 @@
 ---
 const links = [['#works', 'Trabalhos'], ['#stacks', 'Stacks & Cursos'], ['#about', 'Sobre'], ['#services', 'Serviços'], ['#process', 'Processo'], ['#lab', 'Laboratório'], ['#contact', 'Contato']];
 ---
-<header class="sticky top-[env(safe-area-inset-top,0px)] z-50 border-b border-line bg-bg/85 backdrop-blur-md">
+<header class="sticky top-[env(safe-area-inset-top,0px)] z-50 border-b border-line">
+  <!-- fundo do cabeçalho numa camada própria: um backdrop-filter no próprio header impediria o vidro do menu de enxergar a página -->
+  <div class="absolute inset-0 -z-10 bg-bg/85 backdrop-blur-md" aria-hidden="true"></div>
   <div class="wrap flex h-16 items-center justify-between gap-3 xl:grid xl:h-[72px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6">
     <a href="#top" class="font-display text-[28px] leading-none lg:text-[30px]" aria-label="/HALLAN, voltar ao topo">/HALLAN</a>
     <nav class="hidden gap-6 xl:flex 2xl:gap-9" aria-label="Principal">
@@ -14,9 +16,9 @@ const links = [['#works', 'Trabalhos'], ['#stacks', 'Stacks & Cursos'], ['#about
       </button>
     </div>
   </div>
-  <nav id="mobileNav" class="hidden border-t border-line bg-bg xl:hidden!" aria-label="Menu móvel">
+  <nav id="mobileNav" class="glass-nav absolute inset-x-0 top-full hidden xl:hidden!" aria-label="Menu móvel">
     <div class="wrap grid py-2">
-      {links.map(([href, label]) => <a href={href} class="label-ui border-b border-line py-4 text-[13px] last:border-b-0">{label}</a>)}
+      {links.map(([href, label]) => <a href={href} class="label-ui border-b border-white/10 py-4 text-[13px] hover:text-lime last:border-b-0">{label}</a>)}
     </div>
   </nav>
 </header>
@@ -32,5 +34,19 @@ const links = [['#works', 'Trabalhos'], ['#stacks', 'Stacks & Cursos'], ['#about
     btn.addEventListener('click', function () { toggle(btn.getAttribute('aria-expanded') !== 'true'); });
     nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a')) toggle(false); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') toggle(false); });
+    // toque fora do menu (e fora do cabeçalho) fecha
+    document.addEventListener('pointerdown', function (e) { if (!nav.classList.contains('hidden') && !header.contains(e.target)) toggle(false); });
   })();
 </script>
+<style is:global>
+  /* menu do celular em vidro (glassmorphism): a página aparece borrada por trás */
+  .glass-nav {
+    background: linear-gradient(180deg, rgb(255 255 255 / .09), rgb(255 255 255 / .03)), rgb(10 10 10 / .38);
+    -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
+    border-top: 1px solid rgb(255 255 255 / .14); border-bottom: 1px solid rgb(255 255 255 / .08);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 24px 48px -12px rgb(0 0 0 / .6);
+  }
+  .glass-nav:not(.hidden) { animation: glassIn .28s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes glassIn { from { opacity: 0; transform: translateY(-8px); } }
+  @media (prefers-reduced-motion: reduce) { .glass-nav:not(.hidden) { animation: none; } }
+</style>
