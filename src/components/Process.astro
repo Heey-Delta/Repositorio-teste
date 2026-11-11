@@ -14,16 +14,15 @@ const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);ma
 <section id="process" class="border-b border-line bg-surface" aria-labelledby="process-title">
   <div class="wrap relative grid min-h-[300px] grid-cols-2 items-start gap-4 py-8 lg:min-h-[380px] lg:grid-cols-[1fr_2fr] lg:items-center lg:gap-16 lg:py-16">
     <div class="flex flex-col gap-3.5 lg:gap-5">
-      <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ O<br>Processo</h2>
-      <p class="text-[13px] text-muted lg:max-w-[240px] lg:text-[15px]">Um processo estratégico e colaborativo para resultados excepcionais.</p>
-      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">Ver processo →</span><span class="hidden lg:inline">Ver o processo →</span></a>
+      <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Processo</h2>
+      <p class="text-[13px] text-muted lg:max-w-[260px] lg:text-[15px]">Do primeiro papo ao site no ar, em cinco etapas.</p>
     </div>
     <!-- celular: vertical -->
     <div class="relative pl-[18px] lg:hidden">
       <div class="absolute top-4 bottom-4 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
       <ol class="m-0 flex list-none flex-col gap-5 p-0">
         {steps.map((st, i) => (
-          <li class="relative flex items-center gap-3 font-ui text-sm">
+          <li class="relative flex items-center gap-3 text-sm font-bold">
             <span class:list={['absolute top-1/2 -left-[18px] size-[11px] -translate-y-1/2 rounded-full border', i === steps.length - 1 ? 'border-lime bg-lime' : 'border-ink bg-surface']} aria-hidden="true"></span>
             <span class:list={['proc-icon block size-8 shrink-0', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={mask(st.icon)} aria-hidden="true"></span>
             <span>{st.name}</span>
@@ -37,7 +36,7 @@ const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);ma
         {steps.map((st, i) => (
           <li class="relative flex flex-col items-center gap-4 text-center">
             <span class="flex h-[72px] items-center justify-center"><span class:list={['proc-icon block', i === steps.length - 1 ? 'bg-lime' : 'bg-ink']} style={`${mask(st.icon)};width:${st.w}px;height:${st.h}px`} aria-hidden="true"></span></span>
-            <span class="block font-ui text-[15px] font-medium"><span class="mr-1.5 text-muted">{String(i + 1).padStart(2, '0')}</span>{st.name}</span>
+            <span class="block text-[15px] font-bold"><span class="mr-1.5 font-normal text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{st.name}</span>
             {i < steps.length - 1 && (
               <span class="absolute top-9 left-[calc(50%+56px)] flex h-px w-[calc(100%-112px)] items-center bg-ink/40" aria-hidden="true"><span class="mx-auto size-[7px] rounded-full bg-ink"></span></span>
             )}

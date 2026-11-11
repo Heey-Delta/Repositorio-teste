@@ -19,14 +19,14 @@ const stacks = [
 const SANTANDER = { hex: 'EC0000', path: 'M12.3 1.5c.5 2 2.6 3.4 3.2 5.6.4 1.3.2 2.6-.4 3.7 2.8.7 6.4 2.4 6.4 5.4 0 3.7-4.4 5.3-9.5 5.3S2.5 19.9 2.5 16.2c0-3 3.6-4.7 6.4-5.4-.3 1.1-.1 2.2.5 3 .1-1.6 1-2.8 2.1-4.2 1.4-1.7 1.9-3.6.8-8.1z' };
 const claude = { hex: siClaude.hex, path: siClaude.path };
 const courses = [
-  { name: 'Storytelling para marketing digital', school: 'Santander', year: 'out. 2026', tag: 'Marketing', icon: SANTANDER },
-  { name: 'Claude Platform 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', tag: 'IA', icon: claude },
-  { name: 'Introduction to Claude Cowork', school: 'Anthropic · Claude Academy', year: 'set. 2026', tag: 'IA', icon: claude },
-  { name: 'Claude Code 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', tag: 'IA · Código', icon: claude },
-  { name: 'AI Capabilities and Limitations', school: 'Anthropic · Claude Academy', year: 'set. 2026', tag: 'IA', icon: claude },
-  { name: 'Claude 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', tag: 'IA', icon: claude },
+  { name: 'Storytelling para marketing digital', school: 'Santander', year: 'out. 2026', icon: SANTANDER },
+  { name: 'Claude Platform 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Introduction to Claude Cowork', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Claude Code 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'AI Capabilities and Limitations', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Claude 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
 ];
-const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]';
+const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line lg:h-[480px]';
 ---
 <section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
   <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
@@ -36,9 +36,10 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
       <div class="flex min-w-0 flex-col gap-4">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h3 class="label-ui text-[11px] text-muted lg:text-xs">Stacks</h3>
-          <p class="label-ui m-0 hidden text-[10px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
+          <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
         </div>
-        <div id="stackBox" class={`${box} touch-none select-none rounded-3xl`}>
+        <div id="stackBox" class={`${box} touch-none select-none`}>
+          <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-lime"></span>As stacks já vão cair</p>
           {stacks.map((s, i) => (
             <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-lime focus-visible:border-lime active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
@@ -46,13 +47,13 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
           ))}
           <!-- card de detalhes (abre no clique) -->
           <div id="stackCard" class="absolute inset-0 z-20 hidden place-items-center bg-black/80 p-5">
-            <div role="dialog" aria-modal="true" aria-labelledby="stackCardTitle" class="relative flex w-full max-w-[340px] flex-col gap-3 border border-ink bg-bg p-6">
+            <div role="dialog" aria-modal="true" aria-labelledby="stackCardTitle" class="relative flex w-full max-w-[340px] flex-col gap-3 rounded-[4px] border border-ink bg-bg p-6">
               <button type="button" id="stackCardClose" class="label-ui absolute top-3 right-3 cursor-pointer px-2 py-1 text-[11px] text-muted hover:text-lime" aria-label="Fechar">Fechar ✕</button>
               <span class="grid size-14 place-items-center rounded-full border border-line"><svg id="stackCardIcon" viewBox="0 0 24 24" class="size-7" fill="currentColor" aria-hidden="true"><path d="" /></svg></span>
               <p id="stackCardKind" class="label-ui m-0 text-[11px] text-lime"></p>
               <h4 id="stackCardTitle" class="m-0 font-display text-[32px] leading-none uppercase"></h4>
               <p id="stackCardDesc" class="m-0 text-sm text-muted"></p>
-              <p class="m-0 border-t border-line pt-3 text-sm"><span class="label-ui mr-2 text-[10px] text-muted">Como uso</span><span id="stackCardUse"></span></p>
+              <p class="m-0 border-t border-line pt-3 text-sm"><span class="label-ui mr-2 text-[11px] text-muted">Como uso</span><span id="stackCardUse"></span></p>
             </div>
           </div>
         </div>
@@ -61,15 +62,15 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
       <div class="flex min-w-0 flex-col gap-4">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h3 class="label-ui text-[11px] text-muted lg:text-xs">Cursos</h3>
-          <p class="label-ui m-0 hidden text-[10px] text-muted sm:block lg:text-[11px]">Role para ver todos</p>
+          <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Role para ver todos</p>
         </div>
         <div id="courseBox" class={`${box} courses-fade overflow-y-auto overscroll-contain [scrollbar-width:none]`} tabindex="0" aria-label="Lista de cursos (rolagem infinita)">
           {[0, 1].map((copy) => (
             <ul class="m-0 grid list-none grid-cols-1 gap-2 p-2 pb-0 sm:gap-3 sm:p-3 sm:pb-0 xl:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
-              {courses.map((c, i) => (
-                <li class="flex min-h-[120px] flex-col justify-between gap-3 border border-line bg-surface p-3 hover:border-lime sm:min-h-[132px] sm:p-4">
-                  <div class="flex items-center justify-between gap-2"><span class="flex items-center gap-2"><svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg><span class="label-ui text-[10px] text-lime">{c.tag}</span></span><span class="font-ui text-xs text-muted">{String(i + 1).padStart(2, '0')}</span></div>
-                  <div><div class="font-display text-[17px] leading-none uppercase [overflow-wrap:break-word] sm:text-2xl">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
+              {courses.map((c) => (
+                <li class="flex min-h-[120px] flex-col justify-between gap-3 rounded-[16px] border border-line bg-surface p-3 hover:border-lime sm:min-h-[132px] sm:rounded-[12px] sm:p-4">
+                  <svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg>
+                  <div><div class="font-display text-[15px] leading-[1.05] uppercase [overflow-wrap:anywhere] min-[400px]:text-[17px] sm:text-2xl sm:leading-none">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted tabular-nums sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
                 </li>
               ))}
             </ul>
@@ -81,6 +82,9 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
 </section>
 <style is:global>
   .stack-ball { will-change: transform; transition: border-color .15s; }
+  .wait-dot { animation: wait-pulse 1.2s ease-in-out infinite; }
+  @keyframes wait-pulse { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .wait-dot { animation: none; } }
   #stackCard.open { display: grid; }
   #courseBox::-webkit-scrollbar { display: none; }
   .courses-fade { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
@@ -215,7 +219,7 @@ const box = 'relative h-[420px] overflow-hidden border border-line lg:h-[480px]'
     // só anima com a caixa na tela e depois da liberação (5 s após a entrada da cidade)
     var released = false, inView = !window.IntersectionObserver;
     function go() { if (released && inView) start(); }
-    window.addEventListener('hallan:stacks', function () { released = true; go(); });
+    window.addEventListener('hallan:stacks', function () { released = true; var w = document.getElementById('stackWait'); if (w) w.remove(); go(); });
     if (window.IntersectionObserver) new IntersectionObserver(function (en) {
       inView = en[0].isIntersecting; if (inView) go(); else stop();
     }, { threshold: 0.15 }).observe(box);

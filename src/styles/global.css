@@ -67,6 +67,7 @@
 @layer base {
   body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--bg); }
   h1, h2, h3 { font-weight: 400; text-wrap: balance; }
+  p { text-wrap: pretty; }   /* evita palavra sozinha na última linha */
   a { color: inherit; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
   ::selection { background: var(--lime); color: #000; }

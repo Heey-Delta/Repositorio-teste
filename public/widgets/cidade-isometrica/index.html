@@ -147,7 +147,7 @@
   (function () {
     var frame = document.querySelector('.glass-frame'); if (!frame) return;
     var pane = frame.querySelector('.pane'), pOut = frame.querySelector('.p-out'), pIn = frame.querySelector('.p-in');
-    var T = 16, RO = 24, RI = 10;   // espessura, raio de fora, raio de dentro
+    var T = 16, RO = 24, RI = RO - T;   // espessura, raio de fora e de dentro (dentro = fora − espessura, curvas paralelas)
     function rr(x, y, w, h, r) {
       return 'M' + (x + r) + ' ' + y + 'H' + (x + w - r) + 'A' + r + ' ' + r + ' 0 0 1 ' + (x + w) + ' ' + (y + r) + 'V' + (y + h - r) +
         'A' + r + ' ' + r + ' 0 0 1 ' + (x + w - r) + ' ' + (y + h) + 'H' + (x + r) + 'A' + r + ' ' + r + ' 0 0 1 ' + x + ' ' + (y + h - r) +

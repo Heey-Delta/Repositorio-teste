@@ -47,8 +47,13 @@ instalada no computador; senão vale a Chakra Petch (carregada do Google Fonts).
 
 ## Imagens
 
-As imagens do hero, de About, de Lab e dos cards Vértice e Aurora ainda são marcadores (`Media.astro`). Para trocar, coloque o arquivo em
-`public/img/` e passe `src="img/nome.jpg"` ao `<Media>` correspondente.
+As imagens ficam em `public/img/`. Os cards de Trabalhos usam capturas reais dos três sites da cidade (`work-*.webp`, 960×600).
+Para trocar uma imagem do hero, de About ou de Lab, passe `src="img/nome.webp"` ao `<Media>` correspondente.
+
+## Contatos e redes
+
+O número do WhatsApp fica em `WHATSAPP` (`src/components/Contact.astro`) e os perfis em `social` (`src/components/Footer.astro`).
+Enquanto estiverem vazios, o contato e os ícones não aparecem (em vez de levar a um link quebrado).
 
 ## Cidade Isométrica no card do Nexus
 

@@ -1,27 +1,26 @@
 ---
 const services = [
-  ['Web Design', 'Interfaces visuais que inspiram.'],
-  ['Desenvolvimento Web', 'Desempenho e escalabilidade.'],
-  ['Landing Pages', 'Foco em resultados.'],
-  ['E-commerce', 'Venda mais, com beleza.'],
-  ['Creative Dev', 'Experiências interativas.'],
-  ['Branding Digital', 'Construa uma presença mais forte.'],
+  ['Web Design', 'Layout no Figma, pensado primeiro para o celular.'],
+  ['Desenvolvimento Web', 'Código leve, carregamento rápido e SEO básico.'],
+  ['Landing Pages', 'Uma página, uma oferta e um botão de contato.'],
+  ['E-commerce', 'Loja virtual com catálogo, carrinho e pagamento.'],
+  ['Creative Dev', '3D, animações e interações, como a cidade acima.'],
+  ['Branding Digital', 'Logo, cores e tipografia aplicados ao site.'],
 ];
 ---
 <section id="services" class="border-b border-line" aria-labelledby="services-title">
   <div class="wrap flex flex-col gap-5 py-8 lg:grid lg:min-h-[360px] lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
-    <div class="flex items-baseline justify-between gap-3 lg:flex-col lg:items-start lg:gap-5">
+    <div class="flex flex-col gap-3 lg:gap-5">
       <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Serviços</h2>
-      <p class="hidden max-w-[260px] text-[15px] text-muted lg:block">Do conceito ao código, ofereço uma gama completa de soluções digitais.</p>
-      <a href="#contact" class="link-ui text-[11px] lg:text-xs"><span class="lg:hidden">Explorar tudo →</span><span class="hidden lg:inline">Ver todos os serviços →</span></a>
+      <p class="max-w-[300px] text-[13px] text-muted lg:text-[15px]">Design e código feitos pela mesma pessoa, do primeiro rascunho ao site no ar.</p>
     </div>
-    <ol class="m-0 grid list-none grid-flow-col grid-cols-2 grid-rows-3 gap-x-5 p-0 lg:gap-x-14">
-      {services.map(([name, text], i) => (
-        <li class="grid grid-cols-[28px_1fr] gap-1.5 border-b border-line py-3 lg:grid-cols-[56px_1fr] lg:py-[18px]">
-          <span class="font-ui text-[13px] text-muted lg:text-sm">{String(i + 1).padStart(2, '0')}</span>
-          <div><div class="font-ui text-sm font-medium lg:text-[17px]">{name}</div><div class="hidden text-[13px] text-muted lg:block">{text}</div></div>
+    <ul class="m-0 grid list-none grid-cols-2 gap-x-5 p-0 lg:gap-x-14">
+      {services.map(([name, text]) => (
+        <li class="border-b border-line py-3 lg:py-[18px]">
+          <h3 class="m-0 text-sm font-bold lg:text-[17px]">{name}</h3>
+          <p class="m-0 mt-1 hidden text-[13px] text-muted lg:block">{text}</p>
         </li>
       ))}
-    </ol>
+    </ul>
   </div>
 </section>
