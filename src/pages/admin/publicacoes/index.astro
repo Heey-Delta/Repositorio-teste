@@ -1,5 +1,5 @@
 ---
-// Lista de publicações (Content Manager, spec 5.2), com filtro por status. A edição vem na próxima etapa.
+// Lista de publicações (Content Manager, spec 5.2), com filtro por status. Cada título abre o editor.
 import Admin from '../../../layouts/Admin.astro';
 import { countsByStatus, listPosts, statusLabel, statusOrder, fmtDateTime, type EditorialStatus } from '../../../lib/admin';
 export const prerender = false;
@@ -10,6 +10,7 @@ const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' },
 ---
 <Admin title="Publicações" current="publicacoes">
   <div class="flex flex-col gap-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
     <nav aria-label="Filtrar por status">
       <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
         {filters.map((f) => {
@@ -25,6 +26,8 @@ const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' },
         })}
       </ul>
     </nav>
+    <a href="/admin/publicacoes/nova/" class="inline-flex min-h-10 items-center rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110">Nova publicação</a>
+    </div>
 
     {posts.length === 0
       ? <p class="m-0 text-sm text-muted">Nada com esse status.</p>
@@ -42,7 +45,7 @@ const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' },
               {posts.map((p) => (
                 <tr class="border-b border-line last:border-b-0 hover:bg-[#0b0b0b]">
                   <td class="px-4 py-3 font-mono text-[12px] text-muted tabular-nums">{p.code ?? '—'}</td>
-                  <td class="px-4 py-3">{p.title}</td>
+                  <td class="px-4 py-3"><a href={`/admin/publicacoes/${p.id}/`} class="hover:text-lime">{p.title || 'Sem título'}</a></td>
                   <td class="px-4 py-3 text-muted">{p.department}</td>
                   <td class="px-4 py-3">{statusLabel[p.status]}</td>
                   <td class="px-4 py-3 text-muted tabular-nums">{fmtDateTime(p.updatedAt)}</td>

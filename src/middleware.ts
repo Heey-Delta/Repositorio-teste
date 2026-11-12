@@ -24,6 +24,11 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     return ctx.redirect('/admin/login');
   }
 
+  // pedidos que alteram dados só valem vindos do próprio site (o cookie SameSite=Lax já barra a maioria)
+  if (isApi && !['GET', 'HEAD'].includes(ctx.request.method) && ctx.request.headers.get('origin') !== ctx.url.origin) {
+    return Response.json({ error: 'origem não permitida' }, { status: 403, headers: { 'Cache-Control': 'no-store' } });
+  }
+
   const res = await next();
   const out = new Response(res.body, res);
   out.headers.set('Cache-Control', 'no-store');

@@ -1,0 +1,15 @@
+---
+// Nova publicação: abre o editor vazio, já com o próximo código do primeiro departamento
+import Editor from '../../../components/admin/Editor.astro';
+import { editorOptions, nextCode, type PostDraft } from '../../../lib/posts';
+export const prerender = false;
+const options = await editorOptions();
+const first = options.departments[0];
+const draft: PostDraft = {
+  title: '', summary: '', body: '', departmentId: first.id, contentTypeId: null, status: 'draft', stage: 'concept',
+  level: 'Introdutório', format: null, code: await nextCode(first.id), slug: '', areaIds: [], tags: [], relatedProject: null,
+  methodology: null, aiAssistance: null, scheduledAt: null,
+  seo: { metaTitle: null, metaDescription: null, canonicalUrl: null, noindex: false, schemaType: null },
+};
+---
+<Editor id={null} draft={draft} updatedAt={null} login={Astro.locals.admin!.login} options={options} revisions={[]} />
