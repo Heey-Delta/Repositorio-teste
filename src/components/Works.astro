@@ -1,5 +1,5 @@
 ---
-// Trabalhos. Destaque: a Nexus, cidade isométrica 3D (widget obrigatório, ver widgets.json). Ao clicar num prédio que é
+// Trabalhos. Destaque: a Fly Presentations, cidade isométrica 3D (widget obrigatório, ver widgets.json). Ao clicar num prédio que é
 // um site (pizzaria, cafeteria, restaurante), o card desse site desliza pela lateral da cidade, com a captura real
 // (public/img/work-*.webp) e o link. Parque, carros e pessoas continuam abrindo o card branco de baixo (CityCard).
 // Ao lado da cidade ficam vagas reservadas para os próximos projetos (lista `next`).
@@ -38,7 +38,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
     </div>
 
     <div id="worksTrack" class="-mx-5 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 lg:overflow-visible lg:p-0">
-      <!-- NEXUS: a cidade isométrica (destaque) -->
+      <!-- FLY PRESENTATIONS: a cidade isométrica (destaque) -->
       <article class="works-card relative min-h-[460px] min-w-[88%] shrink-0 snap-start overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-[660px] lg:min-w-0">
         <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
         <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
@@ -47,7 +47,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
         <iframe class="city-frame absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
-            <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Nexus</h3>
+            <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Fly Presentations</h3>
             <p class="label-ui text-[11px] text-muted lg:text-xs">Cidade 3D interativa · 2026</p>
             <a href="widgets/cidade-isometrica/index.html" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">Abrir em tela cheia →</a>
           </div>
