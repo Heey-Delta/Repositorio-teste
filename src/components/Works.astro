@@ -88,6 +88,8 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
     function go() {
       if (f.src) return;
       f.src = f.dataset.src;
+      // o estilo do card dos prédios (card.css) só é usado depois de um clique na cidade: entra junto com ela
+      var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'widgets/cidade-isometrica/card.css'; document.head.appendChild(css);
       evs.forEach(function (e) { removeEventListener(e, soon, true); });
       if (io) io.disconnect();
     }

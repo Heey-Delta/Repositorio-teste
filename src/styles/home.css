@@ -1,0 +1,9 @@
+@import "tailwindcss" source(none);
+
+/* CSS só da home: gera apenas as classes que a página inicial usa (cerca de metade do CSS completo do site),
+   porque ele vai embutido no HTML e quanto menor, mais rápido a primeira tela aparece. */
+@source "../pages/index.astro";
+@source "../components/*.astro";
+@source "../layouts/Base.astro";
+
+@import "./shared.css";

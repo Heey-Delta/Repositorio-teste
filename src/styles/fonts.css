@@ -1,0 +1,13 @@
+/* Fontes hospedadas no próprio site (public/fonts), vindas do Google Fonts via Fontsource.
+   Anton (títulos) e Chakra Petch (rótulos) só aparecem em caixa alta, então cada uma foi dividida em duas partes:
+   "-up" (maiúsculas, números, pontuação e símbolos), a única que as páginas baixam, e "-low" (minúsculas), que o navegador
+   só baixa se algum texto nessa fonte tiver minúscula (unicode-range). `swap` mostra o texto na hora com a fonte reserva.
+   O Base.astro coloca este CSS embutido no <head>. */
+@font-face { font-family: Anton; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/anton-400-up.woff2) format('woff2'); unicode-range: U+0020-0060, U+007B-007E, U+00A0-00DE, U+2010-205E, U+2190-2199, U+20AC, U+2122; }
+@font-face { font-family: Anton; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/anton-400-low.woff2) format('woff2'); unicode-range: U+0061-007A, U+00DF-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/chakra-petch-400-up.woff2) format('woff2'); unicode-range: U+0020-0060, U+007B-007E, U+00A0-00DE, U+2010-205E, U+2190-2199, U+20AC, U+2122; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/chakra-petch-400-low.woff2) format('woff2'); unicode-range: U+0061-007A, U+00DF-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/chakra-petch-500-up.woff2) format('woff2'); unicode-range: U+0020-0060, U+007B-007E, U+00A0-00DE, U+2010-205E, U+2190-2199, U+20AC, U+2122; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/chakra-petch-500-low.woff2) format('woff2'); unicode-range: U+0061-007A, U+00DF-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/chakra-petch-600-up.woff2) format('woff2'); unicode-range: U+0020-0060, U+007B-007E, U+00A0-00DE, U+2010-205E, U+2190-2199, U+20AC, U+2122; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/chakra-petch-600-low.woff2) format('woff2'); unicode-range: U+0061-007A, U+00DF-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2212, U+2215, U+FEFF, U+FFFD; }

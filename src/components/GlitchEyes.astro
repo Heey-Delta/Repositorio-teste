@@ -3,9 +3,11 @@
 // traço lime piscam em rajadas curtas (a cada ~4 s). As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
 // (a imagem preenche o quadro pela altura, então a proporção vale no desktop e no celular).
 // Vai dentro do <Media> da imagem; `src` e `position` precisam ser os mesmos da imagem.
-interface Props { src: string; position?: string; }
-const { src, position = '62% center' } = Astro.props;
-const bg = `background-image:url(${src}); background-position:${position};`;
+// `srcMobile`: a mesma versão recortada que o <Media> usa abaixo de 1024 px (centralizada), para não baixar duas imagens.
+interface Props { src: string; srcMobile?: string; position?: string; }
+const { src, srcMobile, position = '62% center' } = Astro.props;
+const abs = (u: string) => (u.startsWith('/') ? u : `/${u}`);
+const bg = `--gl-img:url(${abs(src)}); --gl-img-m:url(${abs(srcMobile ?? src)}); --gl-pos:${position}; --gl-pos-m:${srcMobile ? 'center' : position};`;
 ---
 <div class="glitch pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
   <div class="gl-layer gl-a" style={bg}></div>
@@ -16,7 +18,8 @@ const bg = `background-image:url(${src}); background-position:${position};`;
 </div>
 <style is:global>
   .glitch { --gl-t: 8.8s; }
-  .gl-layer { position: absolute; inset: 0; background-size: cover; background-repeat: no-repeat; will-change: transform, clip-path; }
+  @media (min-width: 1024px) { .gl-layer { background-image: var(--gl-img); background-position: var(--gl-pos); } }
+  .gl-layer { position: absolute; inset: 0; background: var(--gl-img-m) var(--gl-pos-m) / cover no-repeat; will-change: transform, clip-path; }
   .gl-a { clip-path: inset(24% 0 69% 0); animation: glA var(--gl-t) steps(1, end) infinite; }
   .gl-b { clip-path: inset(26% 0 67% 0); filter: contrast(1.5) brightness(1.25); animation: glB var(--gl-t) steps(1, end) infinite; }
   .gl-c { clip-path: inset(25% 0 68% 0); filter: grayscale(1) contrast(1.8) brightness(0.8); animation: glC var(--gl-t) steps(1, end) infinite; }

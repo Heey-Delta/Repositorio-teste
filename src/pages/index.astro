@@ -1,4 +1,5 @@
 ---
+import '../styles/home.css';
 import Base from '../layouts/Base.astro';
 import Loader from '../components/Loader.astro';
 import Header from '../components/Header.astro';
@@ -55,10 +56,18 @@ const jsonld = [
   </Fragment>
   <script slot="head" is:inline>
     // tela de carregamento só na primeira visita da sessão; nas seguintes a página abre direto
-    (function () { var r = document.documentElement; try { if (sessionStorage.getItem('hallan-intro')) return; sessionStorage.setItem('hallan-intro', '1'); } catch (e) {} r.classList.add('loading', 'intro'); })();
+    (function () { var r = document.documentElement; try { if (sessionStorage.getItem('hallan-intro')) return; sessionStorage.setItem('hallan-intro', '1'); } catch (e) {} r.classList.add('loading', 'intro');
+      // as imagens da tela de carregamento só começam a baixar depois da foto do hero (que é o que o Google mede);
+      // na prática isso leva uma fração de segundo, e há um limite de 1,2 s
+      var ok = function () { r.classList.add('hero-ok'); };
+      document.addEventListener('load', function (e) { if (e.target.getAttribute && e.target.getAttribute('fetchpriority') === 'high') ok(); }, true);
+      setTimeout(ok, 1200);
+    })();
   </script>
-  <!-- Visual do card dos prédios da cidade (o mesmo do card interno); o card abre por fora, ver CityCard -->
-  <link slot="head" rel="stylesheet" href="widgets/cidade-isometrica/card.css">
+  <!-- a foto do hero é o maior elemento da primeira tela: começa a baixar antes de tudo (uma versão por tamanho de tela) -->
+  <link slot="head" rel="preload" as="image" href="/img/hero-statue-m.webp" media="(max-width: 1023px)" fetchpriority="high">
+  <link slot="head" rel="preload" as="image" href="/img/hero-statue.webp" media="(min-width: 1024px)" fetchpriority="high">
+
 
   <Loader />
   <Header />
