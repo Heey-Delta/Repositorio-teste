@@ -42,7 +42,9 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
       <article class="works-card relative min-h-[460px] min-w-[88%] shrink-0 snap-start overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-[660px] lg:min-w-0">
         <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
         <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
-        <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
+        <!-- esqueleto da cidade: um quadrado branco (a base da cidade vista de cima, em losango) pulsando até ela carregar -->
+        <div class="city-skel" aria-hidden="true"><span></span></div>
+        <iframe class="city-frame absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
             <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Nexus</h3>
@@ -83,9 +85,16 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
 <style is:global>
   .site-card { transform: translateX(calc(100% + 24px)); opacity: 0; transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .3s; pointer-events: none; }
   .site-card[data-open="true"] { transform: none; opacity: 1; pointer-events: auto; }
+  /* Esqueleto da cidade: some quando ela avisa que carregou (.city-ready no card); o iframe aparece no lugar e anima */
+  .city-skel { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; transition: opacity .5s ease; }
+  .city-skel span { width: min(46%, 340px); aspect-ratio: 1; border-radius: 18px; background: #fff; transform: scaleY(.58) rotate(45deg); animation: city-skel 1.4s ease-in-out infinite; }
+  @keyframes city-skel { 50% { opacity: .45; } }
+  .city-frame { opacity: 0; transition: opacity .5s ease; }
+  .city-ready .city-skel { opacity: 0; }
+  .city-ready .city-frame { opacity: 1; }
   .next-slot { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / .035) 14px 15px); }
   #worksTrack::-webkit-scrollbar { display: none; }
-  @media (prefers-reduced-motion: reduce) { .site-card { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .site-card, .city-skel, .city-frame { transition: none; } .city-skel span { animation: none; } }
 </style>
 <script is:inline define:vars={{ cityPrefetch }}>
   // A cidade 3D (iframe + Three.js) é o trecho mais pesado do site, em duas partes:
@@ -96,6 +105,12 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
   //    a cidade aparece logo. Quem só abre o site e lê o topo não paga o processamento.
   (function () {
     var f = document.getElementById('cityFrame'); if (!f || !f.dataset.src) return;
+    // a cidade avisa { type: 'city:loaded' } quando os modelos terminam: o esqueleto sai e ela aparece (a animação de
+    // entrada é disparada pelo Loader, com { type: 'city:start' })
+    addEventListener('message', function (e) {
+      if (e.source !== f.contentWindow || !e.data || e.data.type !== 'city:loaded') return;
+      f.closest('article').classList.add('city-ready');
+    });
     var evs = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'wheel'], io;
     function prefetch() {
       if (f.src) return;

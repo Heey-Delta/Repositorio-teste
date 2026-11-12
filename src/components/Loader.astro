@@ -1,6 +1,6 @@
 ---
-// Tela de carregamento: aparece só na primeira visita da sessão (index.astro marca html.loading) e cobre a página
-// até a foto do hero carregar (mínimo 0,8 s, máximo 2 s). Antes esperava a cidade 3D, que agora só carrega quando a pessoa navega.
+// Tela de carregamento: aparece em toda visita à home (index.astro marca html.loading) e cobre a página por 1,5 s fixos.
+// Não espera a cidade 3D: ela tem o próprio esqueleto (Works.astro) e entra quando fica pronta.
 // A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' } e a página responde { type: 'city:start' } para a animação
 // de entrada; se a cidade carregar depois (ela só carrega perto da tela), a animação começa quando ela ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
@@ -35,7 +35,7 @@
   (function () {
     var root = document.documentElement;
     function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
-    var shownAt = Date.now(), MIN_MS = 1600, MAX_MS = 2600, done = false;
+    var SHOW_MS = 1500, done = false;   // a tela de abertura dura sempre 1,5 s
     var HOLD_MS = 300, TOSS_MS = 1700;
     function toss() {
       var wrap = document.getElementById('ouroWrap'), box = document.getElementById('ouro'), img = box.firstElementChild;
@@ -68,18 +68,11 @@
       setTimeout(toss, HOLD_MS);
       startCity();
     }
-    function finishSoon() { setTimeout(finish, Math.max(0, MIN_MS - (Date.now() - shownAt))); }
     window.addEventListener('message', function (e) {
       var frame = cityFrame();
       if (!frame || e.source !== frame.contentWindow || !e.data || e.data.type !== 'city:loaded') return;
-      if (done) startCity(); else finishSoon();   // a cidade carregou depois que a tela já saiu: anima agora
+      if (done) startCity();   // a cidade carregou depois que a tela já saiu: anima agora (antes disso, finish() dispara)
     });
-    // A cidade agora só carrega quando a pessoa começa a navegar, então a tela não espera por ela: sai assim que a foto
-    // do hero chegou (html.hero-ok, marcado no <head> da home), respeitando o mínimo de 1,6 s para a animação aparecer.
-    if (!done) {
-      if (root.classList.contains('hero-ok')) finishSoon();
-      else new MutationObserver(function (m, obs) { if (root.classList.contains('hero-ok')) { obs.disconnect(); finishSoon(); } }).observe(root, { attributes: true, attributeFilter: ['class'] });
-      setTimeout(finish, MAX_MS);   // limite: depois de 2,6 s a página abre sozinha
-    }
+    if (!done) setTimeout(finish, SHOW_MS);
   })();
 </script>
