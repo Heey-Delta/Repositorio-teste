@@ -6,6 +6,8 @@
 @source "../components";
 @source "../layouts/Base.astro";
 @source "../layouts/Lab.astro";
+@source "../layouts/Admin.astro";
+@source "../pages/admin";
 
 /* Identidade do site principal: preto, branco e lime. Títulos em Anton, rótulos em Drunk, textos em Arial. */
 /* Cor de destaque: nasce lime (#B7FF1A) e muda devagar para laranja e azul e volta (90 s no total).

@@ -5,16 +5,22 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/db-migrate.ts && astro build",
+    "db:generate": "drizzle-kit generate",
     "preview": "astro preview",
     "check:widgets": "scripts/check-widgets.sh"
   },
   "dependencies": {
+    "@astrojs/vercel": "^11.0.21",
+    "@neondatabase/serverless": "^1.2.0",
     "@tailwindcss/vite": "^4.3.5",
     "astro": "^7.4.7",
-    "tailwindcss": "^4.3.5"
+    "drizzle-orm": "^0.45.4",
+    "tailwindcss": "^4.3.5",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.11",
     "simple-icons": "^13.21.0"
   }
 }

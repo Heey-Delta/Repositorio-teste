@@ -1,0 +1,51 @@
+---
+// Casca do admin: menu dos módulos (spec seção 5), conta conectada e saída. Nunca indexado.
+import Base from './Base.astro';
+interface Props { title: string; current: string; }
+const { title, current } = Astro.props;
+const admin = Astro.locals.admin;
+const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
+const modules = [
+  { slug: 'dashboard', name: 'Visão geral', href: '/admin/' },
+  { slug: 'publicacoes', name: 'Publicações', href: '/admin/publicacoes/' },
+  { slug: 'catalogo', name: 'Catálogo' },
+  { slug: 'midia', name: 'Mídia' },
+  { slug: 'seo', name: 'SEO & GEO' },
+  { slug: 'analytics', name: 'Analytics' },
+  { slug: 'config', name: 'Configurações' },
+];
+---
+<Base title={`${title} · Admin · Hallan`} fonts={fonts} bodyClass="admin-body">
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
+  <div class="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
+    <aside class="border-b border-line lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
+      <div class="flex h-16 items-center justify-between px-5">
+        <a href="/admin/" class="font-display text-[24px] leading-none">/HALLAN</a>
+        <span class="label-ui text-[11px] text-muted">Admin</span>
+      </div>
+      <nav aria-label="Módulos do admin" class="px-3 pb-3 lg:pb-0">
+        <ul class="m-0 flex list-none gap-1 overflow-x-auto p-0 lg:flex-col">
+          {modules.map((m) => (
+            <li class="shrink-0">
+              {m.href
+                ? <a href={m.href} aria-current={m.slug === current ? 'page' : undefined} class:list={['flex min-h-10 items-center rounded-[6px] px-3 text-sm', m.slug === current ? 'bg-[#141414] text-lime' : 'text-ink hover:bg-[#0d0d0d]']}>{m.name}</a>
+                : <span class="flex min-h-10 items-center justify-between gap-3 px-3 text-sm text-muted" title="Ainda não construído">{m.name}<span class="text-[11px]">em breve</span></span>}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+    <div class="flex min-w-0 flex-col">
+      <header class="flex h-16 items-center justify-between gap-4 border-b border-line px-5 lg:px-10">
+        <h1 class="m-0 text-base font-bold">{title}</h1>
+        {admin && (
+          <div class="flex items-center gap-4 text-sm">
+            <span class="text-muted">@{admin.login}</span>
+            <form method="post" action="/api/auth/logout"><button type="submit" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 hover:border-ink">Sair</button></form>
+          </div>
+        )}
+      </header>
+      <main class="flex-1 px-5 py-8 lg:px-10"><slot /></main>
+    </div>
+  </div>
+</Base>

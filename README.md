@@ -93,3 +93,12 @@ são espaços de imagem e as publicações de `src/content/lab/` são exemplos (
 - **Google:** cada página tem título, descrição, URL canônica, Open Graph e dados estruturados (Article/TechArticle e trilha).
   Rascunhos (`draft: true`) saem com `noindex` e ficam fora do `sitemap.xml`; com `draft: false` a página entra no sitemap.
 - Dados fixos (departamentos, áreas, status) em `src/lab/data.ts`; layout em `src/layouts/Lab.astro`.
+
+## Admin (/admin/)
+
+Área privada para gerenciar o Experimental Lab. Só `/admin/*` e `/api/*` rodam no servidor (adaptador do Vercel); o resto do site continua estático.
+
+- **Login:** só a conta do GitHub cujo id está em `ADMIN_GITHUB_ID` entra. A sessão dura 30 dias (cookie `__Host-`, HttpOnly, Secure); o banco guarda só o hash do token. Tentativas são limitadas a 20 a cada 15 minutos por IP.
+- **Banco:** Postgres na Neon (integração do Vercel). O schema fica em `src/db/schema.ts`; depois de mudar, rode `npm run db:generate` para criar a migração em `drizzle/`.
+- **Build:** `scripts/db-migrate.ts` roda antes do `astro build` e, só no build de produção, aplica as migrações e faz a carga inicial (catálogos e, se o banco estiver vazio, as publicações de `src/content/lab`).
+- **Variáveis no Vercel:** `DATABASE_URL` (criada pela Neon), `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_GITHUB_ID`. O OAuth App do GitHub usa o retorno `https://hallan-dante.vercel.app/api/auth/callback`.
