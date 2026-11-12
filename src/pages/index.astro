@@ -55,8 +55,8 @@ const jsonld = [
     {jsonld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
   </Fragment>
   <script slot="head" is:inline>
-    // tela de carregamento só na primeira visita da sessão; nas seguintes a página abre direto
-    (function () { var r = document.documentElement; try { if (sessionStorage.getItem('hallan-intro')) return; sessionStorage.setItem('hallan-intro', '1'); } catch (e) {} r.classList.add('loading', 'intro');
+    // tela de abertura em toda visita à home
+    (function () { var r = document.documentElement; r.classList.add('loading', 'intro');
       // as imagens da tela de carregamento só começam a baixar depois da foto do hero (que é o que o Google mede);
       // na prática isso leva uma fração de segundo, e há um limite de 1,2 s
       var ok = function () { r.classList.add('hero-ok'); };
@@ -65,8 +65,8 @@ const jsonld = [
     })();
   </script>
   <!-- a foto do hero é o maior elemento da primeira tela: começa a baixar antes de tudo (uma versão por tamanho de tela) -->
-  <link slot="head" rel="preload" as="image" href="/img/hero-statue-m.webp" media="(max-width: 1023px)" fetchpriority="high">
-  <link slot="head" rel="preload" as="image" href="/img/hero-statue.webp" media="(min-width: 1024px)" fetchpriority="high">
+  <link slot="head" rel="preload" as="image" href="/img/hero-statue-m.webp" media="(max-width: 480px)" fetchpriority="high">
+  <link slot="head" rel="preload" as="image" href="/img/hero-statue.webp" media="(min-width: 481px)" fetchpriority="high">
 
 
   <Loader />

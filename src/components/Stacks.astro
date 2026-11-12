@@ -30,7 +30,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
 ---
 <section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
   <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
-    <h2 id="stacks-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Stacks <span class="amp text-lime">&amp;</span> Cursos</h2>
+    <h2 id="stacks-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Stacks <span class="amp text-accent">&amp;</span> Cursos</h2>
     <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
       <!-- STACKS: bolinhas com física -->
       <div class="flex min-w-0 flex-col gap-4">
@@ -39,18 +39,18 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
           <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
         </div>
         <div id="stackBox" class={`${box} touch-none select-none`}>
-          <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-lime"></span>As stacks já vão cair</p>
+          <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-accent"></span>As stacks já vão cair</p>
           {stacks.map((s, i) => (
-            <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-lime focus-visible:border-lime active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
+            <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-accent focus-visible:border-accent active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
             </button>
           ))}
           <!-- card de detalhes (abre no clique) -->
           <div id="stackCard" class="absolute inset-0 z-20 hidden place-items-center bg-black/80 p-5">
             <div role="dialog" aria-modal="true" aria-labelledby="stackCardTitle" class="relative flex w-full max-w-[340px] flex-col gap-3 rounded-[4px] border border-ink bg-bg p-6">
-              <button type="button" id="stackCardClose" class="label-ui absolute top-3 right-3 cursor-pointer px-2 py-1 text-[11px] text-muted hover:text-lime" aria-label="Fechar">Fechar ✕</button>
+              <button type="button" id="stackCardClose" class="label-ui absolute top-3 right-3 cursor-pointer px-2 py-1 text-[11px] text-muted hover:text-accent" aria-label="Fechar">Fechar ✕</button>
               <span class="grid size-14 place-items-center rounded-full border border-line"><svg id="stackCardIcon" viewBox="0 0 24 24" class="size-7" fill="currentColor" aria-hidden="true"><path d="" /></svg></span>
-              <p id="stackCardKind" class="label-ui m-0 text-[11px] text-lime"></p>
+              <p id="stackCardKind" class="label-ui m-0 text-[11px] text-accent"></p>
               <h4 id="stackCardTitle" class="m-0 font-display text-[32px] leading-none uppercase"></h4>
               <p id="stackCardDesc" class="m-0 text-sm text-muted"></p>
               <p class="m-0 border-t border-line pt-3 text-sm"><span class="label-ui mr-2 text-[11px] text-muted">Como uso</span><span id="stackCardUse"></span></p>
@@ -68,7 +68,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
           {[0, 1].map((copy) => (
             <ul class="m-0 grid list-none grid-cols-1 gap-2 p-2 pb-0 sm:gap-3 sm:p-3 sm:pb-0 xl:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
               {courses.map((c) => (
-                <li class="flex min-h-[120px] flex-col justify-between gap-3 rounded-[16px] border border-line bg-surface p-3 hover:border-lime sm:min-h-[132px] sm:rounded-[12px] sm:p-4">
+                <li class="flex min-h-[120px] flex-col justify-between gap-3 rounded-[16px] border border-line bg-surface p-3 hover:border-accent sm:min-h-[132px] sm:rounded-[12px] sm:p-4">
                   <svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg>
                   <div><div class="font-display text-[15px] leading-[1.05] uppercase [overflow-wrap:anywhere] min-[400px]:text-[17px] sm:text-2xl sm:leading-none">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted tabular-nums sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
                 </li>

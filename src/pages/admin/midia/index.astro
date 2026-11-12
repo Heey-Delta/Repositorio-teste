@@ -7,7 +7,7 @@ export const prerender = false;
 const media = await listMedia(300);
 const usage = await mediaUsage(media);
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
-const field = 'rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const field = 'rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const kindFilter = Astro.url.searchParams.get('tipo');
 const shown = kindFilter === 'pdf' || kindFilter === 'image' ? media.filter((m) => m.kind === kindFilter) : media;
 ---
@@ -27,7 +27,7 @@ const shown = kindFilter === 'pdf' || kindFilter === 'image' ? media.filter((m) 
         <input id="upCaption" maxlength="500" class={`${field} h-10`}>
       </label>
       <div class="flex items-center gap-4">
-        <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Enviar</button>
+        <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Enviar</button>
         <p id="upState" class="m-0 text-[13px] text-muted" role="status"></p>
       </div>
     </form>
@@ -37,7 +37,7 @@ const shown = kindFilter === 'pdf' || kindFilter === 'image' ? media.filter((m) 
         <ul class="m-0 flex list-none gap-2 p-0">
           {[['', 'Todos'], ['image', 'Imagens'], ['pdf', 'PDFs']].map(([k, label]) => (
             <li><a href={k ? `?tipo=${k}` : '?'} aria-current={(kindFilter ?? '') === k ? 'true' : undefined}
-              class:list={['inline-flex min-h-9 items-center rounded-full border px-4 text-sm', (kindFilter ?? '') === k ? 'border-lime text-lime' : 'border-line hover:border-ink']}>{label}</a></li>
+              class:list={['inline-flex min-h-9 items-center rounded-full border px-4 text-sm', (kindFilter ?? '') === k ? 'border-accent text-accent' : 'border-line hover:border-ink']}>{label}</a></li>
           ))}
         </ul>
       </nav>

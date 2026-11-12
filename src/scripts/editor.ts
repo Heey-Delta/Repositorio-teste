@@ -468,7 +468,7 @@ for (const id of ['#mediaClose', '#mediaCancel']) $(id).addEventListener('click'
 type Ref = { id: number | null; title: string; author: string | null; url: string | null; sourceType: string | null; publisher: string | null; publishedOn: string | null; accessedOn: string | null };
 const refList = $('#refList');
 const sourceTypes = ['Livro', 'Artigo científico', 'Artigo ou post', 'Site', 'Vídeo', 'Podcast', 'Documento ou relatório', 'Entrevista', 'Outro'];
-const inputCls = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const inputCls = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 function refInput(field: string, label: string, value: string | null, placeholder = '') {
   const wrap = document.createElement('label');
   wrap.className = 'flex flex-col gap-1 text-xs text-muted';
@@ -540,7 +540,7 @@ function addAttachment(m: Media) {
   li.dataset.id = m.id;
   li.className = 'flex items-center justify-between gap-2 border-t border-line py-2.5 text-[13px] last:border-b';
   const a = document.createElement('a');
-  a.href = m.url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'min-w-0 truncate hover:text-lime';
+  a.href = m.url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'min-w-0 truncate hover:text-accent';
   a.textContent = `${m.alt ?? 'Arquivo sem título'}${m.size ? ` · ${kb(m.size)}` : ''}`;
   const rm = document.createElement('button');
   rm.type = 'button'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remover anexo'); rm.title = 'Remover anexo';

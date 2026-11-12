@@ -7,7 +7,7 @@ const links = [['#works', 'Trabalhos'], ['#lab', 'Laboratório'], ['#stacks', 'S
   <div class="wrap flex h-16 items-center justify-between gap-3 xl:grid xl:h-[72px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6">
     <a href="#top" class="font-display text-[28px] leading-none lg:text-[30px]" aria-label="/HALLAN, voltar ao topo">/HALLAN</a>
     <nav class="hidden gap-6 xl:flex 2xl:gap-9" aria-label="Principal">
-      {links.map(([href, label]) => <a href={href} class="label-ui whitespace-nowrap text-ink hover:text-lime">{label}</a>)}
+      {links.map(([href, label]) => <a href={href} class="label-ui whitespace-nowrap text-ink hover:text-accent">{label}</a>)}
     </nav>
     <div class="flex items-center xl:justify-self-end">
       <button type="button" id="menuBtn" class="menu-btn grid size-11 cursor-pointer place-items-center xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileNav">
@@ -17,7 +17,7 @@ const links = [['#works', 'Trabalhos'], ['#lab', 'Laboratório'], ['#stacks', 'S
   </div>
   <nav id="mobileNav" class="glass-nav absolute inset-x-0 top-full hidden xl:hidden!" aria-label="Menu móvel">
     <div class="wrap grid py-2">
-      {links.map(([href, label]) => <a href={href} class="label-ui border-b border-white/10 py-4 text-[13px] hover:text-lime last:border-b-0">{label}</a>)}
+      {links.map(([href, label]) => <a href={href} class="label-ui border-b border-white/10 py-4 text-[13px] hover:text-accent last:border-b-0">{label}</a>)}
     </div>
   </nav>
 </header>

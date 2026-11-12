@@ -1,16 +1,16 @@
 ---
 // Espaço de imagem. Sem `src` mostra um marcador (caixa escura com X); com `src` mostra a imagem.
 // Com `src`, o elemento vira um quadro (relative, overflow hidden) com a imagem preenchendo tudo; `imgClass` ajusta o enquadramento
-// (ex.: object-[60%_20%]). Sem `src` mostra o marcador. Os enfeites (blocos lime) entram pelo slot nos dois casos.
+// (ex.: object-[60%_20%]). Sem `src` mostra o marcador. Os enfeites (blocos na cor de destaque) entram pelo slot nos dois casos.
 // Para trocar: coloque o arquivo em public/img/ e passe src="img/nome.jpg" (caminho relativo à raiz do site).
-// `srcMobile`: versão recortada/menor usada abaixo de 1024 px (o navegador baixa só uma das duas).
+// `srcMobile`: versão recortada usada só em telas de até 480 px (celular comum; em telas maiores o quadro fica largo) (o navegador baixa só uma das duas).
 interface Props { label: string; alt?: string; src?: string; srcMobile?: string; class?: string; imgClass?: string; eager?: boolean; }
 const { label, alt, src, srcMobile, class: extra = '', imgClass = '', eager = false } = Astro.props;
 ---
 {src
   ? <div class:list={['overflow-hidden', extra]}>
       <picture>
-        {srcMobile && <source media="(max-width: 1023px)" srcset={srcMobile}>}
+        {srcMobile && <source media="(max-width: 480px)" srcset={srcMobile}>}
         <img src={src} alt={alt ?? label} class:list={['absolute inset-0 size-full object-cover', imgClass]} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} decoding={eager ? 'sync' : 'async'}>
       </picture>
       <slot />

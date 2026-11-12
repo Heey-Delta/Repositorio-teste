@@ -35,7 +35,7 @@
   (function () {
     var root = document.documentElement;
     function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
-    var shownAt = Date.now(), MIN_MS = 800, MAX_MS = 2000, done = false;
+    var shownAt = Date.now(), MIN_MS = 1600, MAX_MS = 2600, done = false;
     var HOLD_MS = 300, TOSS_MS = 1700;
     function toss() {
       var wrap = document.getElementById('ouroWrap'), box = document.getElementById('ouro'), img = box.firstElementChild;
@@ -75,11 +75,11 @@
       if (done) startCity(); else finishSoon();   // a cidade carregou depois que a tela já saiu: anima agora
     });
     // A cidade agora só carrega quando a pessoa começa a navegar, então a tela não espera por ela: sai assim que a foto
-    // do hero chegou (html.hero-ok, marcado no <head> da home), respeitando o mínimo de 0,8 s para a animação aparecer.
+    // do hero chegou (html.hero-ok, marcado no <head> da home), respeitando o mínimo de 1,6 s para a animação aparecer.
     if (!done) {
       if (root.classList.contains('hero-ok')) finishSoon();
       else new MutationObserver(function (m, obs) { if (root.classList.contains('hero-ok')) { obs.disconnect(); finishSoon(); } }).observe(root, { attributes: true, attributeFilter: ['class'] });
-      setTimeout(finish, MAX_MS);   // limite: depois de 2 s a página abre sozinha
+      setTimeout(finish, MAX_MS);   // limite: depois de 2,6 s a página abre sozinha
     }
   })();
 </script>

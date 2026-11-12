@@ -1,7 +1,7 @@
 ---
 // Estrutura comum das páginas: <head> e o slot do conteúdo. O CSS vem de quem usa o Base: home.css na home,
 // global.css no Lab e no admin. As fontes (Anton e Chakra Petch) ficam no próprio site,
-// em public/fonts (declaradas em styles/fonts.css); `preloadFont` adianta a Anton, que é a dos títulos grandes.
+// em public/fonts (declaradas em styles/fonts.css); `preloadFont` adianta as três partes usadas (Anton e Chakra Petch 400/600).
 import fontsCss from '../styles/fonts.css?raw';
 interface Props { title: string; description?: string; preloadFont?: boolean; lang?: string; icon?: string; bodyClass?: string; analytics?: boolean; }
 const { title, description, preloadFont = false, lang = 'pt-BR', icon, bodyClass, analytics = false } = Astro.props;
@@ -19,7 +19,11 @@ const withAnalytics = analytics && import.meta.env.PROD && Boolean(process.env.V
     : <><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"></>}
   <slot name="head" />
   {withAnalytics && <script defer src="/_vercel/insights/script.js" is:inline></script>}
-  {preloadFont && <link rel="preload" href="/fonts/anton-400-up.woff2" as="font" type="font/woff2" crossorigin>}
+  {preloadFont && <>
+    <link rel="preload" href="/fonts/anton-400-up.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/chakra-petch-400-up.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/chakra-petch-600-up.woff2" as="font" type="font/woff2" crossorigin>
+  </>}
   <style is:inline set:html={fontsCss}></style>
 </head>
 <body class={bodyClass}>

@@ -66,27 +66,27 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
       <a href={root} class="font-display text-[26px] leading-none" aria-label="/HALLAN, voltar ao site">/HALLAN</a>
       <nav class="hidden items-center gap-5 xl:flex" aria-label="Laboratório">
         {nav.map((n) => (
-          <a href={n.href} class:list={['label-ui flex items-center gap-2 text-[11px] whitespace-nowrap hover:text-lime', n.slug === current ? 'text-lime' : 'text-ink']} aria-current={n.slug === current ? 'page' : undefined}>
-            {n.slug === current && <span class="size-1.5 rounded-full bg-lime" aria-hidden="true"></span>}{n.name}
+          <a href={n.href} class:list={['label-ui flex items-center gap-2 text-[11px] whitespace-nowrap hover:text-accent', n.slug === current ? 'text-accent' : 'text-ink']} aria-current={n.slug === current ? 'page' : undefined}>
+            {n.slug === current && <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>}{n.name}
           </a>
         ))}
       </nav>
       <div class="flex items-center gap-1">
-        <button type="button" id="labSearchBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime" aria-label="Buscar no laboratório" aria-expanded="false" aria-controls="labSearch"><LabIcon name="search" class="size-5" /></button>
-        <button type="button" id="labMenuBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="labMenu">
+        <button type="button" id="labSearchBtn" class="grid size-11 cursor-pointer place-items-center hover:text-accent" aria-label="Buscar no laboratório" aria-expanded="false" aria-controls="labSearch"><LabIcon name="search" class="size-5" /></button>
+        <button type="button" id="labMenuBtn" class="grid size-11 cursor-pointer place-items-center hover:text-accent xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="labMenu">
           <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><path d="M0 1h22M0 7h22M0 13h22" stroke="currentColor" stroke-width="1.6"/></svg>
         </button>
       </div>
     </div>
     <nav id="labMenu" class="hidden border-t border-line bg-bg xl:hidden" aria-label="Laboratório (celular)">
       <div class="wrap grid py-2">
-        {nav.map((n) => <a href={n.href} class:list={['label-ui border-b border-line py-3.5 text-[13px] last:border-b-0 hover:text-lime', n.slug === current && 'text-lime']}>{n.name}</a>)}
+        {nav.map((n) => <a href={n.href} class:list={['label-ui border-b border-line py-3.5 text-[13px] last:border-b-0 hover:text-accent', n.slug === current && 'text-accent']}>{n.name}</a>)}
       </div>
     </nav>
     <div id="labSearch" class="hidden border-t border-line bg-bg">
       <div class="wrap flex flex-col gap-3 py-4">
         <label for="labSearchInput" class="text-xs text-muted">Buscar por título, assunto ou código (ex.: RES-001)</label>
-        <input id="labSearchInput" type="search" autocomplete="off" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-lime" placeholder="percepção, EXP-001, brutalismo…">
+        <input id="labSearchInput" type="search" autocomplete="off" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-accent" placeholder="percepção, EXP-001, brutalismo…">
         <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0" aria-live="polite"></ul>
       </div>
     </div>
@@ -94,8 +94,8 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
 
   {crumbs.length > 0 && (
     <nav class="wrap pt-5 text-xs text-muted" aria-label="Você está em">
-      <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
-      {crumbs.map((c, i) => <> <span aria-hidden="true">/</span> {i < crumbs.length - 1 ? <a href={`${root}${c.path.slice(1)}`} class="hover:text-lime">{c.name}</a> : <span class="text-ink">{c.name}</span>}</>)}
+      <a href={`${root}lab/`} class="hover:text-accent">Lab</a>
+      {crumbs.map((c, i) => <> <span aria-hidden="true">/</span> {i < crumbs.length - 1 ? <a href={`${root}${c.path.slice(1)}`} class="hover:text-accent">{c.name}</a> : <span class="text-ink">{c.name}</span>}</>)}
     </nav>
   )}
 
@@ -105,13 +105,13 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
     <div class="wrap flex flex-col gap-6 py-8 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
       <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none">/HALLAN</a><span class="text-xs text-muted">Experimental Lab</span></div>
       <nav class="flex flex-wrap gap-x-5 gap-y-2 text-[13px]" aria-label="Rodapé do laboratório">
-        <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
-        <a href={`${root}lab/autor/`} class="hover:text-lime">Autor</a>
-        <a href={`${root}#works`} class="hover:text-lime">Trabalhos</a>
-        <a href={`${root}#about`} class="hover:text-lime">Sobre</a>
-        <a href={`${root}#contact`} class="hover:text-lime">Contato</a>
+        <a href={`${root}lab/`} class="hover:text-accent">Lab</a>
+        <a href={`${root}lab/autor/`} class="hover:text-accent">Autor</a>
+        <a href={`${root}#works`} class="hover:text-accent">Trabalhos</a>
+        <a href={`${root}#about`} class="hover:text-accent">Sobre</a>
+        <a href={`${root}#contact`} class="hover:text-accent">Contato</a>
       </nav>
-      <a href={`${root}#contact`} class="label-ui self-start text-xs hover:text-lime lg:justify-self-end">Falar comigo →</a>
+      <a href={`${root}#contact`} class="label-ui self-start text-xs hover:text-accent lg:justify-self-end">Falar comigo →</a>
     </div>
     <div class="wrap flex flex-wrap justify-between gap-2 border-t border-line py-5 text-xs text-muted">
       <span class="tabular-nums">© 2026 Hallan</span>
@@ -140,8 +140,8 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
         if (!hits.length) { out.innerHTML = '<li class="py-3 text-sm text-muted">Nada com “' + input.value.trim().replace(/[<>&]/g, '') + '”. Tente outra palavra.</li>'; return; }
         hits.forEach(function (x) {
           var li = document.createElement('li'), a = document.createElement('a');
-          a.href = x.i.u; a.className = 'flex items-baseline gap-3 border-b border-line py-3 hover:text-lime';
-          var c = document.createElement('span'); c.className = 'font-mono text-[11px] text-lime'; c.textContent = x.i.c;
+          a.href = x.i.u; a.className = 'flex items-baseline gap-3 border-b border-line py-3 hover:text-accent';
+          var c = document.createElement('span'); c.className = 'font-mono text-[11px] text-accent'; c.textContent = x.i.c;
           var t = document.createElement('span'); t.className = 'text-[15px]'; t.textContent = x.i.t;
           a.appendChild(c); a.appendChild(t); li.appendChild(a); out.appendChild(li);
         });

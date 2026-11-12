@@ -1,63 +1,14 @@
 ---
-// Economia de processamento:
-// 1) Cada seção fora da tela recebe data-off, e o CSS pausa todas as animações dela (glitches, pulsos etc.).
-// 2) Cor de destaque (lime → laranja → azul → lime em 90 s): um relógio cíclico (performance.now) é a base.
-//    Só os elementos de destaque (classes com "lime", .link-ui ou .accent) das seções na tela recebem a cor, ~3x/s.
-//    Seção fora da tela não recebe nada e fica com a última cor. Quando volta, a cor dela desliza em 1 s até a do relógio.
+// Economia de processamento: cada seção fora da tela recebe data-off, e o CSS (shared.css) pausa todas as animações
+// dela (glitches, pulsos etc.). A cor de destaque é fixa (#FBBF00, --accent em shared.css).
 ---
 <script is:inline>
   (function () {
+    if (!window.IntersectionObserver) return;
     var regions = [].slice.call(document.querySelectorAll('main > section, body > footer'));
-    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var K = [[0.918, 0.235, 127.7], [0.76, 0.16, 55], [0.72, 0.15, -115], [0.918, 0.235, -232.3]], CYCLE = 90000, STEP = 300, BLEND = 1000;
-    function base(ms) {
-      var u = (ms % CYCLE) / CYCLE * 3, i = Math.min(2, Math.floor(u)), f = u - i, a = K[i], b = K[i + 1];
-      return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
-    }
-    function mix(a, b, f) {
-      var h = b[2] - a[2]; h -= Math.round(h / 360) * 360;   // matiz pelo caminho mais curto
-      return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + h * f];
-    }
-    function css(c) { return 'oklch(' + c[0].toFixed(3) + ' ' + c[1].toFixed(3) + ' ' + c[2].toFixed(1) + ')'; }
-    // cada grupo: elementos de destaque de uma seção (r = null: fora de qualquer seção, ex. cabeçalho)
-    var groups = new Map();
-    [].forEach.call(document.querySelectorAll('[class*="lime"], .link-ui, .accent'), function (el) {
-      var r = null; for (var i = 0; i < regions.length; i++) if (regions[i].contains(el)) { r = regions[i]; break; }
-      if (!groups.has(r)) groups.set(r, { els: [], color: K[0], str: '', on: r === null, blendFrom: null, blendAt: 0 });
-      groups.get(r).els.push(el);
-    });
-    function paint(g, c) {
-      var s = css(c); g.color = c; if (s === g.str) return; g.str = s;
-      for (var i = 0; i < g.els.length; i++) g.els[i].style.setProperty('--lime', s);
-    }
-    var blending = false;
-    function blendFrame(now) {
-      blending = false;
-      groups.forEach(function (g) {
-        if (!g.on || !g.blendFrom) return;
-        var f = Math.min(1, (now - g.blendAt) / BLEND); f = f * f * (3 - 2 * f);
-        paint(g, mix(g.blendFrom, base(Date.now()), f));
-        if (f >= 1) g.blendFrom = null; else blending = true;
-      });
-      if (blending) requestAnimationFrame(blendFrame);
-    }
-    function tick() {
-      var c = base(Date.now());
-      groups.forEach(function (g) { if (g.on && !g.blendFrom) paint(g, c); });
-    }
-    function setVisible(r, on) {
-      if (on) r.removeAttribute('data-off'); else r.setAttribute('data-off', '');
-      var g = groups.get(r); if (!g || g.on === on) return;
-      g.on = on;
-      if (on && !reduce) {   // voltou à tela: desliza da última cor até a do relógio
-        g.blendFrom = g.color; g.blendAt = performance.now();
-        if (!blending) { blending = true; requestAnimationFrame(blendFrame); }
-      }
-    }
-    if (window.IntersectionObserver) {
-      var io = new IntersectionObserver(function (en) { en.forEach(function (e) { setVisible(e.target, e.isIntersecting); }); }, { rootMargin: '150px 0px' });
-      regions.forEach(function (r) { io.observe(r); });
-    } else groups.forEach(function (g) { g.on = true; });
-    if (!reduce) { tick(); setInterval(tick, STEP); }
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) { if (e.isIntersecting) e.target.removeAttribute('data-off'); else e.target.setAttribute('data-off', ''); });
+    }, { rootMargin: '150px 0px' });
+    regions.forEach(function (r) { io.observe(r); });
   })();
 </script>

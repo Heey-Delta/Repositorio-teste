@@ -49,7 +49,7 @@ const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
       <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
         {health.map((h) => (
           <li class="flex gap-3">
-            <span aria-hidden="true" class:list={['w-4 shrink-0', h.ok ? 'text-lime' : 'text-[#ff8a8a]']}>{h.ok ? '✓' : '✕'}</span>
+            <span aria-hidden="true" class:list={['w-4 shrink-0', h.ok ? 'text-accent' : 'text-[#ff8a8a]']}>{h.ok ? '✓' : '✕'}</span>
             <span class="flex flex-col"><span>{h.label}<span class="sr-only">{h.ok ? ': funcionando' : ': com problema'}</span></span>{!h.ok && <span class="text-xs text-muted">{h.fix}</span>}</span>
           </li>
         ))}
@@ -71,7 +71,7 @@ const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
       <ul class="m-0 flex list-none flex-col p-0 text-sm">
         {sessions.map((x) => (
           <li class="flex flex-wrap justify-between gap-2 border-t border-line py-2 last:border-b">
-            <span>{device(x.userAgent)}{x.tokenHash === current && <span class="text-lime"> · este navegador</span>}</span>
+            <span>{device(x.userAgent)}{x.tokenHash === current && <span class="text-accent"> · este navegador</span>}</span>
             <span class="text-muted tabular-nums">desde {fmtDateTime(x.createdAt)}</span>
           </li>
         ))}

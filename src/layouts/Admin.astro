@@ -29,7 +29,7 @@ const modules = [
           {modules.map((m) => (
             <li class="shrink-0">
               {m.href
-                ? <a href={m.href} aria-current={m.slug === current ? 'page' : undefined} class:list={['flex min-h-10 items-center rounded-[6px] px-3 text-sm', m.slug === current ? 'bg-[#141414] text-lime' : 'text-ink hover:bg-[#0d0d0d]']}>{m.name}</a>
+                ? <a href={m.href} aria-current={m.slug === current ? 'page' : undefined} class:list={['flex min-h-10 items-center rounded-[6px] px-3 text-sm', m.slug === current ? 'bg-[#141414] text-accent' : 'text-ink hover:bg-[#0d0d0d]']}>{m.name}</a>
                 : <span class="flex min-h-10 items-center justify-between gap-3 px-3 text-sm text-muted" title="Ainda não construído">{m.name}<span class="text-[11px]">em breve</span></span>}
             </li>
           ))}

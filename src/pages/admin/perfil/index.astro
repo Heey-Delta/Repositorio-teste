@@ -4,7 +4,7 @@ import Admin from '../../../layouts/Admin.astro';
 import { getAuthorProfile } from '../../../lib/author';
 export const prerender = false;
 const a = await getAuthorProfile();
-const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 ---
 <Admin title="Perfil do autor" current="perfil">
@@ -26,7 +26,7 @@ const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
       <textarea name="sameAs" rows="5" spellcheck="false" class={`${field} py-2 font-mono text-[13px]`}>{a.sameAs.join('\n')}</textarea>
     </label>
     <div class="flex items-center gap-4">
-      <button type="submit" class="min-h-11 cursor-pointer rounded-[6px] bg-lime px-6 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar perfil</button>
+      <button type="submit" class="min-h-11 cursor-pointer rounded-[6px] bg-accent px-6 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar perfil</button>
       <p id="authorState" class="m-0 text-[13px] text-muted" role="status"></p>
     </div>
   </form>

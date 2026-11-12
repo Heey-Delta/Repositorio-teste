@@ -6,13 +6,13 @@ import { statusLabel } from '../../../lib/admin';
 export const prerender = false;
 const [posts, author] = await Promise.all([auditPosts(), auditAuthor()]);
 const site = Astro.site!.origin;
-const tone = (n: number) => (n >= 85 ? 'text-lime' : n >= 60 ? 'text-[#ffd34d]' : 'text-[#ff8a8a]');
+const tone = (n: number) => (n >= 85 ? 'text-accent' : n >= 60 ? 'text-[#ffd34d]' : 'text-[#ff8a8a]');
 const issues = (checks: Check[]) => checks.filter((c) => !c.ok).sort((a, b) => (a.level === b.level ? 0 : a.level === 'erro' ? -1 : 1));
 ---
 <Admin title="SEO & GEO" current="seo">
   <div class="flex max-w-[1040px] flex-col gap-10">
     <nav aria-label="SEO & GEO" class="flex gap-2 text-sm">
-      <a href="/admin/seo/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-lime px-4 text-lime">Diagnóstico</a>
+      <a href="/admin/seo/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-accent px-4 text-accent">Diagnóstico</a>
       <a href="/admin/seo/redirecionamentos/" class="inline-flex min-h-9 items-center rounded-full border border-line px-4 hover:border-ink">Redirecionamentos</a>
     </nav>
     <p class="m-0 max-w-[720px] text-sm text-muted"><strong class="text-ink">SEO</strong> é o Google entender e mostrar bem cada página. <strong class="text-ink">GEO</strong> é buscadores com IA (ChatGPT, Gemini, Perplexity, as respostas do Google) entenderem, confiarem e citarem o conteúdo. A parte técnica (sitemap, robots, dados estruturados, endereços) o site já faz sozinho; aqui fica o que depende do conteúdo.</p>
@@ -22,12 +22,12 @@ const issues = (checks: Check[]) => checks.filter((c) => !c.ok).sort((a, b) => (
       <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
         {author.map((c) => (
           <li class="flex gap-3">
-            <span aria-hidden="true" class:list={['w-4 shrink-0', c.ok ? 'text-lime' : c.level === 'erro' ? 'text-[#ff8a8a]' : 'text-[#ffd34d]']}>{c.ok ? '✓' : c.level === 'erro' ? '✕' : '!'}</span>
+            <span aria-hidden="true" class:list={['w-4 shrink-0', c.ok ? 'text-accent' : c.level === 'erro' ? 'text-[#ff8a8a]' : 'text-[#ffd34d]']}>{c.ok ? '✓' : c.level === 'erro' ? '✕' : '!'}</span>
             <span class="flex flex-col"><span>{c.label}<span class="sr-only">{c.ok ? ': ok' : `: ${c.level}`}</span></span>{!c.ok && <span class="text-xs text-muted">{c.fix}</span>}</span>
           </li>
         ))}
       </ul>
-      {author.some((c) => !c.ok) && <a href="/admin/perfil/" class="self-start text-sm underline hover:text-lime">Completar o perfil do autor</a>}
+      {author.some((c) => !c.ok) && <a href="/admin/perfil/" class="self-start text-sm underline hover:text-accent">Completar o perfil do autor</a>}
     </section>
 
     <section aria-labelledby="postsTitle" class="flex flex-col gap-3">
@@ -56,7 +56,7 @@ const issues = (checks: Check[]) => checks.filter((c) => !c.ok).sort((a, b) => (
                         ))}
                       </ul>
                     )}
-                    <a href={`/admin/publicacoes/${p.id}/`} class="self-start text-sm underline hover:text-lime">Abrir no editor</a>
+                    <a href={`/admin/publicacoes/${p.id}/`} class="self-start text-sm underline hover:text-accent">Abrir no editor</a>
                   </div>
                 </details>
               </li>

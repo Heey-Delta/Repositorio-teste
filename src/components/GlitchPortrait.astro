@@ -26,7 +26,7 @@ const bg = `background-image:url(${src}); background-position:${position};`;
   .gp-cy, .gp-mg { opacity: 0; mix-blend-mode: screen; }
   .gp-cy { filter: sepia(1) hue-rotate(150deg) saturate(6) brightness(1.1); animation: gpCy var(--gp-t) steps(1, end) infinite, about-pulse 12s ease-in-out infinite; }
   .gp-mg { filter: sepia(1) hue-rotate(280deg) saturate(6) brightness(1.1); animation: gpMg var(--gp-t) steps(1, end) infinite, about-pulse 12s ease-in-out infinite; }
-  .gp-line { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--lime); opacity: 0; animation: gpLine var(--gp-t) steps(1, end) infinite; }
+  .gp-line { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--accent); opacity: 0; animation: gpLine var(--gp-t) steps(1, end) infinite; }
   /* rajada menor em 38-42% e principal em 80-92% */
   @keyframes gp1 { 0%, 19%, 21.5%, 40%, 46.5%, 100% { translate: 0 0; opacity: 0; } 19.5% { translate: -14px 0; opacity: 1; } 20.5% { translate: 9px 0; opacity: 1; } 40.5% { translate: -30px 0; opacity: 1; clip-path: inset(10% 0 78% 0); } 42.5% { translate: 22px 0; opacity: 1; clip-path: inset(14% 0 79% 0); } 44.5% { translate: -12px 0; opacity: 1; } }
   @keyframes gp2 { 0%, 20%, 40%, 47%, 100% { translate: 0 0; opacity: 0; } 41% { translate: 34px 0; opacity: 1; clip-path: inset(36% 0 52% 0); } 42% { translate: -26px 0; opacity: 1; clip-path: inset(40% 0 52% 0); } 43.5% { translate: 16px 0; opacity: 1; } 45% { translate: -38px 0; opacity: 1; clip-path: inset(37% 0 55% 0); } }

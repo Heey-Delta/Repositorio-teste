@@ -5,20 +5,20 @@ import { listRedirects } from '../../../../lib/redirects';
 import { fmtDateTime } from '../../../../lib/admin';
 export const prerender = false;
 const list = await listRedirects();
-const field = 'h-10 min-w-0 rounded-[6px] border border-line bg-bg px-3 font-mono text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const field = 'h-10 min-w-0 rounded-[6px] border border-line bg-bg px-3 font-mono text-[13px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 ---
 <Admin title="Redirecionamentos" current="seo">
   <div class="flex max-w-[1040px] flex-col gap-8">
     <nav aria-label="SEO & GEO" class="flex gap-2 text-sm">
       <a href="/admin/seo/" class="inline-flex min-h-9 items-center rounded-full border border-line px-4 hover:border-ink">Diagnóstico</a>
-      <a href="/admin/seo/redirecionamentos/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-lime px-4 text-lime">Redirecionamentos</a>
+      <a href="/admin/seo/redirecionamentos/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-accent px-4 text-accent">Redirecionamentos</a>
     </nav>
     <p class="m-0 max-w-[680px] text-sm text-muted">Quando uma publicação no ar muda de endereço, o antigo passa a levar para o novo (301) automaticamente. Aqui você vê todos, desativa algum se precisar e cria outros à mão, por exemplo para um link antigo divulgado com erro.</p>
 
     <form id="newRedirect" class="grid items-end gap-3 rounded-[8px] border border-line p-4 md:grid-cols-[1fr_1fr_auto]" novalidate>
       <label class="flex flex-col gap-1 text-xs text-muted">De (endereço do Lab)<input name="from" placeholder="/lab/research/nome-antigo/" class={field}></label>
       <label class="flex flex-col gap-1 text-xs text-muted">Para<input name="to" placeholder="/lab/research/nome-novo/ ou https://…" class={field}></label>
-      <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110">Criar</button>
+      <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110">Criar</button>
       <p id="redirState" class="m-0 text-[13px] text-muted md:col-span-3" role="status"></p>
     </form>
 

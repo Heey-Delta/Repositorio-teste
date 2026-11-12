@@ -41,7 +41,7 @@ const meta = [
     <div class="border-b border-[#5c4a00] bg-[#1a1500]" role="note">
       <div class="wrap flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
         <span><strong class="font-bold text-[#ffd34d]">Pré-visualização</strong> · {preview.status}. É assim que a página vai aparecer no site; ninguém mais vê este endereço.</span>
-        <a href={preview.editHref} target="_top" class="underline hover:text-lime">Voltar ao editor</a>
+        <a href={preview.editHref} target="_top" class="underline hover:text-accent">Voltar ao editor</a>
       </div>
     </div>
   )}
@@ -52,8 +52,8 @@ const meta = [
         <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
         <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
-          <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-lime hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
-          <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-lime hover:text-lime">Copiar link</button>
+          <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-accent hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
+          <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-accent hover:text-accent">Copiar link</button>
         </div>
       </div>
       {d.cover && <div class="mx-auto max-w-[1440px] border-t border-line"><Cover cover={d.cover} eager class="max-h-[640px]" /></div>}
@@ -67,7 +67,7 @@ const meta = [
         {toc.length > 1 && (
           <nav class="border-t border-line pt-4" aria-label="Nesta publicação">
             <p class="label-ui m-0 mb-2 text-[11px] text-muted">Nesta publicação</p>
-            <ol class="m-0 flex list-none flex-col gap-1.5 p-0 text-[13px]">{toc.map((h, i) => <li><a href={`#${h.slug}`} class="hover:text-lime"><span class="mr-2 font-mono text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>)}</ol>
+            <ol class="m-0 flex list-none flex-col gap-1.5 p-0 text-[13px]">{toc.map((h, i) => <li><a href={`#${h.slug}`} class="hover:text-accent"><span class="mr-2 font-mono text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>)}</ol>
           </nav>
         )}
       </aside>
@@ -87,7 +87,7 @@ const meta = [
         <h2 id="files" class="label-ui m-0 mb-4 text-[11px] text-muted">Arquivos</h2>
         <ul class="m-0 flex list-none flex-col gap-3 p-0 text-sm">{d.attachments.map((a) => (
           <li class="flex flex-col gap-0.5">
-            <a href={a.url} download rel="noopener" class="underline hover:text-lime">{a.title}</a>
+            <a href={a.url} download rel="noopener" class="underline hover:text-accent">{a.title}</a>
             <span class="text-xs text-muted">PDF · {a.size > 1048576 ? `${(a.size / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(a.size / 1024))} KB`}{a.caption && ` · ${a.caption}`}</span>
           </li>
         ))}</ul>
@@ -99,7 +99,7 @@ const meta = [
         <ol class="m-0 flex flex-col gap-2 pl-5 text-sm">{d.references.map((r) => (
           <li>
             {r.author && <>{r.author}. </>}
-            {r.url ? <a href={r.url} rel="noopener" class="underline hover:text-lime">{r.title}</a> : <cite class="not-italic">{r.title}</cite>}.
+            {r.url ? <a href={r.url} rel="noopener" class="underline hover:text-accent">{r.title}</a> : <cite class="not-italic">{r.title}</cite>}.
             {(r.publisher || r.publishedOn) && <> {[r.publisher, r.publishedOn].filter(Boolean).join(', ')}.</>}
             {r.accessedOn && <span class="text-muted"> Acesso em {r.accessedOn}.</span>}
           </li>
@@ -126,7 +126,7 @@ const meta = [
   </script>
 </Lab>
 <style is:global>
-  #copyLink.copied { border-color: var(--lime); color: var(--lime); animation: copied .25s ease-out; }
+  #copyLink.copied { border-color: var(--accent); color: var(--accent); animation: copied .25s ease-out; }
   @keyframes copied { 40% { transform: scale(1.05); } }
   @media (prefers-reduced-motion: reduce) { #copyLink.copied { animation: none; } }
 </style>

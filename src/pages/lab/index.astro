@@ -44,11 +44,11 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
   <section class="border-b border-line" aria-labelledby="lab-title">
     <div class="wrap grid gap-8 py-10 lg:min-h-[600px] lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:py-16">
       <div class="flex flex-col gap-6 lg:gap-8">
-        <h1 id="lab-title" class="m-0 font-display text-[clamp(52px,15vw,84px)] leading-[0.92] uppercase lg:text-[clamp(96px,9vw,136px)]">Experimental<br><span class="text-lime">Lab</span></h1>
+        <h1 id="lab-title" class="m-0 font-display text-[clamp(52px,15vw,84px)] leading-[0.92] uppercase lg:text-[clamp(96px,9vw,136px)]">Experimental<br><span class="text-accent">Lab</span></h1>
         <p class="m-0 max-w-[480px] text-base text-ink lg:text-lg">Onde eu testo ideias antes de elas virarem projeto: experimentos em 3D, ensaios sobre design e pesquisas sobre como a gente enxerga uma tela.</p>
         <p class="m-0 max-w-[480px] text-sm text-muted">Nem tudo aqui dá certo, e está tudo documentado do mesmo jeito.</p>
         <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
-          {featured && <a href="#andamento" class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110">Ver o que está em andamento</a>}
+          {featured && <a href="#andamento" class="label-ui inline-flex min-h-12 items-center bg-accent px-6 text-xs font-bold text-black hover:brightness-110">Ver o que está em andamento</a>}
           {notes.length > 0 && <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Ler as notas</a>}
         </div>
       </div>
@@ -64,12 +64,12 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         return (
           <li class="bg-bg">
             <a href={`${root}lab/${d.slug}/`} class="group flex h-full min-h-[150px] flex-col justify-between gap-4 p-5 hover:bg-[#0b0b0b] lg:min-h-[170px]">
-              <LabIcon name={d.icon} class="size-7 text-muted transition-colors group-hover:text-lime" />
+              <LabIcon name={d.icon} class="size-7 text-muted transition-colors group-hover:text-accent" />
               <span class="flex flex-col gap-1">
-                <span class="label-ui text-xs text-ink group-hover:text-lime">{d.name}</span>
+                <span class="label-ui text-xs text-ink group-hover:text-accent">{d.name}</span>
                 <span class="text-[13px] leading-snug text-muted">{d.short}</span>
               </span>
-              <span class={`${mono} flex items-center justify-between text-muted`}><span>{n} {n === 1 ? 'publicação' : 'publicações'}</span><span class="transition-transform group-hover:translate-x-1 group-hover:text-lime" aria-hidden="true">→</span></span>
+              <span class={`${mono} flex items-center justify-between text-muted`}><span>{n} {n === 1 ? 'publicação' : 'publicações'}</span><span class="transition-transform group-hover:translate-x-1 group-hover:text-accent" aria-hidden="true">→</span></span>
             </a>
           </li>
         );
@@ -94,10 +94,10 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         <Cover cover={featured.data.cover} class="max-h-[560px] border border-line lg:order-2" />
         <div class="flex flex-col gap-5 lg:order-1">
           <p class={eyebrow}>Em andamento</p>
-          <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-lime">{featured.data.title}</a></h2>
+          <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-accent">{featured.data.title}</a></h2>
           <p class={lead}>{featured.data.description}</p>
           <p class={`${mono} m-0 text-muted`}>{[featured.data.code, statuses[featured.data.status].label, fmtDate(featured.data.date)].filter(Boolean).join(' · ')}</p>
-          <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-lime hover:text-lime">Ver o experimento →</a>
+          <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-accent hover:text-accent">Ver o experimento →</a>
         </div>
       </div>
     </section>
@@ -120,7 +120,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
               <Cover cover={e.data.cover} class="aspect-[4/3] border border-line" />
               <span class="flex flex-col gap-3">
                 <span class={`${mono} text-muted`}>{[e.data.code, e.data.areas.join(' / ')].filter(Boolean).join(' · ')}</span>
-                <span class="text-[26px] leading-[1.15] font-bold group-hover:text-lime lg:text-[34px]">{e.data.title}</span>
+                <span class="text-[26px] leading-[1.15] font-bold group-hover:text-accent lg:text-[34px]">{e.data.title}</span>
                 <span class="max-w-[560px] text-[15px] text-muted">{e.data.description}</span>
               </span>
             </a>
@@ -159,7 +159,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
               {e.data.cover
                 ? <Cover cover={e.data.cover} class="aspect-square border border-line" />
                 : <span class="flex aspect-square items-end border border-line p-3 font-mono text-[11px] text-muted uppercase tabular-nums">{e.data.code}</span>}
-              <span class="text-[13px] leading-snug group-hover:text-lime">{e.data.title}</span>
+              <span class="text-[13px] leading-snug group-hover:text-accent">{e.data.title}</span>
             </a>
           </li>
         ))}
@@ -178,9 +178,9 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2">
           {open.map((e) => (
             <li>
-              <a href={href(e)} class="group flex h-full flex-col border border-line hover:border-lime">
+              <a href={href(e)} class="group flex h-full flex-col border border-line hover:border-accent">
                 <Cover cover={e.data.cover} class="aspect-[16/9] border-b border-line" />
-                <span class="flex flex-col gap-2 p-5"><span class="text-xl font-bold group-hover:text-lime">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
+                <span class="flex flex-col gap-2 p-5"><span class="text-xl font-bold group-hover:text-accent">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
               </a>
             </li>
           ))}
@@ -209,9 +209,9 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         })}
       </ul>
       {observatory && (
-        <a href={href(observatory)} class="group flex flex-col gap-2 border border-line p-5 hover:border-lime sm:flex-row sm:items-center sm:justify-between">
-          <span class="flex items-center gap-3"><LabIcon name="eye" class="size-6 text-muted group-hover:text-lime" /><span class={eyebrow}>Observatório · último registro</span></span>
-          <span class="text-[15px] group-hover:text-lime">{observatory.data.title} →</span>
+        <a href={href(observatory)} class="group flex flex-col gap-2 border border-line p-5 hover:border-accent sm:flex-row sm:items-center sm:justify-between">
+          <span class="flex items-center gap-3"><LabIcon name="eye" class="size-6 text-muted group-hover:text-accent" /><span class={eyebrow}>Observatório · último registro</span></span>
+          <span class="text-[15px] group-hover:text-accent">{observatory.data.title} →</span>
         </a>
       )}
     </div>

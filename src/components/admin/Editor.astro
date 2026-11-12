@@ -31,7 +31,7 @@ const localInput = (iso: string | null | undefined) => {
   const d = new Date(iso), p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
-const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 const tools = [
   ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
@@ -50,7 +50,7 @@ const tools = [
       <a id="viewLink" href={`/lab/${dep.slug}/${draft.slug}/`} target="_blank" rel="noopener" hidden={!id || draft.status !== 'published'} class="hidden text-sm text-muted hover:text-ink sm:inline">Ver no site ↗</a>
       <button type="button" id="previewBtn" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Prévia</button>
       <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
-      <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
+      <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
     </div>
     <div id="toolbar" role="toolbar" aria-label="Formatação do texto" class="flex gap-1 overflow-x-auto border-t border-line px-4 py-1.5 lg:px-6">
       {tools.map(([cmd, name, glyph]) => (
@@ -141,7 +141,7 @@ const tools = [
           <legend class="mb-1.5 text-[13px] text-muted">Assuntos</legend>
           {options.areas.map((a) => (
             <label class="flex min-h-9 cursor-pointer items-center gap-3 text-[14px]" title={a.about}>
-              <input type="checkbox" name="areaIds" value={a.id} checked={draft.areaIds.includes(a.id)} class="size-4 accent-[var(--lime)]">{a.name}
+              <input type="checkbox" name="areaIds" value={a.id} checked={draft.areaIds.includes(a.id)} class="size-4 accent-[var(--accent)]">{a.name}
             </label>
           ))}
         </fieldset>
@@ -214,7 +214,7 @@ const tools = [
           </select>
         </label>
         <label class="flex min-h-9 cursor-pointer items-center gap-3 text-[14px]">
-          <input type="checkbox" name="noindex" checked={draft.seo.noindex} class="size-4 accent-[var(--lime)]">Não mostrar no Google
+          <input type="checkbox" name="noindex" checked={draft.seo.noindex} class="size-4 accent-[var(--accent)]">Não mostrar no Google
         </label>
       </fieldset>
 
@@ -265,16 +265,16 @@ const tools = [
           <ul id="mediaLib" class="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-5"></ul>
         </div>
         <label class="flex flex-col gap-1.5 text-[13px] text-muted"><span id="mediaAltLabel">Texto alternativo</span> <span id="mediaAltHint" class="text-xs">Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.</span>
-          <textarea id="mediaAlt" rows="2" maxlength="300" class="rounded-[6px] border border-line bg-bg px-3 py-2 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]"></textarea>
+          <textarea id="mediaAlt" rows="2" maxlength="300" class="rounded-[6px] border border-line bg-bg px-3 py-2 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]"></textarea>
         </label>
         <label id="mediaCaptionWrap" class="flex flex-col gap-1.5 text-[13px] text-muted">Legenda <span class="text-xs">Opcional: crédito ou origem.</span>
-          <input id="mediaCaption" maxlength="500" class="h-11 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime">
+          <input id="mediaCaption" maxlength="500" class="h-11 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent">
         </label>
         <p id="mediaError" role="alert" class="m-0 text-[13px] text-[#ff8a8a]" hidden></p>
       </div>
       <div class="flex shrink-0 items-center justify-end gap-3 border-t border-line px-5 py-3">
         <button type="button" id="mediaCancel" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Cancelar</button>
-        <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
+        <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
       </div>
     </form>
   </dialog>
@@ -301,7 +301,7 @@ const tools = [
   #body .ProseMirror { outline: none; min-height: 50vh; }
   .lab-prose :where(.ProseMirror > * + *) { margin-top: 1.1em; }
   #body .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #5c5c58; float: left; height: 0; pointer-events: none; }
-  .tool[aria-pressed="true"] { background: #1c1c1c; color: var(--lime); }
+  .tool[aria-pressed="true"] { background: #1c1c1c; color: var(--accent); }
   .details { transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility 0s .2s; }
   .details[data-open="true"] { transform: none; visibility: visible; transition: transform .2s ease; }
   @media (min-width: 1280px) {
@@ -317,8 +317,8 @@ const tools = [
   .diff-line[data-op="-"] { background: #2e1010; color: #f5c9c9; text-decoration: line-through; text-decoration-color: rgb(245 201 201 / .4); }
   .diff-line[data-op="…"] { color: var(--muted); }
   .media-dialog::backdrop { background: rgb(0 0 0 / .7); }
-  .media-lib-item[aria-pressed="true"] { outline: 2px solid var(--lime); outline-offset: 2px; }
+  .media-lib-item[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 2px; }
   #body .ProseMirror img { max-width: 100%; height: auto; }
-  #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--lime); outline-offset: 2px; }
+  #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; }
   #saveState[data-tone="dirty"] { color: var(--ink); }
 </style>

@@ -32,12 +32,12 @@ const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
       <div class={card}>
         <h3 class="m-0 text-base font-bold">Visitas · Vercel Web Analytics</h3>
         <p class="m-0 text-sm text-muted">Páginas mais vistas, de onde vêm as visitas, países e aparelhos, sem cookies. O site já envia os dados; para começar a contar, ative uma vez em <strong class="text-ink">Vercel → hallan-dante → Analytics → Enable</strong>.</p>
-        <a href="https://vercel.com/oh-alla/hallan-dante/analytics" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-lime">Abrir no Vercel ↗</a>
+        <a href="https://vercel.com/oh-alla/hallan-dante/analytics" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-accent">Abrir no Vercel ↗</a>
       </div>
       <div class={card}>
         <h3 class="m-0 text-base font-bold">Busca · Google Search Console</h3>
         <p class="m-0 text-sm text-muted">Quantas vezes o site apareceu no Google, cliques, termos pesquisados e páginas indexadas. Recomendo cadastrar depois de decidir o domínio próprio e enviar o <code class="text-ink">sitemap.xml</code>.</p>
-        <a href="https://search.google.com/search-console" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-lime">Abrir o Search Console ↗</a>
+        <a href="https://search.google.com/search-console" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-accent">Abrir o Search Console ↗</a>
       </div>
     </section>
 
@@ -55,7 +55,7 @@ const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
         {perMonth.map((m) => (
           <li class="flex flex-1 flex-col items-center gap-2">
             <span class="text-xs tabular-nums">{m.n}</span>
-            <span class="w-full rounded-t-[4px] bg-lime" style={`height:${Math.max(2, (m.n / max) * 110)}px`} aria-hidden="true"></span>
+            <span class="w-full rounded-t-[4px] bg-accent" style={`height:${Math.max(2, (m.n / max) * 110)}px`} aria-hidden="true"></span>
             <span class="text-xs text-muted">{m.label}</span>
           </li>
         ))}

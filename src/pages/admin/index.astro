@@ -25,7 +25,7 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
     <section aria-labelledby="rc" class="flex flex-col gap-4">
       <div class="flex items-baseline justify-between gap-4">
         <h2 id="rc" class="m-0 text-base font-bold">Mexidas por último</h2>
-        <span class="flex items-center gap-4"><a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">Ver todas</a><a href="/admin/publicacoes/nova/" class="inline-flex min-h-10 items-center rounded-[6px] bg-lime px-4 text-sm font-bold text-black hover:brightness-110">Nova publicação</a></span>
+        <span class="flex items-center gap-4"><a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">Ver todas</a><a href="/admin/publicacoes/nova/" class="inline-flex min-h-10 items-center rounded-[6px] bg-accent px-4 text-sm font-bold text-black hover:brightness-110">Nova publicação</a></span>
       </div>
       {recent.length === 0
         ? <p class="m-0 text-sm text-muted">Nenhuma publicação ainda.</p>
@@ -34,7 +34,7 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
             {recent.map((p) => (
               <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line py-3 last:border-b">
                 <span class="w-[72px] font-mono text-[12px] text-muted tabular-nums">{p.code ?? '—'}</span>
-                <a href={`/admin/publicacoes/${p.id}/`} class="min-w-0 flex-1 text-[15px] hover:text-lime">{p.title || 'Sem título'}</a>
+                <a href={`/admin/publicacoes/${p.id}/`} class="min-w-0 flex-1 text-[15px] hover:text-accent">{p.title || 'Sem título'}</a>
                 <span class="text-[13px] text-muted">{statusLabel[p.status]} · {fmtDateTime(p.updatedAt)}</span>
               </li>
             ))}

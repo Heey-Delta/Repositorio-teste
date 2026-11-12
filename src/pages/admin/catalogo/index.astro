@@ -4,7 +4,7 @@ import Admin from '../../../layouts/Admin.astro';
 import { getCatalog } from '../../../lib/catalog';
 export const prerender = false;
 const { departments, areas, tags } = await getCatalog();
-const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const btn = 'min-h-9 shrink-0 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink disabled:cursor-wait disabled:opacity-60';
 const danger = 'min-h-9 shrink-0 cursor-pointer rounded-[6px] px-3 text-[13px] text-[#ff8a8a] hover:bg-[#1a0b0b]';
 const h2 = 'm-0 text-base font-bold';
@@ -79,7 +79,7 @@ const h2 = 'm-0 text-base font-bold';
             {tags.map((t) => (
               <li class="border-t border-line py-2 last:border-b">
                 <form class="cat-form flex flex-wrap items-center gap-2" data-action="tag.update" data-id={t.id}>
-                  <input type="checkbox" class="tag-pick size-4 accent-[var(--lime)]" value={t.id} data-name={t.name} aria-label={`Marcar ${t.name}`}>
+                  <input type="checkbox" class="tag-pick size-4 accent-[var(--accent)]" value={t.id} data-name={t.name} aria-label={`Marcar ${t.name}`}>
                   <label class="sr-only" for={`tag-${t.id}`}>Nome da tag</label>
                   <input id={`tag-${t.id}`} name="name" value={t.name} maxlength="40" class={`${field} h-9 max-w-[260px] flex-1`}>
                   <span class="w-[86px] text-xs text-muted tabular-nums">{t.uses} {t.uses === 1 ? 'publicação' : 'publicações'}</span>

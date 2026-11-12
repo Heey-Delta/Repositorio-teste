@@ -6,6 +6,16 @@
 // No celular os cards viram um carrossel; no desktop, a cidade ocupa 2/3 e as vagas ficam empilhadas à direita.
 // O card branco abre por cima da seção de baixo, preso à borda inferior desta seção (por isso `relative z-30`).
 import CityCard from './CityCard.astro';
+import { readdirSync } from 'node:fs';
+// Arquivos da cidade baixados em segundo plano depois que a página carrega (ver script abaixo): o próprio iframe,
+// o Three.js, os modelos comprimidos e as texturas. Lidos da pasta no build, então novos modelos entram sozinhos.
+const cityDir = 'widgets/cidade-isometrica/';
+const cityPrefetch = [
+  `${cityDir}index.html?hold=1&card=out`,
+  ...['three-r128.min.js', 'GLTFLoader-r128.min.js', 'BufferGeometryUtils-r128.min.js'].map((f) => `${cityDir}vendor/${f}`),
+  ...readdirSync(`public/${cityDir}models`).filter((f) => f.endsWith('.glbz.txt')).map((f) => `${cityDir}models/${f}`),
+  ...readdirSync(`public/${cityDir}models/tex`).filter((f) => f.endsWith('.webp')).map((f) => `${cityDir}models/tex/${f}`),
+];
 const sites = {
   pizzaria: { title: 'Pizzaria Lourenzo', kind: 'Cardápio e pedido pelo WhatsApp', href: 'widgets/cidade-isometrica/pizzaria/', img: 'img/work-pizzaria.webp', alt: 'Página inicial da pizzaria: título “A margherita do jeito que o pai ensinou” e a pizzaria em 3D' },
   cafeteria: { title: 'Un buon caffè', kind: 'Cafeteria italiana', href: 'widgets/cidade-isometrica/cafeteria/', img: 'img/work-cafeteria.webp', alt: 'Página inicial da cafeteria: título “O café como se toma na Itália” e a cafeteria em 3D' },
@@ -13,7 +23,7 @@ const sites = {
 };
 // Vagas para os próximos projetos: quando tiver um, troque o item por { title, kind, href, img, alt } e ele vira um card de site.
 const next = [1, 2, 3];
-const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full border border-line text-ink transition-[border-color,color,opacity] hover:border-lime hover:text-lime disabled:cursor-default disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink';
+const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full border border-line text-ink transition-[border-color,color,opacity] hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink';
 ---
 <section id="works" class="relative z-30 border-b border-line" aria-labelledby="works-title">
   <div class="wrap flex flex-col gap-5 py-8 lg:gap-10 lg:py-16">
@@ -31,7 +41,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
       <!-- NEXUS: a cidade isométrica (destaque) -->
       <article class="works-card relative min-h-[460px] min-w-[88%] shrink-0 snap-start overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-[660px] lg:min-w-0">
         <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
-        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--lime)_30%,transparent),color-mix(in_oklab,var(--lime)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
         <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
@@ -48,7 +58,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
             <p id="siteCardKind" class="m-0 text-[13px] text-muted"></p>
             <a id="siteCardLink" href="#" class="link-ui mt-2 self-start text-[11px] lg:text-xs">Ver site →</a>
           </div>
-          <button type="button" id="siteCardClose" class="label-ui absolute top-2.5 right-2.5 cursor-pointer rounded-full bg-bg/85 px-3 py-1.5 text-[11px] text-ink hover:text-lime" aria-label="Fechar">Fechar ✕</button>
+          <button type="button" id="siteCardClose" class="label-ui absolute top-2.5 right-2.5 cursor-pointer rounded-full bg-bg/85 px-3 py-1.5 text-[11px] text-ink hover:text-accent" aria-label="Fechar">Fechar ✕</button>
         </aside>
       </article>
       <!-- vagas para os próximos projetos -->
@@ -77,14 +87,22 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
   #worksTrack::-webkit-scrollbar { display: none; }
   @media (prefers-reduced-motion: reduce) { .site-card { transition: none; } }
 </style>
-<script is:inline>
-  // A cidade 3D (iframe + Three.js) é o trecho mais pesado do site: montar a cena custa ~2 s de processamento num
-  // celular comum. Por isso ela só começa quando a pessoa mostra que vai navegar (primeira rolagem, toque, clique ou
-  // tecla) ou quando a seção entra de verdade na tela (no celular ela já aparece na borda de baixo da primeira tela,
-  // por isso a margem negativa). Quem só abre o site e lê o topo não paga esse custo.
+<script is:inline define:vars={{ cityPrefetch }}>
+  // A cidade 3D (iframe + Three.js) é o trecho mais pesado do site, em duas partes:
+  // 1) download (~1,3 MB): começa sozinho, em segundo plano e com prioridade baixa, 3,5 s depois que a página termina
+  //    de carregar (rel=prefetch guarda no cache sem disputar com o que está na tela);
+  // 2) montar a cena (~2 s de processamento num celular comum): só quando a pessoa mostra que vai navegar (primeira
+  //    rolagem, toque, clique ou tecla) ou quando a seção entra de verdade na tela. Como os arquivos já estão no cache,
+  //    a cidade aparece logo. Quem só abre o site e lê o topo não paga o processamento.
   (function () {
     var f = document.getElementById('cityFrame'); if (!f || !f.dataset.src) return;
     var evs = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'wheel'], io;
+    function prefetch() {
+      if (f.src) return;
+      cityPrefetch.forEach(function (u) { var l = document.createElement('link'); l.rel = 'prefetch'; l.href = u; document.head.appendChild(l); });
+    }
+    // 3,5 s depois de carregar: a pessoa ainda está lendo o topo, a conexão já está livre (e não disputa com a primeira tela)
+    if (document.readyState === 'complete') setTimeout(prefetch, 3500); else addEventListener('load', function () { setTimeout(prefetch, 3500); });
     function go() {
       if (f.src) return;
       f.src = f.dataset.src;
@@ -96,7 +114,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
     // só a rolagem da própria página conta (carrosséis e outras áreas roláveis também disparam "scroll" no carregamento)
     function soon(e) {
       if (e && e.type === 'scroll' && e.target !== document && e.target !== window) return;
-      (window.requestIdleCallback || setTimeout)(go, { timeout: 800 });
+      (window.requestIdleCallback || setTimeout)(go, { timeout: 500 });
     }
     evs.forEach(function (e) { addEventListener(e, soon, { capture: true, passive: true }); });
     if ('IntersectionObserver' in window) {

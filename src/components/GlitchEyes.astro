@@ -1,9 +1,9 @@
 ---
 // Efeito de glitch nos olhos da escultura: faixas horizontais da própria imagem, deslocadas de lado, uma barra preta e um
-// traço lime piscam em rajadas curtas (a cada ~4 s). As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
+// traço na cor de destaque piscam em rajadas curtas (a cada ~4 s). As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
 // (a imagem preenche o quadro pela altura, então a proporção vale no desktop e no celular).
 // Vai dentro do <Media> da imagem; `src` e `position` precisam ser os mesmos da imagem.
-// `srcMobile`: a mesma versão recortada que o <Media> usa abaixo de 1024 px (centralizada), para não baixar duas imagens.
+// `srcMobile`: a mesma versão recortada que o <Media> usa até 480 px (centralizada), para não baixar duas imagens.
 interface Props { src: string; srcMobile?: string; position?: string; }
 const { src, srcMobile, position = '62% center' } = Astro.props;
 const abs = (u: string) => (u.startsWith('/') ? u : `/${u}`);
@@ -14,17 +14,17 @@ const bg = `--gl-img:url(${abs(src)}); --gl-img-m:url(${abs(srcMobile ?? src)});
   <div class="gl-layer gl-b" style={bg}></div>
   <div class="gl-layer gl-c" style={bg}></div>
   <div class="gl-bar"></div>
-  <div class="gl-lime"></div>
+  <div class="gl-accent"></div>
 </div>
 <style is:global>
   .glitch { --gl-t: 8.8s; }
-  @media (min-width: 1024px) { .gl-layer { background-image: var(--gl-img); background-position: var(--gl-pos); } }
+  @media (min-width: 481px) { .gl-layer { background-image: var(--gl-img); background-position: var(--gl-pos); } }
   .gl-layer { position: absolute; inset: 0; background: var(--gl-img-m) var(--gl-pos-m) / cover no-repeat; will-change: transform, clip-path; }
   .gl-a { clip-path: inset(24% 0 69% 0); animation: glA var(--gl-t) steps(1, end) infinite; }
   .gl-b { clip-path: inset(26% 0 67% 0); filter: contrast(1.5) brightness(1.25); animation: glB var(--gl-t) steps(1, end) infinite; }
   .gl-c { clip-path: inset(25% 0 68% 0); filter: grayscale(1) contrast(1.8) brightness(0.8); animation: glC var(--gl-t) steps(1, end) infinite; }
   .gl-bar { position: absolute; left: 0; right: 0; top: 26.4%; height: 2.4%; background: #000; opacity: 0; animation: glBar var(--gl-t) steps(1, end) infinite; }
-  .gl-lime { position: absolute; left: 14%; right: 6%; top: 29.4%; height: 3px; background: var(--lime); opacity: 0; animation: glLime var(--gl-t) steps(1, end) infinite; }
+  .gl-accent { position: absolute; left: 14%; right: 6%; top: 29.4%; height: 3px; background: var(--accent); opacity: 0; animation: glLime var(--gl-t) steps(1, end) infinite; }
   /* rajada principal em ~83-92% do ciclo, uma menor em ~38-42% */
   @keyframes glA {
     0%, 19%, 21.5%, 41.5%, 46.5%, 100% { transform: none; clip-path: inset(24% 0 69% 0); }
@@ -51,5 +51,5 @@ const bg = `--gl-img:url(${abs(src)}); --gl-img-m:url(${abs(srcMobile ?? src)});
   }
   @keyframes glBar { 0%, 42.5%, 45.5%, 100% { opacity: 0; } 43% { opacity: .95; top: 26.2%; } 44% { opacity: 0; } 44.5% { opacity: .9; top: 27.6%; } 45% { opacity: 0; } }
   @keyframes glLime { 0%, 20%, 21%, 43%, 46%, 100% { opacity: 0; } 20.5% { opacity: 1; top: 28.2%; } 43.5% { opacity: 1; top: 29.6%; } 44.5% { opacity: 1; top: 25.4%; left: 30%; } 45.5% { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .gl-layer, .gl-bar, .gl-lime { animation: none; } .gl-bar, .gl-lime, .gl-c { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .gl-layer, .gl-bar, .gl-accent { animation: none; } .gl-bar, .gl-accent, .gl-c { opacity: 0; } }
 </style>

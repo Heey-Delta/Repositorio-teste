@@ -1,3 +1,13 @@
 {
-  "crons": [{ "path": "/api/cron/agendados", "schedule": "17 9 * * *" }]
+  "crons": [{ "path": "/api/cron/agendados", "schedule": "17 9 * * *" }],
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }]
+    },
+    {
+      "source": "/widgets/cidade-isometrica/(vendor|models)/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+    }
+  ]
 }
