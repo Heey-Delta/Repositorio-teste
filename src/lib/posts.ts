@@ -28,6 +28,15 @@ export const postInput = z.object({
   methodology: optText(2000),
   aiAssistance: optText(2000),
   coverMediaId: z.uuid().nullable().default(null),
+  // spec 7.3: fontes citadas, na ordem em que aparecem no fim da publicação
+  references: z.array(z.object({
+    id: z.number().int().nullable().default(null),
+    title: z.string().trim().min(1, 'Toda referência precisa de título.').max(300),
+    author: optText(200), url: z.string().trim().nullable().transform((v) => v || null).refine((v) => v === null || /^https?:\/\/\S+$/.test(v), 'O link da referência precisa começar com https://'),
+    sourceType: optText(40), publisher: optText(200), publishedOn: optText(40), accessedOn: optText(40),
+  })).max(50).default([]),
+  // spec 7.1: ligações com outras publicações do Lab
+  relations: z.array(z.object({ postId: z.uuid(), kind: z.enum(['related', 'origin', 'documents', 'continues']) })).max(12).default([]),
   scheduledAt: z.string().nullable().transform((v) => (v ? new Date(v) : null)).refine((d) => d === null || !isNaN(+d), 'Data inválida.'),
   seo: z.object({
     metaTitle: optText(70),
@@ -51,22 +60,26 @@ const words = (md: string) => md.replace(/[#>*_`[\]()!-]/g, ' ').split(/\s+/).fi
 
 // Opções dos selects do editor
 export async function editorOptions() {
-  const [deps, types, areas] = await Promise.all([
+  const [deps, types, areas, posts] = await Promise.all([
     db().select().from(s.departments).orderBy(asc(s.departments.sortOrder)),
     db().select().from(s.contentTypes).orderBy(asc(s.contentTypes.id)),
     db().select().from(s.areas).orderBy(asc(s.areas.id)),
+    db().select({ id: s.posts.id, code: s.posts.code, title: s.posts.title, status: s.posts.status }).from(s.posts).orderBy(desc(s.posts.updatedAt)),
   ]);
-  return { departments: deps, contentTypes: types, areas };
+  return { departments: deps, contentTypes: types, areas, posts };
 }
 
 export async function loadPost(id: string) {
   if (!z.uuid().safeParse(id).success) return null;
   const [row] = await db().select().from(s.posts).leftJoin(s.seoMetadata, eq(s.seoMetadata.postId, s.posts.id)).where(eq(s.posts.id, id));
   if (!row) return null;
-  const [areaRows, tagRows, revs] = await Promise.all([
+  const [areaRows, tagRows, revs, refRows, relRows] = await Promise.all([
     db().select({ id: s.postAreas.areaId }).from(s.postAreas).where(eq(s.postAreas.postId, id)),
     db().select({ name: s.tags.name }).from(s.postTags).innerJoin(s.tags, eq(s.tags.id, s.postTags.tagId)).where(eq(s.postTags.postId, id)),
     listRevisions(id),
+    db().select({ r: s.references, sort: s.postReferences.sortOrder }).from(s.postReferences)
+      .innerJoin(s.references, eq(s.references.id, s.postReferences.referenceId)).where(eq(s.postReferences.postId, id)).orderBy(asc(s.postReferences.sortOrder)),
+    db().select({ postId: s.postRelations.toPostId, kind: s.postRelations.kind }).from(s.postRelations).where(eq(s.postRelations.fromPostId, id)),
   ]);
   const p = row.posts, seo = row.seo_metadata;
   const draft: PostDraft = {
@@ -74,6 +87,8 @@ export async function loadPost(id: string) {
     status: p.status, stage: p.stage, level: p.level, format: p.format as PostDraft['format'], code: p.code, slug: p.slug,
     areaIds: areaRows.map((a) => a.id), tags: tagRows.map((t) => t.name), relatedProject: p.relatedProject,
     methodology: p.methodology, aiAssistance: p.aiAssistance, scheduledAt: p.scheduledAt?.toISOString() ?? null, coverMediaId: p.coverMediaId,
+    references: refRows.map(({ r }) => ({ id: r.id, title: r.title, author: r.author, url: r.url, sourceType: r.sourceType, publisher: r.publisher, publishedOn: r.publishedOn, accessedOn: r.accessedOn })),
+    relations: relRows.map((r) => ({ postId: r.postId, kind: r.kind as 'related' })),
     seo: {
       metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null,
       noindex: seo?.noindex ?? false, schemaType: (seo?.schemaType ?? null) as PostDraft['seo']['schemaType'],
@@ -156,7 +171,23 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   };
   const isNew = !id;
   if (!id) id = crypto.randomUUID();
-  const snapshot = { ...input, scheduledAt: input.scheduledAt?.toISOString() ?? null };
+  // referências: as que já existem são atualizadas (valem para todas as publicações que as citam); as novas são criadas
+  const refIds: number[] = [];
+  for (const r of input.references) {
+    const data = { title: r.title, author: r.author, url: r.url, sourceType: r.sourceType, publisher: r.publisher, publishedOn: r.publishedOn, accessedOn: r.accessedOn };
+    const [row] = r.id
+      ? await db().update(s.references).set(data).where(eq(s.references.id, r.id)).returning({ id: s.references.id })
+      : [];
+    refIds.push(row?.id ?? (await db().insert(s.references).values(data).returning({ id: s.references.id }))[0].id);
+  }
+  input.references = input.references.map((r, i) => ({ ...r, id: refIds[i] }));
+  const relations = [...new Map(input.relations.filter((r) => r.postId !== id).map((r) => [r.postId, r])).values()];
+  if (relations.length) {
+    const found = await db().select({ id: s.posts.id }).from(s.posts).where(inArray(s.posts.id, relations.map((r) => r.postId)));
+    if (found.length !== relations.length) throw new SaveError('Uma das publicações relacionadas não existe mais. Remova e escolha de novo.', 'relations');
+  }
+  const snapshot = { ...input, relations, scheduledAt: input.scheduledAt?.toISOString() ?? null };
+  const none = () => db().select({ x: s.posts.id }).from(s.posts).limit(0);
   const [, , , , , , revision] = await db().batch([
     isNew ? db().insert(s.posts).values({ ...values, id, authorId: author.id, createdAt: now }) : db().update(s.posts).set(values).where(eq(s.posts.id, id)),
     db().delete(s.postAreas).where(eq(s.postAreas.postId, id)),
@@ -166,6 +197,10 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
     db().insert(s.seoMetadata).values({ postId: id, ...input.seo }).onConflictDoUpdate({ target: s.seoMetadata.postId, set: input.seo }),
     db().insert(s.revisions).values({ postId: id, snapshot, login, note: opts.note ?? null }).returning({ id: s.revisions.id }),
     db().insert(s.adminLog).values({ login, action: isNew ? 'post.create' : 'post.save', target: id }),
+    db().delete(s.postReferences).where(eq(s.postReferences.postId, id)),
+    refIds.length ? db().insert(s.postReferences).values(refIds.map((referenceId, sortOrder) => ({ postId: id!, referenceId, sortOrder }))).onConflictDoNothing() : none(),
+    db().delete(s.postRelations).where(eq(s.postRelations.fromPostId, id)),
+    relations.length ? db().insert(s.postRelations).values(relations.map((r) => ({ fromPostId: id!, toPostId: r.postId, kind: r.kind }))) : none(),
   ]);
   // estava no ar e mudou de endereço: o antigo passa a redirecionar (301) para o novo
   const newPath = await postPath(values.departmentId, values.slug);
@@ -173,7 +208,21 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   if (redirected) await addRedirect(redirected, newPath!);
   // só gera o site de novo se a publicação estava ou passou a estar no ar
   const site = wasLive || isLive(values.status, values.scheduledAt, now) ? await triggerRebuild(login, id) : null;
-  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site, redirected };
+  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site, redirected, refIds };
+}
+
+// Exclusão definitiva: some do banco com versões, ligações e SEO (as imagens continuam na biblioteca de mídia)
+export async function deletePost(id: string, login: string) {
+  const [cur] = await db().select({ status: s.posts.status, scheduledAt: s.posts.scheduledAt, title: s.posts.title, slug: s.posts.slug, departmentId: s.posts.departmentId }).from(s.posts).where(eq(s.posts.id, id));
+  if (!cur) throw new SaveError('Publicação não encontrada.', undefined, 404);
+  const path = await postPath(cur.departmentId, cur.slug);
+  await db().batch([
+    db().delete(s.redirects).where(eq(s.redirects.toPath, path ?? '')),   // nada redireciona para uma página que deixou de existir
+    db().delete(s.posts).where(eq(s.posts.id, id)),
+    db().insert(s.adminLog).values({ login, action: 'post.delete', target: `${id} ${cur.title}`.slice(0, 300) }),
+  ]);
+  const site = isLive(cur.status, cur.scheduledAt) ? await triggerRebuild(login, `exclusão ${id}`) : null;
+  return { site };
 }
 
 export async function revisionSnapshot(postId: string, revisionId: number) {

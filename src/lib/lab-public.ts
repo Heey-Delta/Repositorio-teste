@@ -13,7 +13,7 @@ export interface LabEntry {
     title: string; code: string | null; department: string; description: string;
     date: Date; updated?: Date; author: string; areas: string[]; tags: string[];
     level: string; status: 'concept' | 'in-progress' | 'active' | 'completed' | 'archived'; format: string | null;
-    related: string[]; references: { title: string; url?: string }[];
+    related: string[]; references: { title: string; url?: string; author?: string; publisher?: string; publishedOn?: string; accessedOn?: string }[];
     draft: boolean;   // "não mostrar no Google": a página existe, mas fica fora do índice e do sitemap
     readingMinutes: number | null; methodology: string | null; aiAssistance: string | null;
     seo: { metaTitle: string | null; metaDescription: string | null; canonicalUrl: string | null; schemaType: string | null };
@@ -44,7 +44,7 @@ async function load(): Promise<LabEntry[]> {
   const [areaRows, tagRows, refRows, relRows] = await Promise.all([
     db().select({ postId: s.postAreas.postId, name: s.areas.name }).from(s.postAreas).innerJoin(s.areas, eq(s.areas.id, s.postAreas.areaId)).where(inArray(s.postAreas.postId, ids)),
     db().select({ postId: s.postTags.postId, name: s.tags.name }).from(s.postTags).innerJoin(s.tags, eq(s.tags.id, s.postTags.tagId)).where(inArray(s.postTags.postId, ids)),
-    db().select({ postId: s.postReferences.postId, title: s.references.title, url: s.references.url, sort: s.postReferences.sortOrder })
+    db().select({ postId: s.postReferences.postId, title: s.references.title, url: s.references.url, author: s.references.author, publisher: s.references.publisher, publishedOn: s.references.publishedOn, accessedOn: s.references.accessedOn, sort: s.postReferences.sortOrder })
       .from(s.postReferences).innerJoin(s.references, eq(s.references.id, s.postReferences.referenceId)).where(inArray(s.postReferences.postId, ids)),
     db().select().from(s.postRelations).where(or(inArray(s.postRelations.fromPostId, ids), inArray(s.postRelations.toPostId, ids))),
   ]);
@@ -69,7 +69,7 @@ async function load(): Promise<LabEntry[]> {
         updated: day(p.updatedAt) > day(date) ? p.updatedAt : undefined,
         author, areas: (areasBy.get(p.id) ?? []).map((a) => a.name), tags: (tagsBy.get(p.id) ?? []).map((t) => t.name),
         level: p.level, status: p.stage, format: p.format, related,
-        references: (refsBy.get(p.id) ?? []).sort((a, b) => a.sort - b.sort).map((r) => ({ title: r.title, url: r.url ?? undefined })),
+        references: (refsBy.get(p.id) ?? []).sort((a, b) => a.sort - b.sort).map((r) => ({ title: r.title, url: r.url ?? undefined, author: r.author ?? undefined, publisher: r.publisher ?? undefined, publishedOn: r.publishedOn ?? undefined, accessedOn: r.accessedOn ?? undefined })),
         draft: seo?.noindex ?? false, readingMinutes: p.readingMinutes, methodology: p.methodology, aiAssistance: p.aiAssistance,
         seo: { metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null, schemaType: seo?.schemaType ?? null },
         cover: cover ? { url: cover.url, alt: cover.alt ?? '', width: cover.width, height: cover.height } : null,

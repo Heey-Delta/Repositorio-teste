@@ -26,6 +26,7 @@ const jsonld = [{
   ...(d.readingMinutes ? { timeRequired: `PT${d.readingMinutes}M` } : {}),
   wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
   about: d.areas.map((name) => ({ '@type': 'Thing', name })),
+  ...(d.references.length ? { citation: d.references.map((r) => ({ '@type': 'CreativeWork', name: r.title, ...(r.url ? { url: r.url } : {}), ...(r.author ? { author: r.author } : {}), ...(r.publisher ? { publisher: r.publisher } : {}) })) } : {}),
   articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
 }];
 const meta = [
@@ -76,7 +77,14 @@ const meta = [
     {d.references.length > 0 && (
       <section class="wrap border-t border-line py-8" aria-labelledby="refs">
         <h2 id="refs" class="label-ui m-0 mb-4 text-[11px] text-muted">Referências</h2>
-        <ol class="m-0 flex flex-col gap-2 pl-5 text-sm">{d.references.map((r) => <li>{r.url ? <a href={r.url} rel="noopener" class="underline hover:text-lime">{r.title}</a> : r.title}</li>)}</ol>
+        <ol class="m-0 flex flex-col gap-2 pl-5 text-sm">{d.references.map((r) => (
+          <li>
+            {r.author && <>{r.author}. </>}
+            {r.url ? <a href={r.url} rel="noopener" class="underline hover:text-lime">{r.title}</a> : <cite class="not-italic">{r.title}</cite>}.
+            {(r.publisher || r.publishedOn) && <> {[r.publisher, r.publishedOn].filter(Boolean).join(', ')}.</>}
+            {r.accessedOn && <span class="text-muted"> Acesso em {r.accessedOn}.</span>}
+          </li>
+        ))}</ol>
       </section>
     )}
   </article>

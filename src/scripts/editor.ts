@@ -10,6 +10,7 @@ type Dep = { id: number; slug: string; name: string; code: string };
 type Media = { id: string; url: string; alt: string | null; caption?: string | null; width: number | null; height: number | null; kind?: string };
 const data = JSON.parse(document.getElementById('editorData')!.textContent!) as {
   id: string | null; draft: Record<string, any>; updatedAt: string | null; login: string; departments: Dep[]; site: string; cover: Media | null;
+  posts: { id: string; code: string | null; title: string; status: string }[];
 };
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
@@ -24,7 +25,8 @@ let saving = false;
 
 const slugify = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
-const plain = (el: HTMLElement) => (el.innerText || '').replace(/\s+/g, ' ').trim();
+// textContent, e não innerText: innerText devolve o texto com o CSS aplicado (o título aparece em caixa alta)
+const plain = (el: HTMLElement) => (el.textContent || '').replace(/\s+/g, ' ').trim();
 
 // ---------- corpo (Tiptap) ----------
 const editor = new Editor({
@@ -182,6 +184,8 @@ function collect() {
     code: f('code').value.trim().toUpperCase() || null,
     slug: f('slug').value.trim(),
     coverMediaId: cover?.id ?? null,
+    references: collectRefs(),
+    relations: [...relList.querySelectorAll<HTMLElement>('li')].map((li) => ({ postId: li.dataset.post!, kind: li.querySelector('select')!.value })),
     areaIds: [...form.querySelectorAll<HTMLInputElement>('input[name="areaIds"]:checked')].map((i) => Number(i.value)),
     tags: f('tags').value.split(',').map((t) => t.trim()).filter(Boolean),
     relatedProject: nullable('relatedProject'),
@@ -202,6 +206,12 @@ const fieldTarget: Record<string, () => HTMLElement> = { title: () => titleEl, s
 function showFieldError(field?: string) {
   form.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute('aria-invalid'));
   if (!field) return;
+  const ref = field.match(/^references\.(\d+)\.(\w+)/);
+  if (ref) {
+    const input = refList.children[Number(ref[1])]?.querySelector<HTMLElement>(`[data-field="${ref[2]}"]`);
+    if (input) { setDetails(true); input.setAttribute('aria-invalid', 'true'); input.focus(); }
+    return;
+  }
   const key = field.replace(/^seo\./, '');
   const el = fieldTarget[key]?.() ?? (form.elements.namedItem(key) as HTMLElement | null);
   if (!el) return;
@@ -228,6 +238,7 @@ async function save() {
     const created = !postId;
     postId = out.id;
     baseUpdatedAt = out.updatedAt;
+    (out.refIds as number[] | undefined)?.forEach((rid, i) => { const li = refList.children[i] as HTMLElement | undefined; if (li) li.dataset.id = String(rid); });
     dirty = false;
     const at = `Salvo às ${new Date(out.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     const site: Record<string, [string, 'ok' | 'error']> = {
@@ -441,6 +452,112 @@ $('#mediaForm').addEventListener('submit', async (e) => {
   }
 });
 for (const id of ['#mediaClose', '#mediaCancel']) $(id).addEventListener('click', () => dialog.close());
+
+// ---------- referências ----------
+type Ref = { id: number | null; title: string; author: string | null; url: string | null; sourceType: string | null; publisher: string | null; publishedOn: string | null; accessedOn: string | null };
+const refList = $('#refList');
+const sourceTypes = ['Livro', 'Artigo científico', 'Artigo ou post', 'Site', 'Vídeo', 'Podcast', 'Documento ou relatório', 'Entrevista', 'Outro'];
+const inputCls = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+function refInput(field: string, label: string, value: string | null, placeholder = '') {
+  const wrap = document.createElement('label');
+  wrap.className = 'flex flex-col gap-1 text-xs text-muted';
+  wrap.textContent = label;
+  const input = document.createElement('input');
+  input.dataset.field = field; input.value = value ?? ''; input.placeholder = placeholder;
+  input.className = `${inputCls} h-10`;
+  if (field === 'url') input.type = 'url';
+  wrap.append(input);
+  return wrap;
+}
+function addRef(r: Partial<Ref> = {}) {
+  const li = document.createElement('li');
+  li.className = 'flex flex-col gap-2 rounded-[8px] border border-line p-3';
+  if (r.id) li.dataset.id = String(r.id);
+  const head = document.createElement('div');
+  head.className = 'flex items-center justify-between gap-2';
+  const num = document.createElement('span'); num.className = 'ref-num font-mono text-xs text-muted tabular-nums';
+  const tools = document.createElement('span'); tools.className = 'flex gap-1';
+  for (const [act, glyph, name] of [['up', '↑', 'Subir'], ['down', '↓', 'Descer'], ['remove', '✕', 'Remover referência']]) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.act = act; b.textContent = glyph; b.setAttribute('aria-label', name); b.title = name;
+    b.className = 'grid size-8 cursor-pointer place-items-center rounded-[4px] text-[13px] text-muted hover:bg-[#141414] hover:text-ink';
+    tools.append(b);
+  }
+  head.append(num, tools);
+  const type = document.createElement('label');
+  type.className = 'flex flex-col gap-1 text-xs text-muted';
+  type.textContent = 'Tipo de fonte';
+  const sel = document.createElement('select');
+  sel.dataset.field = 'sourceType'; sel.className = `${inputCls} h-10`;
+  sel.append(new Option('Sem tipo', ''), ...sourceTypes.map((t) => new Option(t, t)));
+  sel.value = r.sourceType ?? '';
+  type.append(sel);
+  const pair = document.createElement('div'); pair.className = 'grid grid-cols-2 gap-2';
+  pair.append(refInput('publishedOn', 'Publicado em', r.publishedOn ?? null, '2024'), refInput('accessedOn', 'Acessado em', r.accessedOn ?? null, '12/11/2026'));
+  li.append(head, refInput('title', 'Título *', r.title ?? null), refInput('author', 'Autor', r.author ?? null), refInput('url', 'Link', r.url ?? null, 'https://'),
+    type, refInput('publisher', 'Editora ou instituição', r.publisher ?? null), pair);
+  refList.append(li);
+  renumberRefs();
+  return li;
+}
+function renumberRefs() {
+  [...refList.children].forEach((li, i) => { li.querySelector('.ref-num')!.textContent = `#${i + 1}`; });
+}
+function collectRefs(): Ref[] {
+  return [...refList.querySelectorAll<HTMLElement>('li')].map((li) => {
+    const v = (k: string) => (li.querySelector<HTMLInputElement>(`[data-field="${k}"]`)?.value.trim() || null);
+    return { id: li.dataset.id ? Number(li.dataset.id) : null, title: v('title') ?? '', author: v('author'), url: v('url'), sourceType: v('sourceType'), publisher: v('publisher'), publishedOn: v('publishedOn'), accessedOn: v('accessedOn') };
+  });
+}
+refList.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
+  if (!b) return;
+  const li = b.closest('li')!;
+  if (b.dataset.act === 'remove') li.remove();
+  if (b.dataset.act === 'up' && li.previousElementSibling) li.previousElementSibling.before(li);
+  if (b.dataset.act === 'down' && li.nextElementSibling) li.nextElementSibling.after(li);
+  renumberRefs(); markDirty();
+});
+$('#addRef').addEventListener('click', () => { addRef().querySelector<HTMLInputElement>('[data-field="title"]')!.focus(); markDirty(); });
+for (const r of (data.draft.references ?? []) as Ref[]) addRef(r);
+
+// ---------- publicações relacionadas ----------
+const relList = $('#relList'), relPick = $<HTMLSelectElement>('#relPick');
+const kinds: [string, string][] = [['related', 'Relacionada'], ['origin', 'Deu origem a esta'], ['documents', 'Documenta esta'], ['continues', 'Continuação']];
+function addRel(postId: string, kind = 'related') {
+  const p = data.posts.find((x) => x.id === postId);
+  if (!p || relList.querySelector(`[data-post="${postId}"]`)) return;
+  const li = document.createElement('li');
+  li.dataset.post = postId;
+  li.className = 'flex flex-col gap-2 border-t border-line py-3 last:border-b';
+  const row = document.createElement('div'); row.className = 'flex items-start justify-between gap-2';
+  const name = document.createElement('span'); name.className = 'min-w-0 text-[13px]';
+  name.textContent = [p.code, p.title || 'Sem título'].filter(Boolean).join(' · ');
+  const rm = document.createElement('button');
+  rm.type = 'button'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remover ligação'); rm.title = 'Remover ligação';
+  rm.className = 'grid size-8 shrink-0 cursor-pointer place-items-center rounded-[4px] text-[13px] text-muted hover:bg-[#141414] hover:text-ink';
+  rm.addEventListener('click', () => { li.remove(); markDirty(); });
+  row.append(name, rm);
+  const sel = document.createElement('select');
+  sel.className = `${inputCls} h-9`; sel.setAttribute('aria-label', 'Tipo de ligação');
+  sel.append(...kinds.map(([v, t]) => new Option(t, v)));
+  sel.value = kind;
+  li.append(row, sel);
+  relList.append(li);
+}
+$('#addRel').addEventListener('click', () => { if (relPick.value) { addRel(relPick.value); relPick.value = ''; markDirty(); } });
+for (const r of (data.draft.relations ?? []) as { postId: string; kind: string }[]) addRel(r.postId, r.kind);
+
+// ---------- exclusão ----------
+document.getElementById('deletePost')?.addEventListener('click', async () => {
+  const title = plain(titleEl) || 'esta publicação';
+  if (!confirm(`Excluir "${title}" de vez? As versões e as ligações também somem, e não dá para desfazer.`)) return;
+  const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) { setState(out.error ?? 'Não deu para excluir.', 'error'); return; }
+  dirty = false;
+  location.href = '/admin/publicacoes/';
+});
 
 renderCover();
 refreshDerived();

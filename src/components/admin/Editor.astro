@@ -11,14 +11,14 @@ interface Props {
   draft: PostDraft;
   updatedAt: string | null;
   login: string;
-  options: { departments: (Option & { code: string })[]; contentTypes: Option[]; areas: (Option & { about: string })[] };
+  options: { departments: (Option & { code: string })[]; contentTypes: Option[]; areas: (Option & { about: string })[]; posts: { id: string; code: string | null; title: string; status: keyof typeof statusLabel }[] };
   revisions: { id: number; login: string; note: string | null; createdAt: Date }[];
   cover: { id: string; url: string; alt: string | null; width: number | null; height: number | null } | null;
 }
 const { id, draft, updatedAt, login, options, revisions, cover } = Astro.props;
 const dep = options.departments.find((d) => d.id === draft.departmentId) ?? options.departments[0];
 const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
-const data = JSON.stringify({ id, draft, updatedAt, login, cover, departments: options.departments, site: Astro.site?.origin })
+const data = JSON.stringify({ id, draft, updatedAt, login, cover, departments: options.departments, posts: options.posts, site: Astro.site?.origin })
   .replace(/</g, '\\u003c');
 const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
 const levels = ['Introdutório', 'Intermediário', 'Aprofundado'];
@@ -161,6 +161,27 @@ const tools = [
         </label>
       </fieldset>
 
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Referências</legend>
+        <p class="m-0 text-xs text-muted">Aparecem numeradas no fim da publicação, nesta ordem.</p>
+        <ol id="refList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
+        <button type="button" id="addRef" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">+ Adicionar referência</button>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Publicações relacionadas</legend>
+        <p class="m-0 text-xs text-muted">Aparecem em "Continua em" nas duas publicações.</p>
+        <ul id="relList" class="m-0 flex list-none flex-col p-0"></ul>
+        <div class="flex gap-2">
+          <label for="relPick" class="sr-only">Escolher publicação relacionada</label>
+          <select id="relPick" class={`${field} h-11 min-w-0 flex-1`}>
+            <option value="">Escolher publicação…</option>
+            {options.posts.filter((p) => p.id !== id).map((p) => <option value={p.id}>{[p.code, p.title || 'Sem título'].filter(Boolean).join(' · ')}{p.status !== 'published' ? ` (${statusLabel[p.status].toLowerCase()})` : ''}</option>)}
+          </select>
+          <button type="button" id="addRel" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink">Adicionar</button>
+        </div>
+      </fieldset>
+
       <fieldset class="m-0 flex flex-col gap-4 border-0 p-0">
         <legend class="label-ui mb-1 text-[11px] text-muted">Google e compartilhamento</legend>
         <div class="flex flex-col gap-1 rounded-[8px] border border-line p-4" aria-label="Prévia no Google">
@@ -201,6 +222,13 @@ const tools = [
           ))}
         </ol>
       </section>
+      {id && (
+        <section aria-labelledby="dangerTitle" class="flex flex-col gap-3 border-t border-line pt-6">
+          <h3 id="dangerTitle" class="label-ui m-0 text-[11px] text-muted">Excluir</h3>
+          <p class="m-0 text-xs text-muted">Apaga a publicação, as versões e as ligações. Não dá para desfazer. Para tirar do ar sem apagar, use o status Arquivado.</p>
+          <button type="button" id="deletePost" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-[#ff5a5a] px-4 text-[13px] text-[#ff8a8a] hover:bg-[#1a0b0b]">Excluir publicação</button>
+        </section>
+      )}
     </form>
   </aside>
   <dialog id="mediaDialog" aria-labelledby="mediaTitle" class="media-dialog m-auto w-[min(720px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
