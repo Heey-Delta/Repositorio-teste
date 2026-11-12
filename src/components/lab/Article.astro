@@ -52,7 +52,7 @@ const meta = [
         <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
         <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
-          <span>Por <strong>{d.author}</strong> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
+          <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-lime hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
           <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-lime hover:text-lime">Copiar link</button>
         </div>
       </div>

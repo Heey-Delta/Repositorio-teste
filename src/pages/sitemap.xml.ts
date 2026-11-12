@@ -1,7 +1,7 @@
 // Sitemap para o Google: página principal e o que do laboratório já está no ar (fora do Google não entra),
 // com data da última mudança e a imagem de capa de cada publicação
 import type { APIRoute } from 'astro';
-import { getLabEntries } from '../lib/lab-public';
+import { getLabEntries, getAuthor } from '../lib/lab-public';
 import { departments } from '../lab/data';
 
 const xml = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ site }) => {
       const own = live.filter((e) => e.data.department === d.slug);
       if (own.length) urls.push({ loc: at(`/lab/${d.slug}/`), lastmod: day(changed(own)) });
     }
+    if ((await getAuthor()).bio) urls.push({ loc: at('/lab/autor/') });   // a página do autor só entra quando tiver bio
     for (const e of live) urls.push({ loc: at(`/lab/${e.id}/`), lastmod: day(e.data.updated ?? e.data.date), image: e.data.cover ?? undefined });
   }
   const body = `<?xml version="1.0" encoding="UTF-8"?>

@@ -32,7 +32,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
       <article class="works-card relative min-h-[460px] min-w-[88%] shrink-0 snap-start overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-[660px] lg:min-w-0">
         <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
         <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--lime)_30%,transparent),color-mix(in_oklab,var(--lime)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
-        <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
+        <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
             <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Nexus</h3>
@@ -77,6 +77,21 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
   #worksTrack::-webkit-scrollbar { display: none; }
   @media (prefers-reduced-motion: reduce) { .site-card { transition: none; } }
 </style>
+<script is:inline>
+  // A cidade 3D (iframe + Three.js, centenas de KB) só começa a carregar depois que a página terminou de carregar,
+  // para não disputar a conexão com a primeira imagem (o "lazy" do navegador carregava cedo demais).
+  // Se a pessoa rolar até a seção antes disso, carrega na hora.
+  (function () {
+    var f = document.getElementById('cityFrame'); if (!f || !f.dataset.src) return;
+    var go = function () { if (!f.src) f.src = f.dataset.src; };
+    var later = function () { (window.requestIdleCallback || setTimeout)(go, { timeout: 1500 }); };
+    if (document.readyState === 'complete') later(); else addEventListener('load', later);
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); go(); } });
+      io.observe(f);
+    }
+  })();
+</script>
 <script is:inline define:vars={{ sites }}>
   // Card lateral dos sites: a cidade manda { type: 'city:card', slug } (via CityCard, que chama window.hallanSiteCard)
   (function () {

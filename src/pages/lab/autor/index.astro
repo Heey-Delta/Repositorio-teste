@@ -1,0 +1,65 @@
+---
+// Página do autor (spec 9.1): quem escreve o Lab, especialidades, perfis em outros sites e as publicações.
+// Os dados vêm do Perfil do autor no admin. Enquanto a bio estiver vazia, a página fica fora do Google (seria uma página rala).
+import Lab from '../../../layouts/Lab.astro';
+import PubCard from '../../../components/lab/PubCard.astro';
+import { getAuthor, authorLd, getLabEntries } from '../../../lib/lab-public';
+import { up } from '../../../lab/data';
+
+const root = up(2);
+const author = await getAuthor();
+const person = authorLd(Astro.site, author);
+const entries = (await getLabEntries()).filter((e) => !e.data.draft);
+const paragraphs = (author.bio ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+const url = new URL('/lab/autor/', Astro.site).href;
+const description = (paragraphs[0] ?? `${author.name}, ${author.jobTitle ?? 'autor do Experimental Lab'}.`).slice(0, 160);
+// nome legível de cada perfil a partir do endereço (linkedin.com → LinkedIn)
+const known: Record<string, string> = { 'linkedin.com': 'LinkedIn', 'github.com': 'GitHub', 'behance.net': 'Behance', 'dribbble.com': 'Dribbble', 'instagram.com': 'Instagram', 'x.com': 'X', 'twitter.com': 'X', 'youtube.com': 'YouTube', 'medium.com': 'Medium' };
+const links = author.sameAs.map((href) => {
+  const host = new URL(href).hostname.replace(/^www\./, '');
+  return { href, name: known[host] ?? (href.startsWith(new URL('/', Astro.site).href) ? 'Portfólio' : host) };
+});
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': 'ProfilePage', url, name: `${author.name} · Experimental Lab`, inLanguage: 'pt-BR',
+  mainEntity: { ...person, ...(entries.length ? { subjectOf: entries.slice(0, 20).map((e) => ({ '@type': 'Article', headline: e.data.title, url: new URL(`/lab/${e.id}/`, Astro.site).href })) } : {}) },
+}];
+---
+<Lab title={`Sobre ${author.name}, autor`} description={description} depth={2} current="" noindex={!paragraphs.length} jsonld={jsonld}
+  crumbs={[{ name: 'Autor', path: '/lab/autor/' }]}>
+  <section class="border-b border-line" aria-labelledby="author-title">
+    <div class="wrap grid gap-10 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 lg:py-16">
+      <div class="flex flex-col gap-6">
+        <p class="label-ui m-0 text-[11px] text-muted">Autor</p>
+        <h1 id="author-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[104px]">{author.name}</h1>
+        {author.jobTitle && <p class="m-0 text-lg">{author.jobTitle}</p>}
+        <div class="flex max-w-[640px] flex-col gap-4 text-[17px] leading-[1.7] text-muted">
+          {paragraphs.length ? paragraphs.map((p) => <p class="m-0">{p}</p>) : <p class="m-0">Escrevo o Experimental Lab: experimentos, pesquisas e notas sobre design, tecnologia e percepção.</p>}
+        </div>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+          <a href={`${root}#works`} class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110">Ver os trabalhos</a>
+          <a href={`${root}#contact`} class="link-ui text-xs">Falar comigo</a>
+        </div>
+      </div>
+      <aside class="flex flex-col gap-8 lg:pt-10" aria-label="Sobre o autor">
+        {author.specialties.length > 0 && (
+          <div class="flex flex-col gap-3">
+            <h2 class="label-ui m-0 text-[11px] text-muted">Especialidades</h2>
+            <ul class="m-0 flex list-none flex-wrap gap-2 p-0">{author.specialties.map((s) => <li class="border border-line px-3 py-1.5 text-sm">{s}</li>)}</ul>
+          </div>
+        )}
+        {links.length > 0 && (
+          <div class="flex flex-col gap-3">
+            <h2 class="label-ui m-0 text-[11px] text-muted">Na internet</h2>
+            <ul class="m-0 flex list-none flex-col p-0 text-sm">{links.map((l) => <li class="border-t border-line last:border-b"><a href={l.href} rel="me noopener" target="_blank" class="flex min-h-11 items-center justify-between gap-3 hover:text-lime">{l.name}<span aria-hidden="true">↗</span></a></li>)}</ul>
+          </div>
+        )}
+      </aside>
+    </div>
+  </section>
+  <section class="wrap flex flex-col gap-6 py-10 lg:py-14" aria-labelledby="author-pubs">
+    <h2 id="author-pubs" class="m-0 font-display text-[40px] leading-[0.95] uppercase lg:text-[64px]">Publicações</h2>
+    {entries.length
+      ? <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{entries.map((e) => <li><PubCard entry={e} root={root} /></li>)}</ul>
+      : <p class="m-0 text-[15px] text-muted">As primeiras publicações estão a caminho.</p>}
+  </section>
+</Lab>

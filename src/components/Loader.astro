@@ -1,26 +1,29 @@
 ---
-// Tela de carregamento: cobre a página até os modelos 3D da cidade terminarem de carregar.
-// A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' }; aí a tela sai e a página responde
-// { type: 'city:start' } para disparar a animação de entrada. Limite de 5 s: se a cidade não tiver carregado,
-// a página abre sozinha e a cidade anima quando ficar pronta.
+// Tela de carregamento: aparece só na primeira visita da sessão (index.astro marca html.loading) e cobre a página
+// até os modelos 3D da cidade carregarem, por no máximo 2 s (antes eram 5 s e isso atrasava a primeira imagem da página).
+// A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' } e a página responde { type: 'city:start' } para a animação
+// de entrada; se a cidade carregar depois (ela só carrega perto da tela), a animação começa quando ela ficar pronta.
 // Quando a tela escurecida some, a cobra fica um instante, é arremessada para cima e cai para a esquerda (parábola).
 // Fundo: imagem com "HALLAN" repetido em diagonal (img/loader-hallan.webp), cobrindo a largura e subindo reto a 15 px/s, uma vez só
-// (a imagem não emenda consigo mesma, e o loader dura no máximo ~6 s). A tela some em 1 s.
+// (a imagem não emenda consigo mesma, e o loader dura no máximo ~3 s). A tela some em 0,6 s.
 // Ao terminar, a tela e a cobra são removidas da página, para não ficarem animando escondidas.
 ---
 <div class="loader fixed inset-0 z-100 overflow-hidden bg-black" id="loader" role="status" aria-live="polite" aria-label="Carregando">
-  <img class="loader-bg" src="img/loader-hallan.webp" alt="" aria-hidden="true" width="800" height="3600" decoding="async" fetchpriority="high" />
+  <div class="loader-bg" aria-hidden="true"></div>
 </div>
 <div class="fixed inset-0 z-101 grid place-items-center overflow-hidden pointer-events-none" id="ouroWrap" aria-hidden="true">
-  <div id="ouro"><img class="loader-ouro" src="img/ouroboros.webp" alt="" width="700" height="700" decoding="async" fetchpriority="high" /></div>
+  <div id="ouro"><div class="loader-ouro"></div></div>
 </div>
 <style is:global>
-  .loader { transition: opacity 1s ease, visibility 0s linear 1s; }
+  .loader { transition: opacity .6s ease, visibility 0s linear .6s; }
   html:not(.loading) .loader { opacity: 0; visibility: hidden; pointer-events: none; }
   .loader { background: #000; }
-  .loader-bg { position: absolute; top: 0; left: 0; width: 100%; height: auto; max-width: none; animation: loader-rise 10s linear forwards; will-change: transform; }
+  /* as imagens do loader são fundos aplicados só com html.intro (primeira visita): nas repetidas nem são baixadas */
+  .loader-bg { position: absolute; top: 0; left: 0; width: 100%; aspect-ratio: 800 / 3600; background: center top / 100% auto no-repeat; animation: loader-rise 10s linear forwards; will-change: transform; }
+  html.intro .loader-bg { background-image: url(img/loader-hallan.webp); }
+  html.intro .loader-ouro { background-image: url(img/ouroboros.webp); }
   @keyframes loader-rise { to { transform: translateY(-150px); } }
-  .loader-ouro { width: 23vmin; height: 23vmin; animation: loader-spin 6s linear infinite; }
+  .loader-ouro { width: 23vmin; height: 23vmin; background: center / contain no-repeat; animation: loader-spin 6s linear infinite; }
   @keyframes loader-spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .loader { transition: none; }
@@ -32,7 +35,7 @@
   (function () {
     var root = document.documentElement;
     function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
-    var shownAt = Date.now(), MIN_MS = 700, MAX_MS = 5000, done = false;
+    var shownAt = Date.now(), MIN_MS = 600, MAX_MS = 2000, done = false;
     var HOLD_MS = 300, TOSS_MS = 1700;
     function toss() {
       var wrap = document.getElementById('ouroWrap'), box = document.getElementById('ouro'), img = box.firstElementChild;
@@ -51,18 +54,26 @@
       var anim = box.animate(kf, { duration: TOSS_MS, easing: 'linear', fill: 'forwards' });
       anim.onfinish = end; anim.oncancel = end;
     }
+    function startCity() { try { cityFrame().contentWindow.postMessage({ type: 'city:start' }, '*'); } catch (e) {} }
+    // visita repetida na sessão: sem tela de carregamento nem cobra
+    if (!root.classList.contains('loading')) {
+      done = true;
+      var l0 = document.getElementById('loader'), w0 = document.getElementById('ouroWrap');
+      if (l0) l0.remove(); if (w0) w0.remove();
+    }
     function finish() {
       if (done) return; done = true;
       root.classList.remove('loading');
-      setTimeout(function () { var l = document.getElementById('loader'); if (l) l.remove(); }, 1200);   // depois do fade de 1 s, o texto sai da página
+      setTimeout(function () { var l = document.getElementById('loader'); if (l) l.remove(); }, 800);   // depois do fade, a tela sai da página
       setTimeout(toss, HOLD_MS);
-      try { cityFrame().contentWindow.postMessage({ type: 'city:start' }, '*'); } catch (e) {}
+      startCity();
     }
     function finishSoon() { setTimeout(finish, Math.max(0, MIN_MS - (Date.now() - shownAt))); }
     window.addEventListener('message', function (e) {
       var frame = cityFrame();
-      if (frame && e.source === frame.contentWindow && e.data && e.data.type === 'city:loaded') finishSoon();
+      if (!frame || e.source !== frame.contentWindow || !e.data || e.data.type !== 'city:loaded') return;
+      if (done) startCity(); else finishSoon();   // a cidade carregou depois que a tela já saiu: anima agora
     });
-    setTimeout(finish, MAX_MS);   // limite: depois de 5 s a página abre sozinha, mesmo sem a cidade pronta
+    if (!done) setTimeout(finish, MAX_MS);   // limite: depois de 2 s a página abre sozinha, mesmo sem a cidade pronta
   })();
 </script>

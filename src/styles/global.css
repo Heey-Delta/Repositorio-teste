@@ -83,6 +83,8 @@
    define `body { background: #fff; color: #000; font: 14px ... }` e `html { scroll-padding-top: ... }` sem camada,
    e regra sem camada vence regra em camada. Aqui elas vêm depois, com a mesma especificidade, então valem as nossas. */
 html { scroll-behavior: smooth; scroll-padding-top: var(--header-h, 0px); }   /* âncoras param abaixo do cabeçalho fixo */
+/* espaço da barra de rolagem sempre reservado: quando o loader sai e a rolagem volta, a página não muda de largura (sem "pulo") */
+html { scrollbar-gutter: stable; }
 html.loading { overflow: hidden; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
