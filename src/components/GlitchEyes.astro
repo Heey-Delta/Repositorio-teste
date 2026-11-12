@@ -1,6 +1,6 @@
 ---
 // Efeito de glitch nos olhos da escultura: faixas horizontais da própria imagem, deslocadas de lado, uma barra preta e um
-// traço na cor de destaque piscam em rajadas curtas (a cada ~4 s). As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
+// traço na cor de destaque piscam em rajadas: 70% do tempo a imagem fica limpa e 30% com glitch. As faixas ficam entre 23% e 32% da altura do quadro, onde estão os olhos
 // (a imagem preenche o quadro pela altura, então a proporção vale no desktop e no celular).
 // Vai dentro do <Media> da imagem; `src` e `position` precisam ser os mesmos da imagem.
 // `srcMobile`: a mesma versão recortada que o <Media> usa até 480 px (centralizada), para não baixar duas imagens.
@@ -20,36 +20,49 @@ const bg = `--gl-img:url(${abs(src)}); --gl-img-m:url(${abs(srcMobile ?? src)});
   .glitch { --gl-t: 8.8s; }
   @media (min-width: 481px) { .gl-layer { background-image: var(--gl-img); background-position: var(--gl-pos); } }
   .gl-layer { position: absolute; inset: 0; background: var(--gl-img-m) var(--gl-pos-m) / cover no-repeat; will-change: transform, clip-path; }
-  .gl-a { clip-path: inset(24% 0 69% 0); animation: glA var(--gl-t) steps(1, end) infinite; }
-  .gl-b { clip-path: inset(26% 0 67% 0); filter: contrast(1.5) brightness(1.25); animation: glB var(--gl-t) steps(1, end) infinite; }
-  .gl-c { clip-path: inset(25% 0 68% 0); filter: grayscale(1) contrast(1.8) brightness(0.8); animation: glC var(--gl-t) steps(1, end) infinite; }
+  /* Ciclo de 8,8 s: 70% do tempo a imagem fica limpa (todas as camadas escondidas) e nos últimos 30% (~2,6 s) vem
+     o glitch, em rajadas: faixas dos olhos deslocadas, uma cópia escurecida, a barra preta e o traço na cor de destaque. */
+  .gl-a { clip-path: inset(24% 0 69% 0); opacity: 0; animation: glA var(--gl-t) steps(1, end) infinite; }
+  .gl-b { clip-path: inset(26% 0 67% 0); opacity: 0; filter: contrast(1.5) brightness(1.25); animation: glB var(--gl-t) steps(1, end) infinite; }
+  .gl-c { clip-path: inset(25% 0 68% 0); opacity: 0; filter: grayscale(1) contrast(1.8) brightness(0.8); animation: glC var(--gl-t) steps(1, end) infinite; }
   .gl-bar { position: absolute; left: 0; right: 0; top: 26.4%; height: 2.4%; background: #000; opacity: 0; animation: glBar var(--gl-t) steps(1, end) infinite; }
-  .gl-accent { position: absolute; left: 14%; right: 6%; top: 29.4%; height: 3px; background: var(--accent); opacity: 0; animation: glLime var(--gl-t) steps(1, end) infinite; }
-  /* rajada principal em ~83-92% do ciclo, uma menor em ~38-42% */
+  .gl-accent { position: absolute; left: 14%; right: 6%; top: 29.4%; height: 3px; background: var(--accent); opacity: 0; animation: glAccent var(--gl-t) steps(1, end) infinite; }
   @keyframes glA {
-    0%, 19%, 21.5%, 41.5%, 46.5%, 100% { transform: none; clip-path: inset(24% 0 69% 0); }
-    19.5% { transform: translateX(-10px); clip-path: inset(25% 0 70% 0); }
-    20.5% { transform: translateX(8px); clip-path: inset(24% 0 69% 0); }
-    42% { transform: translateX(-24px); clip-path: inset(24% 0 68% 0); }
-    43% { transform: translateX(18px); clip-path: inset(23% 0 71% 0); }
-    44% { transform: translateX(-9px); clip-path: inset(25% 0 67% 0); }
-    45% { transform: translateX(14px); clip-path: inset(24% 0 69% 0); }
+    0%, 70% { opacity: 0; transform: none; clip-path: inset(24% 0 69% 0); }
+    71% { opacity: 1; transform: translateX(-10px); clip-path: inset(25% 0 70% 0); }
+    74% { opacity: 1; transform: translateX(8px); clip-path: inset(24% 0 69% 0); }
+    77% { opacity: 1; transform: translateX(-24px); clip-path: inset(24% 0 68% 0); }
+    80% { opacity: 1; transform: translateX(18px); clip-path: inset(23% 0 71% 0); }
+    83% { opacity: 1; transform: translateX(-9px); clip-path: inset(25% 0 67% 0); }
+    86% { opacity: 1; transform: translateX(14px); clip-path: inset(24% 0 69% 0); }
+    89% { opacity: 1; transform: translateX(-18px); clip-path: inset(23% 0 70% 0); }
+    92% { opacity: 1; transform: translateX(6px); clip-path: inset(25% 0 68% 0); }
+    95% { opacity: 1; transform: translateX(-12px); clip-path: inset(24% 0 69% 0); }
+    97.5% { opacity: 1; transform: translateX(10px); clip-path: inset(24% 0 68% 0); }
+    100% { opacity: 0; transform: none; }
   }
   @keyframes glB {
-    0%, 20%, 22%, 42%, 47%, 100% { transform: none; clip-path: inset(26% 0 67% 0); }
-    20.5% { transform: translateX(12px); clip-path: inset(27% 0 66% 0); }
-    42.5% { transform: translateX(26px); clip-path: inset(26% 0 64% 0); }
-    43.5% { transform: translateX(-16px); clip-path: inset(25% 0 68% 0); }
-    44.5% { transform: translateX(10px); clip-path: inset(27% 0 65% 0); }
-    45.5% { transform: translateX(-20px); clip-path: inset(26% 0 67% 0); }
+    0%, 70% { opacity: 0; transform: none; clip-path: inset(26% 0 67% 0); }
+    72% { opacity: 1; transform: translateX(12px); clip-path: inset(27% 0 66% 0); }
+    75.5% { opacity: 1; transform: translateX(26px); clip-path: inset(26% 0 64% 0); }
+    79% { opacity: 1; transform: translateX(-16px); clip-path: inset(25% 0 68% 0); }
+    82.5% { opacity: 1; transform: translateX(10px); clip-path: inset(27% 0 65% 0); }
+    86% { opacity: 1; transform: translateX(-20px); clip-path: inset(26% 0 67% 0); }
+    90% { opacity: 1; transform: translateX(16px); clip-path: inset(27% 0 66% 0); }
+    94% { opacity: 1; transform: translateX(-8px); clip-path: inset(26% 0 65% 0); }
+    98% { opacity: 1; transform: translateX(20px); clip-path: inset(25% 0 67% 0); }
+    100% { opacity: 0; transform: none; }
   }
   @keyframes glC {
-    0%, 42.5%, 46%, 100% { transform: none; clip-path: inset(25% 0 68% 0); opacity: 0; }
-    43% { transform: translateX(-30px); opacity: .9; }
-    44% { transform: translateX(22px); opacity: .9; clip-path: inset(26% 0 66% 0); }
-    45% { transform: translateX(-12px); opacity: .9; }
+    0%, 76% { opacity: 0; transform: none; clip-path: inset(25% 0 68% 0); }
+    76.5% { opacity: .9; transform: translateX(-30px); }
+    78% { opacity: 0; }
+    87% { opacity: .9; transform: translateX(22px); clip-path: inset(26% 0 66% 0); }
+    88.5% { opacity: 0; }
+    96% { opacity: .9; transform: translateX(-12px); }
+    97.5%, 100% { opacity: 0; transform: none; }
   }
-  @keyframes glBar { 0%, 42.5%, 45.5%, 100% { opacity: 0; } 43% { opacity: .95; top: 26.2%; } 44% { opacity: 0; } 44.5% { opacity: .9; top: 27.6%; } 45% { opacity: 0; } }
-  @keyframes glLime { 0%, 20%, 21%, 43%, 46%, 100% { opacity: 0; } 20.5% { opacity: 1; top: 28.2%; } 43.5% { opacity: 1; top: 29.6%; } 44.5% { opacity: 1; top: 25.4%; left: 30%; } 45.5% { opacity: 0; } }
+  @keyframes glBar { 0%, 78% { opacity: 0; } 78.5% { opacity: .95; top: 26.2%; } 80% { opacity: 0; } 91% { opacity: .9; top: 27.6%; } 92.5%, 100% { opacity: 0; } }
+  @keyframes glAccent { 0%, 73% { opacity: 0; } 73.5% { opacity: 1; top: 28.2%; } 75% { opacity: 0; } 84% { opacity: 1; top: 29.6%; } 85.5% { opacity: 0; } 93% { opacity: 1; top: 25.4%; left: 30%; } 94.5%, 100% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .gl-layer, .gl-bar, .gl-accent { animation: none; } .gl-bar, .gl-accent, .gl-c { opacity: 0; } }
 </style>
