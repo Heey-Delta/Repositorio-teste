@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+import Loader from '../components/Loader.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Works from '../components/Works.astro';
+import Stacks from '../components/Stacks.astro';
+import About from '../components/About.astro';
+import Services from '../components/Services.astro';
+import Process from '../components/Process.astro';
+import Lab from '../components/Lab.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import DevPanel from '../components/DevPanel.astro';
+import Visibility from '../components/Visibility.astro';
+import { getAuthor, authorLd } from '../lib/lab-public';
+import { services } from '../lib/site';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
+
+// SEO da página inicial: título e descrição que dizem o que você faz, endereço canônico, imagem de compartilhamento
+// e dados estruturados (o site, a pessoa, que é a mesma identidade de autor do Lab, e o serviço profissional)
+const title = 'Hallan · Web design e desenvolvimento de sites';
+const description = 'Eu desenho e programo sites: web design, desenvolvimento web, landing pages, e-commerce, creative dev com 3D e branding digital.';
+const home = new URL('/', Astro.site).href;
+const image = new URL('/img/hero-statue.webp', Astro.site).href;
+const person = authorLd(Astro.site, await getAuthor());
+const jsonld = [
+  { '@context': 'https://schema.org', '@type': 'WebSite', '@id': `${home}#site`, name: 'Hallan', url: home, inLanguage: 'pt-BR', publisher: { '@id': person['@id'] } },
+  { '@context': 'https://schema.org', ...person, image },
+  {
+    '@context': 'https://schema.org', '@type': 'ProfessionalService', '@id': `${home}#servicos`, name: 'Hallan · Web design e desenvolvimento de sites',
+    url: home, image, description, founder: { '@id': person['@id'] }, areaServed: { '@type': 'Country', name: 'Brasil' }, availableLanguage: 'pt-BR',
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog', name: 'Serviços',
+      itemListElement: services.map((sv) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: sv.name, description: `${sv.desc} ${sv.how}` } })),
+    },
+  },
+];
+---
+<Base title={title} description={description} fonts={fonts} lang="pt-BR" analytics>
+  <Fragment slot="head">
+    <link rel="canonical" href={home}>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Hallan">
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={home}>
+    <meta property="og:image" content={image}>
+    <meta property="og:image:alt" content="Estátua de mármore de um jovem de cabelos cacheados, sobre fundo preto">
+    <meta property="og:locale" content="pt_BR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content={image}>
+    <link rel="alternate" type="application/rss+xml" title="Experimental Lab · Hallan" href={new URL('/lab/rss.xml', Astro.site).href}>
+    {jsonld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+  </Fragment>
+  <script slot="head" is:inline>
+    // tela de carregamento só na primeira visita da sessão; nas seguintes a página abre direto
+    (function () { var r = document.documentElement; try { if (sessionStorage.getItem('hallan-intro')) return; sessionStorage.setItem('hallan-intro', '1'); } catch (e) {} r.classList.add('loading', 'intro'); })();
+  </script>
+  <!-- Visual do card dos prédios da cidade (o mesmo do card interno); o card abre por fora, ver CityCard -->
+  <link slot="head" rel="stylesheet" href="widgets/cidade-isometrica/card.css">
+
+  <Loader />
+  <Header />
+  <main>
+    <Hero />
+    <Works />
+    <Lab />
+    <Stacks />
+    <About />
+    <Services />
+    <Process />
+    <Contact />
+  </main>
+  <Footer />
+  <Visibility />
+  <DevPanel />
+</Base>

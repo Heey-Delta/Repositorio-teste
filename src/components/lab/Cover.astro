@@ -1,0 +1,11 @@
+---
+// Imagem de capa de uma publicação do Lab (vinda da biblioteca de mídia). Sem capa, não renderiza nada.
+import type { LabEntry } from '../../lib/lab-public';
+interface Props { cover: LabEntry['data']['cover']; class?: string; eager?: boolean; }
+const { cover, class: className, eager = false } = Astro.props;
+---
+{cover && (
+  <img src={cover.url} alt={cover.alt} width={cover.width ?? undefined} height={cover.height ?? undefined}
+    loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined}
+    class:list={['block w-full object-cover', className]} />
+)}

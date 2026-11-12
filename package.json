@@ -1,0 +1,34 @@
+{
+  "name": "repositorio-teste",
+  "type": "module",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/db-migrate.ts && astro build",
+    "db:generate": "drizzle-kit generate",
+    "preview": "astro preview",
+    "check:widgets": "scripts/check-widgets.sh"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.21",
+    "@neondatabase/serverless": "^1.2.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@tiptap/core": "^3.33.1",
+    "@tiptap/extension-image": "^3.33.1",
+    "@tiptap/extensions": "^3.33.1",
+    "@tiptap/markdown": "^3.33.1",
+    "@tiptap/pm": "^3.33.1",
+    "@tiptap/starter-kit": "^3.33.1",
+    "@vercel/blob": "^2.9.0",
+    "astro": "^7.4.7",
+    "drizzle-orm": "^0.45.4",
+    "github-slugger": "^2.0.0",
+    "marked": "^18.2.0",
+    "tailwindcss": "^4.3.5"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11",
+    "simple-icons": "^13.21.0"
+  }
+}

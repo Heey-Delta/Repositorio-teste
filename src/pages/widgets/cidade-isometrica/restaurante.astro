@@ -1,0 +1,271 @@
+---
+// Kaoru Kaze (香る風): restaurante japonês. Site de demonstração, projeto "restaurante" da cidade isométrica.
+// Conteúdo e imagens vêm do artefato "Kaoru Kaze — Wireframe" (landing final).
+import Site from '../../../layouts/Site.astro';
+import SiteBack from '../../../components/SiteBack.astro';
+import '../../../styles/restaurante.css';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;700&family=Jost:wght@300;400;500;600&family=Noto+Serif+JP:wght@300;400;600&display=swap';
+
+// Classes repetidas
+const btnRed = 'kz-btn-red inline-flex min-h-[50px] items-center bg-wine px-[30px] py-3 text-[11px] font-normal tracking-[0.26em] text-pale uppercase no-underline';
+const btnLine = 'kz-btn-line inline-flex min-h-[50px] items-center gap-2.5 border border-[rgba(199,162,131,0.5)] bg-[rgba(10,6,3,0.4)] px-7 py-3 text-[11px] font-normal tracking-[0.26em] uppercase no-underline';
+const title = 'font-serif kz-title text-[clamp(28px,2.6vw,42px)] leading-[1.2] font-normal tracking-[0.08em] text-gold';
+const rule = 'block h-px w-14 bg-rule';
+const seal = 'jp grid size-[26px] place-items-center border border-seal font-jp text-[13px] text-seal-text';
+
+const menu = [
+  { jp: '香', pt: 'Aroma', name: 'Entradas', img: 'img/entradas.jpg', alt: 'Entrada de legumes e flores em prato escuro, com vapor', cls: '' },
+  { jp: '風', pt: 'Vento', name: 'Pratos principais', img: 'img/pratos.jpg', alt: 'Wagyu selado e fatiado sobre folhas, em prato escuro', cls: 'kz-b2' },
+  { jp: '月', pt: 'Lua', name: 'Experiências especiais', img: 'img/sobremesa.jpg', alt: 'Sobremesa em tigela de cerâmica com folha de bordo vermelha', cls: 'kz-b3' },
+];
+const gallery = [
+  { img: 'img/salao.jpg', alt: 'Salão com lanternas e mesas de madeira', cap: 'Salão', pos: '' },
+  { img: 'img/pratos.jpg', alt: 'Wagyu recém-saído da brasa', cap: 'Cozinha', pos: '' },
+  { img: 'img/sobremesa.jpg', alt: 'Tigela de cerâmica artesanal escura', cap: 'Cerâmica', pos: '' },
+  { img: 'img/fachada-mobile.jpg', alt: 'Lanterna e ripas de madeira da fachada', cap: 'Detalhes', pos: 'object-[40%_70%]' },
+];
+const particles = [['58%', '40%', '0s'], ['66%', '30%', '1.6s'], ['74%', '48%', '3.1s'], ['86%', '22%', '4.4s'], ['52%', '56%', '5.6s'], ['92%', '44%', '2.4s']];
+const navLinks = [['#filosofia', 'Filosofia'], ['#menu', 'Menu'], ['#espaco', 'O espaço']];
+---
+<Site title="香る風 Kaoru Kaze · Restaurante japonês" description="Kaoru Kaze: o vento que carrega o aroma. Uma experiência japonesa construída através do aroma, textura e equilíbrio. Negócio fictício, projeto de demonstração." fonts={fonts} icon="img/kaoru-mark.png" iconType="image/png" bodyClass="bg-bg font-sans font-light text-ink">
+  <SiteBack class="bg-wine font-medium text-pale" />
+
+  <div class="relative min-h-screen overflow-x-clip bg-bg">
+    <!-- linha de vento que liga as seções (desenha conforme a rolagem) -->
+    <svg class="kz-spine pointer-events-none absolute top-[640px] left-0 z-[4] hidden w-full h-[calc(100%-900px)] lg:block" aria-hidden="true" viewBox="0 0 100 1000" preserveAspectRatio="none"><path pathLength="1" d="M97 0 C 75 70, 45 110, 18 190 S 40 360, 88 420 S 70 600, 12 690 S 50 880, 94 1000" fill="none" stroke="#C79A5E" stroke-opacity="0.22" stroke-width="1" vector-effect="non-scaling-stroke"></path></svg>
+
+    <header class="kz-head sticky top-0 z-40" id="kzHead">
+      <div class="mx-auto flex h-[78px] max-w-[1360px] items-center justify-between gap-6 px-7">
+        <a href="#inicio" aria-label="Kaoru Kaze, início" class="flex items-center no-underline">
+          <img class="kz-logo hidden w-auto min-[521px]:block" src="img/kaoru-logo.png" alt="">
+          <img class="h-11 w-auto min-[521px]:hidden" src="img/kaoru-mark.png" alt="">
+        </a>
+        <nav class="hidden gap-[52px] text-[11px] font-normal tracking-[0.3em] uppercase lg:flex" aria-label="Navegação principal">
+          {navLinks.map(([href, label]) => <a class="kz-link py-3 no-underline" href={href}>{label}</a>)}
+        </nav>
+        <div class="flex items-center gap-2">
+          <a class="kz-btn-line hidden min-h-11 items-center border border-[rgba(199,162,131,0.4)] px-5 py-2.5 text-[11px] font-normal tracking-[0.24em] uppercase no-underline lg:inline-flex" href="#reservas">Reservar mesa</a>
+          <button type="button" id="kzBurger" class="grid size-11 cursor-pointer place-items-center border-0 bg-transparent lg:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="kzMobileNav">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round"><path d="M4 9h16"></path><path d="M8 15h12"></path></svg>
+          </button>
+        </div>
+      </div>
+      <nav id="kzMobileNav" class="kz-open hidden flex-col lg:hidden border-t border-[rgba(199,162,131,0.12)] bg-deep px-6 pt-1 pb-6 text-sm font-normal tracking-[0.22em] uppercase" aria-label="Menu móvel">
+        {navLinks.map(([href, label]) => <a href={href} class="border-b border-[rgba(199,162,131,0.1)] py-4 no-underline">{label}</a>)}
+        <a href="#reservas" class="mt-5 flex min-h-[52px] items-center justify-center bg-wine text-pale no-underline">Reservar mesa</a>
+      </nav>
+    </header>
+
+    <!-- FACHADA + FILOSOFIA -->
+    <div id="inicio" class="relative z-[1] lg:-mt-[78px]">
+      <img class="kz-reveal hidden h-auto w-full lg:block" src="img/fachada.jpg" alt="Fachada do Kaoru Kaze à noite, com bonsai, bordo vermelho e lanternas, e o salão interno abaixo, ligados por pinceladas de vento">
+      <img class="block h-auto w-full lg:hidden" src="img/fachada-mobile.jpg" alt="Fachada do Kaoru Kaze à noite, com bonsai, bordo vermelho e lanternas">
+      {particles.map(([left, top, delay]) => <span class="kz-p hidden lg:block" style={`left:${left}; top:${top}; animation-delay:${delay};`}></span>)}
+
+      <section class="z-[3] flex flex-col items-center justify-center gap-[clamp(14px,1.6vw,24px)] px-6 pt-12 pb-14 text-center lg:absolute lg:top-[9%] lg:left-[51%] lg:h-[47%] lg:w-[44%] lg:p-0" aria-labelledby="hero-titulo">
+        <h1 id="hero-titulo" class="kz-in w-[clamp(260px,32vw,520px)] [animation-delay:1.2s]"><img src="img/kaoru-logo.png" alt="香る風 Kaoru Kaze" class="kz-glow block h-auto w-full [filter:drop-shadow(0_6px_24px_rgba(0,0,0,0.6))]"></h1>
+        <div class="kz-in flex w-full max-w-[520px] items-center gap-4 [animation-delay:1.6s]">
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_right,transparent,rgba(199,162,131,0.5))]"></span>
+          <p class="font-serif m-0 text-[clamp(12px,3.2vw,17px)] tracking-[0.32em] whitespace-nowrap text-ink uppercase lg:text-[clamp(14px,1.15vw,17px)]">O vento que carrega o aroma</p>
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_left,transparent,rgba(199,162,131,0.5))]"></span>
+        </div>
+        <div class="kz-in mt-1.5 flex flex-wrap justify-center gap-3.5 [animation-delay:2s]">
+          <a class={btnRed} href="#reservas">Reservar mesa</a>
+          <a class={btnLine} href="#menu">Explorar menu <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></a>
+        </div>
+      </section>
+
+      <a href="#filosofia" aria-label="Rolar para a filosofia" class="absolute top-[55%] left-1/2 z-[3] hidden h-[42px] w-[26px] -translate-x-1/2 justify-center rounded-[13px] border border-[rgba(199,162,131,0.55)] pt-2 lg:flex"><span class="kz-wheel block h-2 w-0.5 rounded-[1px] bg-ink"></span></a>
+
+      <section id="filosofia" class="rv z-[3] flex flex-col justify-center gap-[clamp(12px,1.3vw,20px)] px-6 pt-14 pb-10 lg:absolute lg:top-[65%] lg:left-[4.5%] lg:h-[30%] lg:w-[34%] lg:p-0" aria-labelledby="filosofia-titulo">
+        <h2 id="filosofia-titulo" class={`${title} m-0`}>Antes do sabor,<br>existe uma memória</h2>
+        <span aria-hidden="true" class={rule}></span>
+        <p class="m-0 max-w-[380px] text-[clamp(15px,1.1vw,17px)] leading-[1.7] text-muted">Uma experiência japonesa construída através do aroma, textura e equilíbrio.</p>
+        <span class={seal} aria-hidden="true">風</span>
+      </section>
+      <img class="block h-auto w-full lg:hidden" src="img/salao.jpg" alt="Salão interno com lanternas de papel, bonsai e painel de sumi-e">
+    </div>
+
+    <!-- MENU: A EXPERIÊNCIA -->
+    <section id="menu" class="relative z-[1] bg-bg bg-cover bg-top bg-no-repeat px-6 pt-[110px] pb-[120px]" style="background-image: url(img/fundo-menu.jpg);" aria-labelledby="menu-titulo">
+      <div aria-hidden="true" class="absolute inset-0 bg-[linear-gradient(to_bottom,#0E0805_0%,rgba(14,8,5,0.35)_18%,rgba(14,8,5,0.35)_80%,#0E0805_100%)]"></div>
+      <div class="relative mx-auto flex max-w-[1040px] flex-col gap-14">
+        <div class="rv flex items-center gap-7">
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_right,transparent,rgba(199,162,131,0.4))]"></span>
+          <div class="flex flex-col items-center gap-2.5 text-center">
+            <span class="jp kz-title pl-[0.32em] font-jp text-[clamp(28px,3vw,40px)] font-light tracking-[0.32em] text-gold" aria-hidden="true">味覚の旅</span>
+            <h2 id="menu-titulo" class="kz-label m-0 pl-[0.46em] text-[11px] font-normal tracking-[0.46em] text-label uppercase">A experiência</h2>
+          </div>
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_left,transparent,rgba(199,162,131,0.4))]"></span>
+        </div>
+        <div class="rv grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-7">
+          {menu.map((m) => (
+            <a class:list={['kz-card kz-bob flex flex-col items-center overflow-hidden border border-[rgba(199,162,131,0.2)] bg-[rgba(12,7,4,0.82)] pt-7 no-underline', m.cls]} href="#reservas">
+              <span class="jp font-jp text-[54px] leading-none font-light text-gold" aria-hidden="true">{m.jp}</span>
+              <span class="mt-2.5 pl-[0.42em] text-[10px] font-normal tracking-[0.42em] text-label uppercase">{m.pt}</span>
+              <span class="mt-[18px] block w-full overflow-hidden"><img src={m.img} alt={m.alt} class="block aspect-video w-full object-cover" loading="lazy"></span>
+              <span class="pt-[18px] pb-1.5 pl-[0.32em] text-[11px] font-normal tracking-[0.32em] uppercase">{m.name}</span>
+              <span aria-hidden="true" class="mb-5 h-px w-7 bg-rule"></span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- O ESPAÇO -->
+    <section id="espaco" class="relative z-[1] bg-bg" aria-labelledby="espaco-titulo">
+      <div class="relative overflow-hidden">
+        <img class="kz-par hidden h-auto w-full lg:block" src="img/espaco.jpg" alt="Salão principal com bonsai central, lanternas, ripas de madeira e painel de sumi-e" loading="lazy">
+        <div class="rv z-[2] flex flex-col justify-center gap-[clamp(12px,1.3vw,20px)] px-6 pt-14 pb-10 lg:absolute lg:top-[8%] lg:left-[3.5%] lg:h-[84%] lg:w-[26%] lg:p-0">
+          <h2 id="espaco-titulo" class="font-serif kz-title m-0 text-[clamp(28px,2.6vw,42px)] leading-[1.15] font-normal tracking-[0.1em] text-gold">O espaço</h2>
+          <span aria-hidden="true" class={rule}></span>
+          <p class="m-0 max-w-[300px] text-[clamp(14px,1vw,16px)] leading-[1.7] text-muted">Arquitetura japonesa moderna, madeira escura, pedra e luz quente.</p>
+          <button type="button" id="kzGalBtn" class="kz-btn-line inline-flex min-h-11 cursor-pointer items-center gap-2.5 self-start border border-[rgba(199,162,131,0.45)] bg-[rgba(10,6,3,0.4)] px-[18px] py-2.5 text-[10px] font-normal tracking-[0.24em] text-ink uppercase" aria-expanded="false" aria-controls="galeria"><span id="kzGalLabel">Conheça o restaurante</span> <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path id="kzGalIcon" d="M9 6l6 6-6 6"></path></svg></button>
+        </div>
+        <img class="block h-auto w-full lg:hidden" src="img/espaco-mobile.jpg" alt="Salão principal com bonsai central e painel de sumi-e" loading="lazy">
+      </div>
+      <div id="galeria" class="kz-gal kz-open grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-0.5 bg-deep pt-0.5" hidden>
+        {gallery.map((g) => (
+          <figure class="relative m-0 overflow-hidden"><img src={g.img} alt={g.alt} class:list={['block aspect-[4/3] w-full object-cover', g.pos]} loading="lazy"><figcaption class="absolute bottom-3 left-3.5 bg-[rgba(10,6,3,0.78)] px-2.5 py-1.5 text-[10px] font-normal tracking-[0.3em] uppercase">{g.cap}</figcaption></figure>
+        ))}
+      </div>
+    </section>
+
+    <!-- RESERVAS -->
+    <section id="reservas" class="relative z-[1] bg-bg bg-cover bg-center bg-no-repeat px-6 pt-[90px] pb-[100px]" style="background-image: url(img/fundo-reservas.jpg);" aria-labelledby="reservas-titulo">
+      <div aria-hidden="true" class="absolute inset-0 bg-[linear-gradient(to_bottom,#0E0805_0%,rgba(14,8,5,0.3)_22%,rgba(14,8,5,0.45)_100%)]"></div>
+      <div class="relative mx-auto flex max-w-[960px] flex-col gap-10">
+        <div class="rv flex items-center gap-6">
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_right,transparent,rgba(199,162,131,0.4))]"></span>
+          <h2 id="reservas-titulo" class="font-serif kz-title m-0 text-center text-[clamp(24px,2.4vw,34px)] font-normal tracking-[0.08em] text-gold">Escolha seu momento</h2>
+          <span aria-hidden="true" class="h-px flex-1 bg-[linear-gradient(to_left,transparent,rgba(199,162,131,0.4))]"></span>
+        </div>
+        <div class="rv flex flex-wrap items-start justify-center gap-x-10 gap-y-8">
+          <!-- calendário -->
+          <div class="flex min-w-[270px] flex-[0_1_300px] flex-col gap-2.5 border border-[rgba(199,162,131,0.22)] bg-[rgba(10,6,3,0.86)] px-[18px] pt-4 pb-[18px]">
+            <div class="flex items-center justify-between">
+              <button type="button" id="kzPrev" class="grid size-10 cursor-pointer place-items-center border-0 bg-transparent disabled:opacity-35" aria-label="Mês anterior"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+              <span id="kzMonth" class="text-sm font-normal" aria-live="polite"></span>
+              <button type="button" id="kzNext" class="grid size-10 cursor-pointer place-items-center border-0 bg-transparent" aria-label="Próximo mês"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+            </div>
+            <div id="kzDays" class="grid grid-cols-7 gap-[3px] text-center text-[13px] font-normal"></div>
+          </div>
+          <!-- pessoas -->
+          <div class="flex flex-[0_1_180px] flex-col gap-3.5">
+            <span class="flex items-center gap-2 text-[13px] font-normal text-muted"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B29578" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"></path></svg>Pessoas</span>
+            <div class="flex items-center gap-2">
+              <button type="button" id="kzLess" class="size-11 cursor-pointer border border-[rgba(199,162,131,0.22)] bg-[rgba(10,6,3,0.86)] text-[18px] text-ink" aria-label="Menos uma pessoa">−</button>
+              <span id="kzPeople" class="min-w-10 text-center text-[18px] font-normal" aria-live="polite">2</span>
+              <button type="button" id="kzMore" class="size-11 cursor-pointer border border-[rgba(199,162,131,0.22)] bg-[rgba(10,6,3,0.86)] text-[18px] text-ink" aria-label="Mais uma pessoa">+</button>
+            </div>
+          </div>
+          <!-- horário e confirmação -->
+          <div class="flex min-w-[230px] flex-[0_1_250px] flex-col gap-3.5">
+            <label for="kz-hora" class="flex items-center gap-2 text-[13px] font-normal text-muted"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B29578" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Horário</label>
+            <select id="kz-hora" class="min-h-[46px] rounded-none border border-[rgba(199,162,131,0.3)] bg-[rgba(10,6,3,0.9)] px-3 py-2.5 text-[15px] text-ink">
+              {['19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'].map((t) => <option value={t}>{t}</option>)}
+            </select>
+            <button type="button" id="kzConfirm" class="kz-btn-red mt-6 min-h-[50px] cursor-pointer border-0 bg-[#2A1C14] text-[11px] font-normal tracking-[0.24em] text-dim uppercase" aria-disabled="true">Escolha um dia</button>
+            <p id="kzDone" role="status" class="kz-open m-0 border border-[rgba(199,162,131,0.35)] bg-[rgba(10,6,3,0.86)] p-3.5 text-sm leading-[1.6] text-ink" hidden></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="relative z-[1] border-t border-[rgba(199,162,131,0.1)] bg-deep px-7 py-9">
+      <div class="mx-auto flex max-w-[1360px] flex-wrap items-center justify-between gap-x-9 gap-y-6">
+        <img src="img/kaoru-logo.png" alt="香る風 Kaoru Kaze" class="h-[58px] w-auto">
+        <div class="flex flex-[1_1_320px] items-center gap-5">
+          <span aria-hidden="true" class="h-px flex-1 bg-[rgba(199,162,131,0.2)]"></span>
+          <p class="font-serif m-0 text-[17px] tracking-[0.16em] whitespace-nowrap text-muted">O aroma chega antes do sabor</p>
+          <span aria-hidden="true" class="h-px flex-1 bg-[rgba(199,162,131,0.2)]"></span>
+        </div>
+        <nav class="flex flex-wrap items-center gap-x-6 gap-y-1 text-[13px] font-normal" aria-label="Links do rodapé">
+          <a href="#inicio" aria-label="Instagram" class="inline-flex min-h-11 items-center gap-2 no-underline"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle></svg>Instagram</a>
+          <a href="#inicio" class="inline-flex min-h-11 items-center no-underline">Contato</a>
+          <a href="#inicio" class="inline-flex min-h-11 items-center gap-2 no-underline"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C7A283" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>Localização</a>
+        </nav>
+        <span class="grid size-[30px] place-items-center border border-seal font-jp text-sm text-seal-text" aria-hidden="true">風</span>
+      </div>
+      <p class="mx-auto mt-6 max-w-[1360px] text-xs text-dim">Negócio fictício · site de demonstração · design e código por Halla</p>
+    </footer>
+  </div>
+
+  <script is:inline>
+    // Cabeçalho: sólido depois de rolar; menu móvel
+    (function () {
+      var head = document.getElementById('kzHead'), burger = document.getElementById('kzBurger'), nav = document.getElementById('kzMobileNav');
+      function onScroll() { head.dataset.solid = String((window.scrollY || 0) > 40 || !nav.classList.contains('hidden')); }
+      window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+      function toggle(open) { nav.classList.toggle('hidden', !open); nav.classList.toggle('flex', open); burger.setAttribute('aria-expanded', String(open)); burger.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu'); onScroll(); }
+      burger.addEventListener('click', function () { toggle(burger.getAttribute('aria-expanded') !== 'true'); });
+      nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a')) toggle(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') toggle(false); });
+    })();
+
+    // Galeria do espaço
+    (function () {
+      var btn = document.getElementById('kzGalBtn'), gal = document.getElementById('galeria'), label = document.getElementById('kzGalLabel'), icon = document.getElementById('kzGalIcon');
+      btn.addEventListener('click', function () {
+        var open = btn.getAttribute('aria-expanded') !== 'true';
+        gal.hidden = !open; btn.setAttribute('aria-expanded', String(open));
+        label.textContent = open ? 'Fechar galeria' : 'Conheça o restaurante';
+        icon.setAttribute('d', open ? 'M6 15l6-6 6 6' : 'M9 6l6 6-6 6');
+      });
+    })();
+
+    // Reserva: calendário (segunda-feira fechado), pessoas, horário e confirmação (demonstração: nada é enviado)
+    (function () {
+      var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+      var DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+      var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var off = 0, people = 2, day = null, dayLabel = '';
+      var daysEl = document.getElementById('kzDays'), monthEl = document.getElementById('kzMonth');
+      var prev = document.getElementById('kzPrev'), next = document.getElementById('kzNext');
+      var peopleEl = document.getElementById('kzPeople'), timeEl = document.getElementById('kz-hora');
+      var confirmBtn = document.getElementById('kzConfirm'), doneEl = document.getElementById('kzDone');
+      var DOW = 'DSTQQSS'.split('').map(function (l) { return '<span aria-hidden="true" class="py-1 text-[10px] text-dim">' + l + '</span>'; }).join('');
+      var BTN = 'flex h-9 items-center justify-center border-0 bg-transparent text-ink enabled:cursor-pointer enabled:hover:bg-[rgba(199,162,131,0.12)] disabled:cursor-default disabled:text-off aria-pressed:bg-wine aria-pressed:text-pale';
+
+      function render() {
+        var view = new Date(today.getFullYear(), today.getMonth() + off, 1);
+        monthEl.textContent = MESES[view.getMonth()].charAt(0).toUpperCase() + MESES[view.getMonth()].slice(1) + ' ' + view.getFullYear();
+        prev.disabled = off === 0; next.disabled = off >= 5;
+        var html = DOW;
+        for (var i = 0; i < view.getDay(); i++) html += '<span aria-hidden="true"></span>';
+        var total = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+        for (var d = 1; d <= total; d++) {
+          var dt = new Date(view.getFullYear(), view.getMonth(), d), closed = dt.getDay() === 1, dis = closed || dt < today;
+          var key = dt.getFullYear() + '-' + dt.getMonth() + '-' + d, label = DIAS[dt.getDay()] + ', ' + d + ' de ' + MESES[dt.getMonth()];
+          html += '<button type="button" class="kz-day ' + BTN + (closed && dt >= today ? ' line-through' : '') + '" data-key="' + key + '" data-label="' + label + '"' + (dis ? ' disabled' : '') + ' aria-pressed="' + (day === key) + '" aria-label="' + label + (closed ? ' (fechado)' : '') + '">' + d + '</button>';
+        }
+        daysEl.innerHTML = html;
+      }
+      function refresh() {
+        var ready = !!day;
+        confirmBtn.textContent = ready ? 'Confirmar reserva' : 'Escolha um dia';
+        confirmBtn.setAttribute('aria-disabled', String(!ready));
+        confirmBtn.classList.toggle('bg-wine', ready); confirmBtn.classList.toggle('text-pale', ready);
+        confirmBtn.classList.toggle('bg-[#2A1C14]', !ready); confirmBtn.classList.toggle('text-dim', !ready);
+        peopleEl.textContent = people;
+      }
+      daysEl.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('button[data-key]');
+        if (!b || b.disabled) return;
+        day = b.dataset.key; dayLabel = b.dataset.label; doneEl.hidden = true; render(); refresh();
+      });
+      prev.addEventListener('click', function () { if (off > 0) { off--; render(); } });
+      next.addEventListener('click', function () { off = Math.min(off + 1, 5); render(); });
+      document.getElementById('kzLess').addEventListener('click', function () { people = Math.max(1, people - 1); doneEl.hidden = true; refresh(); });
+      document.getElementById('kzMore').addEventListener('click', function () { people = Math.min(12, people + 1); doneEl.hidden = true; refresh(); });
+      timeEl.addEventListener('change', function () { doneEl.hidden = true; });
+      confirmBtn.addEventListener('click', function () {
+        if (!day) return;
+        doneEl.textContent = 'Mesa para ' + people + ', ' + dayLabel + ', às ' + timeEl.value + '. Vamos confirmar pelo WhatsApp. (Demonstração: nada foi enviado.)';
+        doneEl.hidden = false;
+      });
+      render(); refresh();
+    })();
+  </script>
+</Site>

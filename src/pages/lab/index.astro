@@ -1,0 +1,220 @@
+---
+// Experimental Lab: página de abertura (wireframe). Hierarquia da seção 6.1 do documento de conceito.
+// Caixas hachuradas ([ ... ]) são espaços de imagem do wireframe. As publicações vêm do banco (src/lib/lab-public.ts):
+// seções sem publicação não aparecem.
+// Estilo: títulos em Anton, rótulos em Chakra, texto em Arial; fonte mono só em códigos e datas; verde só no destaque e nos botões.
+import Lab from '../../layouts/Lab.astro';
+import LabIcon from '../../components/lab/LabIcon.astro';
+import Wire from '../../components/lab/Wire.astro';
+import Cover from '../../components/lab/Cover.astro';
+import PubCard from '../../components/lab/PubCard.astro';
+import { getLabEntries, getCatalogPublic } from '../../lib/lab-public';
+import { statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
+
+const { departments, areas } = await getCatalogPublic();   // descrições editáveis no Catálogo do admin
+const personId = new URL('/#hallan', Astro.site).href;
+
+const root = up(1);
+const all = await getLabEntries();
+const of = (slug: string) => all.filter((e) => e.data.department === slug);
+const href = (e: (typeof all)[number]) => `${root}lab/${e.data.department}/${e.id.split('/').pop()}/`;
+const featured = of('experiments').find((e) => e.data.status === 'in-progress') ?? of('experiments')[0];
+const research = of('research').slice(0, 2);
+const notes = of('field-notes').slice(0, 3);
+const archive = of('visual-archive');
+const open = of('open-lab');
+const observatory = of('observatory')[0];
+const noindex = all.every((e) => e.data.draft);   // sem nada publicado (ou tudo marcado para não indexar), a página fica fora do Google
+
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: LAB_NAME, description: LAB_DESCRIPTION,
+  url: new URL('/lab/', Astro.site).href, inLanguage: 'pt-BR',
+  isPartOf: { '@type': 'WebSite', name: 'Hallan', url: new URL('/', Astro.site).href, publisher: { '@id': personId } },
+  author: { '@id': personId },
+  ...(all.length ? { mainEntity: { '@type': 'ItemList', itemListElement: all.filter((e) => !e.data.draft).slice(0, 20).map((e, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(`/lab/${e.id}/`, Astro.site).href, name: e.data.title })) } } : {}),
+}];
+// escala única do laboratório
+const eyebrow = 'label-ui m-0 text-[11px] text-muted';
+const h2 = 'm-0 font-display text-[40px] leading-[0.95] uppercase lg:text-[64px]';
+const lead = 'm-0 max-w-[480px] text-[15px] text-muted';
+const mono = 'font-mono text-[11px] uppercase tabular-nums';
+---
+<Lab title="Experimentos, ensaios e pesquisas" description={LAB_DESCRIPTION} depth={1} noindex={noindex} jsonld={jsonld}>
+  <!-- ABERTURA -->
+  <section class="border-b border-line" aria-labelledby="lab-title">
+    <div class="wrap grid gap-8 py-10 lg:min-h-[600px] lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:py-16">
+      <div class="flex flex-col gap-6 lg:gap-8">
+        <h1 id="lab-title" class="m-0 font-display text-[clamp(52px,15vw,84px)] leading-[0.92] uppercase lg:text-[clamp(96px,9vw,136px)]">Experimental<br><span class="text-lime">Lab</span></h1>
+        <p class="m-0 max-w-[480px] text-base text-ink lg:text-lg">Onde eu testo ideias antes de elas virarem projeto: experimentos em 3D, ensaios sobre design e pesquisas sobre como a gente enxerga uma tela.</p>
+        <p class="m-0 max-w-[480px] text-sm text-muted">Nem tudo aqui dá certo, e está tudo documentado do mesmo jeito.</p>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+          {featured && <a href="#andamento" class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110">Ver o que está em andamento</a>}
+          {notes.length > 0 && <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Ler as notas</a>}
+        </div>
+      </div>
+      <Wire label="Imagem de abertura: estátua com glitch" class="min-h-[300px] lg:min-h-[480px]" />
+    </div>
+  </section>
+
+  <!-- DEPARTAMENTOS -->
+  <nav class="border-b border-line" aria-label="Departamentos do laboratório">
+    <ul class="m-0 mx-auto grid max-w-[1440px] list-none grid-cols-2 gap-px bg-line p-0 sm:grid-cols-3 lg:grid-cols-6">
+      {departments.map((d) => {
+        const n = of(d.slug).length;
+        return (
+          <li class="bg-bg">
+            <a href={`${root}lab/${d.slug}/`} class="group flex h-full min-h-[150px] flex-col justify-between gap-4 p-5 hover:bg-[#0b0b0b] lg:min-h-[170px]">
+              <LabIcon name={d.icon} class="size-7 text-muted transition-colors group-hover:text-lime" />
+              <span class="flex flex-col gap-1">
+                <span class="label-ui text-xs text-ink group-hover:text-lime">{d.name}</span>
+                <span class="text-[13px] leading-snug text-muted">{d.short}</span>
+              </span>
+              <span class={`${mono} flex items-center justify-between text-muted`}><span>{n} {n === 1 ? 'publicação' : 'publicações'}</span><span class="transition-transform group-hover:translate-x-1 group-hover:text-lime" aria-hidden="true">→</span></span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+
+  {all.length === 0 && (
+    <section class="border-b border-line" aria-labelledby="empty-title">
+      <div class="wrap flex flex-col items-start gap-3 py-14 lg:py-20">
+        <h2 id="empty-title" class="m-0 font-display text-[40px] leading-[0.95] uppercase lg:text-[64px]">As primeiras publicações estão a caminho</h2>
+        <p class="m-0 max-w-[480px] text-[15px] text-muted">Estou escrevendo os primeiros experimentos e notas. Enquanto isso, veja os trabalhos no portfólio.</p>
+        <a href={`${root}#works`} class="link-ui text-xs">Ver os trabalhos</a>
+      </div>
+    </section>
+  )}
+
+  <!-- EM ANDAMENTO (experimento em destaque) -->
+  {featured && (
+    <section id="andamento" class="scroll-mt-16 border-b border-line" aria-labelledby="featured-title">
+      <div class:list={['wrap grid gap-8 py-12 lg:items-center lg:gap-14 lg:py-20', featured.data.cover && 'lg:grid-cols-[1.25fr_0.75fr]']}>
+        <Cover cover={featured.data.cover} class="max-h-[560px] border border-line lg:order-2" />
+        <div class="flex flex-col gap-5 lg:order-1">
+          <p class={eyebrow}>Em andamento</p>
+          <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-lime">{featured.data.title}</a></h2>
+          <p class={lead}>{featured.data.description}</p>
+          <p class={`${mono} m-0 text-muted`}>{[featured.data.code, statuses[featured.data.status].label, fmtDate(featured.data.date)].filter(Boolean).join(' · ')}</p>
+          <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-lime hover:text-lime">Ver o experimento →</a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- PESQUISAS -->
+  {research.length > 0 && <section class="border-b border-line" aria-labelledby="research-title">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-col gap-3">
+          <h2 id="research-title" class={h2}>Pesquisas</h2>
+          <p class={lead}>Investigações mais longas, com método, análise e referências.</p>
+        </div>
+        <a href={`${root}lab/research/`} class="link-ui text-xs">Todas as pesquisas</a>
+      </div>
+      <ul class="m-0 flex list-none flex-col p-0">
+        {research.map((e) => (
+          <li class="border-t border-line last:border-b">
+            <a href={href(e)} class:list={['group grid gap-5 py-6 md:items-center lg:gap-10', e.data.cover && 'md:grid-cols-[280px_1fr] lg:grid-cols-[360px_1fr]']}>
+              <Cover cover={e.data.cover} class="aspect-[4/3] border border-line" />
+              <span class="flex flex-col gap-3">
+                <span class={`${mono} text-muted`}>{[e.data.code, e.data.areas.join(' / ')].filter(Boolean).join(' · ')}</span>
+                <span class="text-[26px] leading-[1.15] font-bold group-hover:text-lime lg:text-[34px]">{e.data.title}</span>
+                <span class="max-w-[560px] text-[15px] text-muted">{e.data.description}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>}
+
+  <!-- FIELD NOTES -->
+  {notes.length > 0 && <section class="border-b border-line" aria-labelledby="notes-title">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-col gap-3">
+          <h2 id="notes-title" class={h2}>Notas de campo</h2>
+          <p class={lead}>Ensaios, observações e opiniões. Umas de poucos parágrafos, outras mais longas.</p>
+        </div>
+        <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Todas as notas</a>
+      </div>
+      <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{notes.map((e) => <li><PubCard entry={e} root={root} /></li>)}</ul>
+    </div>
+  </section>}
+
+  <!-- ARQUIVO VISUAL -->
+  {archive.length > 0 && <section class="border-b border-line" aria-labelledby="archive-title">
+    <div class="wrap grid gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:py-16">
+      <div class="flex flex-col gap-4">
+        <h2 id="archive-title" class={h2}>Arquivo de referências</h2>
+        <p class={lead}>Imagens e materiais que me chamaram atenção, cada um com a origem, o que eu vi nele e onde ele foi usado.</p>
+        <a href={`${root}lab/visual-archive/`} class="link-ui self-start text-xs">Abrir o arquivo</a>
+      </div>
+      <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3">
+        {archive.map((e) => (
+          <li>
+            <a href={href(e)} class="group flex flex-col gap-2">
+              {e.data.cover
+                ? <Cover cover={e.data.cover} class="aspect-square border border-line" />
+                : <span class="flex aspect-square items-end border border-line p-3 font-mono text-[11px] text-muted uppercase tabular-nums">{e.data.code}</span>}
+              <span class="text-[13px] leading-snug group-hover:text-lime">{e.data.title}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>}
+
+  <!-- OPEN LAB -->
+  {open.length > 0 && (
+    <section class="border-b border-line" aria-labelledby="open-title">
+      <div class="wrap grid gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:py-16">
+        <div class="flex flex-col gap-4">
+          <h2 id="open-title" class={h2}>Para usar no navegador</h2>
+          <p class={lead}>Ferramentas pequenas que saíram dos experimentos. Abre e mexe, sem instalar nada.</p>
+        </div>
+        <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2">
+          {open.map((e) => (
+            <li>
+              <a href={href(e)} class="group flex h-full flex-col border border-line hover:border-lime">
+                <Cover cover={e.data.cover} class="aspect-[16/9] border-b border-line" />
+                <span class="flex flex-col gap-2 p-5"><span class="text-xl font-bold group-hover:text-lime">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- POR ASSUNTO: áreas de conhecimento + observatório -->
+  {all.length > 0 && <section class="border-b border-line" aria-labelledby="areas-title">
+    <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
+      <div class="flex flex-col gap-3">
+        <h2 id="areas-title" class={h2}>Por assunto</h2>
+        <p class={lead}>Os temas atravessam os departamentos: uma pesquisa sobre percepção e um experimento 3D podem estar no mesmo assunto.</p>
+      </div>
+      <ul class="m-0 grid list-none grid-cols-1 gap-px border border-line bg-line p-0 sm:grid-cols-2 lg:grid-cols-4">
+        {areas.map((a) => {
+          const n = all.filter((e) => (e.data.areas as readonly string[]).includes(a.name)).length;
+          return (
+            <li class="flex flex-col gap-2 bg-bg p-5">
+              <span class="label-ui text-xs text-ink">{a.name}</span>
+              <span class="text-[13px] text-muted">{a.about}</span>
+              <span class={`${mono} mt-auto pt-2 text-muted`}>{n} {n === 1 ? 'publicação' : 'publicações'}</span>
+            </li>
+          );
+        })}
+      </ul>
+      {observatory && (
+        <a href={href(observatory)} class="group flex flex-col gap-2 border border-line p-5 hover:border-lime sm:flex-row sm:items-center sm:justify-between">
+          <span class="flex items-center gap-3"><LabIcon name="eye" class="size-6 text-muted group-hover:text-lime" /><span class={eyebrow}>Observatório · último registro</span></span>
+          <span class="text-[15px] group-hover:text-lime">{observatory.data.title} →</span>
+        </a>
+      )}
+    </div>
+  </section>}
+
+</Lab>

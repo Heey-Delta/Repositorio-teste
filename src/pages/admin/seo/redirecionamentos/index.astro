@@ -1,0 +1,75 @@
+---
+// Redirecionamentos (spec 12): os criados automaticamente quando uma publicação no ar muda de endereço e os criados à mão.
+import Admin from '../../../../layouts/Admin.astro';
+import { listRedirects } from '../../../../lib/redirects';
+import { fmtDateTime } from '../../../../lib/admin';
+export const prerender = false;
+const list = await listRedirects();
+const field = 'h-10 min-w-0 rounded-[6px] border border-line bg-bg px-3 font-mono text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+---
+<Admin title="Redirecionamentos" current="seo">
+  <div class="flex max-w-[1040px] flex-col gap-8">
+    <nav aria-label="SEO & GEO" class="flex gap-2 text-sm">
+      <a href="/admin/seo/" class="inline-flex min-h-9 items-center rounded-full border border-line px-4 hover:border-ink">Diagnóstico</a>
+      <a href="/admin/seo/redirecionamentos/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-lime px-4 text-lime">Redirecionamentos</a>
+    </nav>
+    <p class="m-0 max-w-[680px] text-sm text-muted">Quando uma publicação no ar muda de endereço, o antigo passa a levar para o novo (301) automaticamente. Aqui você vê todos, desativa algum se precisar e cria outros à mão, por exemplo para um link antigo divulgado com erro.</p>
+
+    <form id="newRedirect" class="grid items-end gap-3 rounded-[8px] border border-line p-4 md:grid-cols-[1fr_1fr_auto]" novalidate>
+      <label class="flex flex-col gap-1 text-xs text-muted">De (endereço do Lab)<input name="from" placeholder="/lab/research/nome-antigo/" class={field}></label>
+      <label class="flex flex-col gap-1 text-xs text-muted">Para<input name="to" placeholder="/lab/research/nome-novo/ ou https://…" class={field}></label>
+      <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110">Criar</button>
+      <p id="redirState" class="m-0 text-[13px] text-muted md:col-span-3" role="status"></p>
+    </form>
+
+    {list.length === 0
+      ? <p class="m-0 text-sm text-muted">Nenhum redirecionamento ainda.</p>
+      : (
+        <div class="overflow-x-auto rounded-[8px] border border-line">
+          <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+            <thead class="text-[12px] text-muted"><tr class="border-b border-line">
+              <th class="px-4 py-3 font-normal">De</th><th class="px-4 py-3 font-normal">Para</th><th class="px-4 py-3 font-normal">Criado</th>
+              <th class="px-4 py-3 font-normal">Situação</th><th class="px-4 py-3 font-normal"><span class="sr-only">Ações</span></th>
+            </tr></thead>
+            <tbody>
+              {list.map((r) => (
+                <tr class:list={['border-b border-line last:border-b-0', !r.active && 'text-muted']}>
+                  <td class="px-4 py-3 font-mono text-[12px] break-all">{r.fromPath}</td>
+                  <td class="px-4 py-3 font-mono text-[12px] break-all">{r.toPath}</td>
+                  <td class="px-4 py-3 text-muted tabular-nums">{fmtDateTime(r.createdAt)}</td>
+                  <td class="px-4 py-3">{r.active ? `Ativo (${r.code})` : 'Desativado'}</td>
+                  <td class="px-4 py-3">
+                    <span class="flex justify-end gap-1">
+                      <button type="button" class="redir-act cursor-pointer rounded-[4px] px-2 py-1 text-xs hover:bg-[#141414]" data-action="toggle" data-id={r.id} data-active={String(!r.active)}>{r.active ? 'Desativar' : 'Ativar'}</button>
+                      <button type="button" class="redir-act cursor-pointer rounded-[4px] px-2 py-1 text-xs text-[#ff8a8a] hover:bg-[#1a0b0b]" data-action="delete" data-id={r.id}>Excluir</button>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+  </div>
+  <script>
+    const state = document.getElementById('redirState')!;
+    async function send(body: Record<string, unknown>, form?: HTMLFormElement) {
+      form?.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid'));
+      const res = await fetch('/api/redirects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (res.ok) { location.reload(); return; }
+      state.style.color = '#ff8a8a'; state.textContent = out.error ?? 'Não deu para salvar.';
+      const el = out.field && form?.elements.namedItem(out.field) as HTMLElement | null;
+      if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+    }
+    const form = document.getElementById('newRedirect') as HTMLFormElement;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      void send({ action: 'create', from: (form.elements.namedItem('from') as HTMLInputElement).value, to: (form.elements.namedItem('to') as HTMLInputElement).value }, form);
+    });
+    document.querySelectorAll<HTMLButtonElement>('.redir-act').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.action === 'delete' && !confirm('Excluir este redirecionamento? Quem acessar o endereço antigo vai ver "página não encontrada".')) return;
+      void send(b.dataset.action === 'toggle' ? { action: 'toggle', id: Number(b.dataset.id), active: b.dataset.active === 'true' } : { action: 'delete', id: Number(b.dataset.id) });
+    }));
+  </script>
+</Admin>

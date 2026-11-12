@@ -1,0 +1,23 @@
+---
+// Endereços do Lab que não existem como página: se houver redirecionamento (publicação que mudou de endereço),
+// responde 301 para o novo; senão, mostra a página de "não encontrada" com status 404.
+// Roda no servidor só para esses casos: as páginas que existem são estáticas e respondem antes.
+import Lab from '../../layouts/Lab.astro';
+import { findRedirect } from '../../lib/redirects';
+import { up } from '../../lab/data';
+export const prerender = false;
+
+const r = await findRedirect(Astro.url.pathname);
+if (r) return Astro.redirect(r.toPath, r.code === 302 ? 302 : 301);
+Astro.response.status = 404;
+const depth = Astro.url.pathname.split('/').filter(Boolean).length;
+const root = up(depth);
+---
+<Lab title="Página não encontrada" description="Este endereço do laboratório não existe ou saiu do ar." depth={depth} current="" noindex>
+  <section class="wrap flex flex-col items-start gap-4 py-16 lg:py-24" aria-labelledby="nf-title">
+    <p class="label-ui m-0 text-[11px] text-muted">Erro 404</p>
+    <h1 id="nf-title" class="m-0 font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">Não achei essa página</h1>
+    <p class="m-0 max-w-[480px] text-[15px] text-muted">Pode ser um endereço digitado errado ou uma publicação que saiu do ar. A busca no topo encontra o que está publicado.</p>
+    <a href={`${root}lab/`} class="link-ui text-xs">Ir para o laboratório</a>
+  </section>
+</Lab>

@@ -1,0 +1,216 @@
+---
+import Site from '../../../layouts/Site.astro';
+import SiteBack from '../../../components/SiteBack.astro';
+import '../../../styles/pizzaria.css';
+
+const fonts = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap';
+
+// Classes repetidas dos botões e blocos desta marca
+// (sem classes que se anulem: o Tailwind decide pela ordem do CSS, não pela ordem no atributo class)
+const btnCore = 'cursor-pointer items-center leading-[normal] justify-center gap-2 rounded-md border-2 font-bold no-underline';
+const btnSize = 'px-[22px] py-[13px] text-[15px]';
+const pomo = 'border-transparent bg-pomodoro text-mozzarella hover:bg-pomodoro-dark';
+const line = 'border-forno bg-transparent text-forno hover:bg-forno hover:text-mozzarella';
+const btnPomo = `inline-flex ${btnCore} ${btnSize} ${pomo}`;
+const btnLine = `inline-flex ${btnCore} ${btnSize} ${line}`;
+const kicker = 'font-display text-[22px] leading-7 font-normal text-pomodoro italic';
+const label = 'text-[12px] leading-4 font-bold tracking-[0.18em] text-pomodoro uppercase';
+const head = 'mb-8 flex flex-wrap items-end justify-between gap-5';
+const h2 = 'text-[clamp(34px,4.6vw,52px)] leading-[1.02] font-extrabold';
+const section = 'py-[68px] sm:py-[88px]';
+const lockup = 'flex items-center gap-3 no-underline';
+const strip = [
+  ['Terça e quarta: 2ª pizza com 40% off', 'buon appetito'],
+  ['Borda recheada sem custo nas grandes', 'fatto in casa'],
+  ['Pedidos até 18h30 ganham refrigerante', 'dal forno'],
+];
+const steps = [
+  ['Escolha o sabor', 'Meio a meio, borda recheada, sem azeitona. A gente anota tudo com carinho.'],
+  ['Forno a lenha', '90 segundos a 420 °C. É o tempo de a borda crescer e o queijo derreter.'],
+  ['Na sua porta', 'A moto sai com a caixa térmica e você acompanha o caminho pelo WhatsApp.'],
+];
+---
+<Site title="La pizzeria del figlio di Lourenzo · Forno a lenha e receita de família" description="La pizzeria del figlio di Lourenzo: forno a lenha, massa de longa fermentação e receita de família. Negócio fictício, projeto de demonstração." fonts={fonts} icon="pizzeria-mark.svg" bodyClass="bg-mozzarella font-sans text-[16px] leading-[26px] text-forno">
+  <SiteBack class="bg-forno font-bold text-mozzarella" />
+
+  <header class="sticky top-0 z-40 border-b border-farina bg-[rgba(250,244,233,0.97)]">
+    <div class="wrap flex items-center justify-between gap-4 py-3">
+      <a class={lockup} href="#topo" aria-label="La pizzeria del figlio di Lourenzo, início">
+        <img class="size-12 flex-none" src="pizzeria-mark.svg" alt="" width="48" height="48">
+        <span><span class="block font-display text-[14px] leading-4 text-pomodoro italic">La pizzeria</span><span class="block font-display text-[17px] leading-[18px] font-extrabold">del figlio di Lourenzo</span></span>
+      </a>
+      <nav class="hidden gap-8 text-[15px] font-medium md:flex" aria-label="Seções">
+        {[['#cardapio', 'Cardápio'], ['#historia', 'A história'], ['#horarios', 'Horários']].map(([href, text]) => <a href={href} class="text-forno-muted no-underline hover:text-pomodoro">{text}</a>)}
+      </nav>
+      <a class={`hidden sm:inline-flex ${btnCore} px-4 py-[9px] text-[14px] ${pomo}`} href="#pedido">Pedir agora</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="relative overflow-hidden pt-14 pb-[72px]">
+      <div class="wrap grid items-center gap-9 md:grid-cols-[1.05fr_1fr]">
+        <div>
+          <span class={kicker}>Receita de família, forno a lenha</span>
+          <h1 class="mt-1.5 mb-5 text-[clamp(44px,6.2vw,72px)] leading-[0.98] font-extrabold tracking-[-0.01em]">A margherita do jeito que o pai ensinou.</h1>
+          <p class="mb-7 max-w-[30em] text-[18px] leading-[30px] text-forno-muted">Massa descansada por 48 horas. Pressa, só na entrega. O forno acende às 18h e a receita é a mesma desde que o Lourenzo passou a pá para o filho.</p>
+          <div class="flex flex-wrap gap-3">
+            <a class={btnPomo} href="#cardapio">Ver cardápio</a>
+            <a class={btnLine} href="#pedido">Pedir pelo WhatsApp</a>
+          </div>
+          <div class="mt-[38px] flex flex-wrap gap-8" aria-label="Destaques">
+            {[['48h', 'de fermentação'], ['420 °C', 'no forno a lenha'], ['2', 'gerações no forno']].map(([value, text]) => (
+              <div class="flex flex-col"><strong class="font-display text-[32px] leading-none font-extrabold">{value}</strong><span class="mt-1 text-[13px] text-forno-muted">{text}</span></div>
+            ))}
+          </div>
+        </div>
+        <!-- a boca do forno: arco forno com a chama crosta atrás do prédio -->
+        <div class="relative order-first mx-auto grid max-w-[min(360px,86%)] items-end justify-items-center pt-5 md:order-none md:mx-0 md:max-w-none">
+          <div class="absolute top-[4%] right-[6%] bottom-[8%] left-[6%] overflow-hidden rounded-t-[999px] rounded-b-[10px] bg-forno before:absolute before:-bottom-[30%] before:left-1/2 before:aspect-square before:w-[90%] before:animate-glow before:rounded-full before:bg-[radial-gradient(circle_at_50%_60%,rgba(224,160,67,0.85),rgba(179,38,30,0.55)_45%,transparent_70%)] before:content-[''] before:[transform:translateX(-50%)] after:absolute after:inset-x-3.5 after:top-3.5 after:bottom-0 after:rounded-t-[999px] after:border-2 after:border-b-0 after:border-crosta after:opacity-55 after:content-[''] motion-reduce:before:animate-none" aria-hidden="true"></div>
+          <img class="relative w-[94%] drop-shadow-[0_22px_24px_rgba(0,0,0,0.45)]" src="predio.webp" alt="Ilustração 3D da pizzaria: fachada de tijolos, toldo listrado e moto de entrega" width="900" height="780">
+          <div class="absolute top-0 right-0 grid size-[88px] rotate-[10deg] place-items-center rounded-full bg-pomodoro text-center font-display text-mozzarella sm:size-28" aria-hidden="true"><div><b class="block text-[24px] leading-none font-extrabold sm:text-[30px]">18h</b><i class="block text-[13px]">forno aceso</i></div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="overflow-hidden bg-forno py-3.5 font-medium whitespace-nowrap text-mozzarella" aria-label="Promoções">
+      <div class="inline-block animate-slide motion-reduce:animate-none">
+        {[false, true].map((hidden) => strip.map(([text, tag]) => (
+          <Fragment><span class="mr-[18px]" aria-hidden={hidden ? 'true' : undefined}>{text}</span><i class="mr-[18px] font-display text-[18px] text-crosta" aria-hidden={hidden ? 'true' : undefined}>{tag}</i></Fragment>
+        )))}
+      </div>
+    </div>
+
+    <section id="cardapio" class={section}>
+      <div class="wrap">
+        <div class={head}>
+          <div>
+            <span class={kicker}>Il menù</span>
+            <h2 class={h2}>Cardápio</h2>
+            <p class="mt-1.5 max-w-[28em] text-forno-muted">Pizzas grandes de 8 fatias. Todas saem do forno a lenha.</p>
+          </div>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar sabores">
+            {[['todas', 'Todas', 'true'], ['classica', 'Clássicas', 'false'], ['especial', 'Especiais', 'false'], ['doce', 'Doces', 'false']].map(([filter, text, pressed]) => (
+              <button class="chip cursor-pointer rounded-full leading-[normal] border-[1.5px] border-farina bg-mozzarella px-4 py-2 text-[14px] font-bold text-forno hover:border-forno-soft aria-pressed:border-forno aria-pressed:bg-forno aria-pressed:text-mozzarella" data-filter={filter} aria-pressed={pressed}>{text}</button>
+            ))}
+          </div>
+        </div>
+        <div class="grid gap-[18px] sm:grid-cols-2 md:grid-cols-3" id="menu"></div>
+      </div>
+    </section>
+
+    <section class={`${section} relative overflow-hidden bg-forno text-mozzarella`} id="historia">
+      <div class="wrap grid items-center gap-14 md:grid-cols-[1fr_1.1fr]">
+        <div>
+          <span class={`${kicker} text-crosta!`}>De pai para filho</span>
+          <h2 class={`${h2} mt-1.5 mb-[18px]`}>O forno é o mesmo. A mão, agora, é a do filho.</h2>
+          <p class="mb-3.5 text-[17px] text-forno-soft">O Lourenzo abriu a pizzaria com um forno construído tijolo por tijolo. O filho cresceu entre a farinha e a lenha, aprendeu o ponto da massa no olho e herdou a receita, o forno e o jeito de receber.</p>
+          <ul class="mt-6 grid list-none p-0">
+            {[['48h', 'A massa descansa', 'farinha, água, sal e tempo. Nada de pressa.'], ['90 s', 'No forno a lenha', 'a borda cresce leve, com pintinhas de forno.'], ['2', 'Gerações na mesma pá', 'a receita do pai, servida pelo filho.']].map(([big, title, small]) => (
+              <li class="grid grid-cols-[82px_1fr] gap-3.5 border-t border-[rgba(187,174,166,0.25)] py-3.5"><b class="font-display text-[22px] font-extrabold text-crosta">{big}</b><span class="text-mozzarella">{title}<small class="block text-[13px] text-forno-soft">{small}</small></span></li>
+            ))}
+          </ul>
+        </div>
+        <img class="mx-auto w-40 opacity-95 md:w-[min(320px,70%)]" src="pizzeria-mark.svg" alt="Símbolo da pizzaria: forno a lenha aceso sobre disco vermelho" width="320" height="320">
+      </div>
+    </section>
+
+    <section id="como" class={section}>
+      <div class="wrap">
+        <div class={head}><div><span class={kicker}>Come funziona</span><h2 class={h2}>Do pedido à primeira fatia</h2></div></div>
+        <div class="grid gap-[18px] [counter-reset:s] sm:grid-cols-2 md:grid-cols-3">
+          {steps.map(([title, text]) => (
+            <div class="rounded-md bg-farina p-[26px] [counter-increment:s] before:mb-3.5 before:grid before:size-11 before:place-items-center before:rounded-full before:bg-pomodoro before:font-display before:text-[20px] before:font-extrabold before:text-mozzarella before:content-[counter(s)]"><h3 class="mb-1.5 text-[22px] leading-7 font-bold">{title}</h3><p>{text}</p></div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-forno" aria-label="Banner da pizzaria">
+      <img class="aspect-[3/1] w-full object-cover object-left" src="pizzeria-banner.svg" alt="La pizzeria del figlio di Lourenzo · Forno a lenha, massa de longa fermentação e receita de família." width="1500" height="500" loading="lazy">
+    </section>
+
+    <section id="horarios" class={section}>
+      <div class="wrap grid gap-[18px] md:grid-cols-2">
+        <div class="rounded-md border border-farina bg-white p-[30px]">
+          <span class={label}>Horários</span>
+          <h3 class="mt-1.5 mb-3.5 text-[28px] font-extrabold">Forno aceso</h3>
+          <ul class="m-0 list-none p-0">
+            {[['Terça a domingo', '18h – 23h30'], ['Segunda', 'O forno descansa'], ['Pedidos até', '23h']].map(([day, value]) => (
+              <li class="flex justify-between gap-3 border-b border-farina py-[11px]"><span class="text-forno-muted">{day}</span><strong>{value}</strong></li>
+            ))}
+          </ul>
+          <span class="mt-4 inline-flex items-center gap-2 text-[14px] font-bold before:size-[9px] before:rounded-full before:bg-[var(--dot,#6A5E57)] before:content-['']" id="now"></span>
+        </div>
+        <div class="rounded-md border border-farina bg-white p-[30px]" id="pedido">
+          <span class={label}>Entrega</span>
+          <h3 class="mt-1.5 mb-3.5 text-[28px] font-extrabold">Onde entregamos</h3>
+          <p class="m-0 text-forno-muted">Rua da Pizza, 12 · Cidade Isométrica. Raio de 5 km:</p>
+          <div class="mt-3 mb-5 flex flex-wrap gap-2">
+            {['Centro', 'Praça Verde', 'Rua do Café', 'Bairro Japonês', 'Avenida Principal'].map((zone) => <span class="rounded-full bg-farina px-3 py-1.5 text-[14px] font-medium">{zone}</span>)}
+          </div>
+          <a class={btnPomo} href="#pedido" id="whats">Pedir pelo WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-forno pt-11 pb-24 text-[14px] text-forno-soft">
+    <div class="wrap flex flex-wrap items-center justify-between gap-5">
+      <span class={lockup}><img class="size-12 flex-none" src="pizzeria-mark.svg" alt="" width="48" height="48"><span><span class="block font-display text-[14px] leading-4 text-crosta italic">La pizzeria</span><span class="block font-display text-[17px] leading-[18px] font-extrabold text-mozzarella">del figlio di Lourenzo</span></span></span>
+      <span>Negócio fictício · landing page de demonstração · design e código por Halla</span>
+    </div>
+  </footer>
+
+  <script is:inline>
+  // Nomes em italiano, ingredientes em português (como pede a marca)
+  const PIZZAS = [
+    { name: 'Margherita', desc: 'Molho de tomate, muçarela de búfala, manjericão e azeite.', price: 54, cat: 'classica', top: ['#FAF4E9', '#3F6B3A'], tag: ['pai', 'Receita do pai'] },
+    { name: 'Diavola', desc: 'Salame picante, muçarela e um fio de mel com pimenta.', price: 59, cat: 'classica', top: ['#931E17', '#931E17'] },
+    { name: 'Calabrese', desc: 'Calabresa artesanal, cebola roxa e orégano.', price: 52, cat: 'classica', top: ['#8a3a22', '#6b2d4a'] },
+    { name: 'Quattro formaggi', desc: 'Muçarela, gorgonzola, parmesão e provolone defumado.', price: 62, cat: 'especial', top: ['#F6E2B0', '#E0A043'] },
+    { name: 'Rucola e pomodori secchi', desc: 'Muçarela, rúcula fresca, tomate seco e lascas de parmesão.', price: 64, cat: 'especial', top: ['#3F6B3A', '#B3261E'], tag: ['veg', 'vegetariana'] },
+    { name: 'Nutella e fragole', desc: 'Creme de avelã com cacau e morangos frescos.', price: 49, cat: 'doce', top: ['#4a2c20', '#B3261E'], base: '#5b3a2a' },
+  ];
+  // Pizza desenhada em SVG com as cores da marca (borda crosta, molho pomodoro)
+  function pizzaSvg(p, seed) {
+    let s = seed * 9301 + 49297;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    let dots = '';
+    for (let i = 0; i < 15; i++) {
+      const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 34;
+      dots += `<circle cx="${(60 + Math.cos(a) * r).toFixed(1)}" cy="${(60 + Math.sin(a) * r).toFixed(1)}" r="${(3.5 + rnd() * 3.5).toFixed(1)}" fill="${p.top[i % 2]}"/>`;
+    }
+    const sauce = p.base || '#B3261E';
+    return `<svg class="mb-1.5 size-28 self-center transition-[rotate] duration-[600ms] group-hover:rotate-[35deg] motion-reduce:transition-none" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="#E0A043"/><circle cx="60" cy="60" r="56" fill="none" stroke="#b97c2a" stroke-width="3" stroke-dasharray="2 8"/><circle cx="60" cy="60" r="45" fill="${sauce}"/>${p.base ? '' : '<circle cx="60" cy="60" r="43" fill="#F6E2B0" opacity="0.45"/>'}${dots}</svg>`;
+  }
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const menu = document.getElementById('menu');
+  menu.innerHTML = PIZZAS.map((p, i) => `
+    <article class="group flex flex-col gap-2 rounded-md border border-farina bg-white p-5 transition-[translate,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_14px_30px_rgba(34,28,26,0.1)] motion-reduce:transition-none" data-cat="${p.cat}">
+      ${pizzaSvg(p, i + 3)}
+      ${p.tag ? `<span class="self-start rounded-full px-2 text-[11px] leading-[18px] font-bold tracking-[0.08em] text-mozzarella ${p.tag[0] === 'pai' ? 'bg-pomodoro' : 'bg-basilico'}">${p.tag[1]}</span>` : ''}
+      <h3 class="text-[22px] leading-7 font-bold">${p.name}</h3>
+      <p class="m-0 flex-1 text-[13px] leading-5 text-forno-muted">${p.desc}</p>
+      <div class="mt-2 flex items-center justify-between"><span class="font-display text-[20px] font-extrabold">${brl(p.price)}</span><a class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-forno leading-[normal] px-4 py-[9px] text-[14px] font-bold text-forno no-underline hover:bg-forno hover:text-mozzarella" href="#pedido">Pedir</a></div>
+    </article>`).join('');
+  document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === chip)));
+    const f = chip.dataset.filter;
+    menu.querySelectorAll('.pizza').forEach(card => { card.hidden = f !== 'todas' && card.dataset.cat !== f; });
+  }));
+
+  const d = new Date(), h = d.getHours() + d.getMinutes() / 60, day = d.getDay();
+  const open = day !== 1 && h >= 18 && h < 23.5;
+  const now = document.getElementById('now');
+  now.textContent = open ? 'Forno aceso agora · peça já' : (day === 1 ? 'Hoje o forno descansa' : 'Forno apagado · acende às 18h');
+  now.style.setProperty('--dot', open ? '#3F6B3A' : '#B3261E');
+
+  // Botão de pedido: demonstração (sem número real)
+  document.getElementById('whats').addEventListener('click', e => {
+    e.preventDefault();
+    const a = e.currentTarget;
+    a.textContent = 'Demonstração: pedido não enviado';
+    setTimeout(() => { a.textContent = 'Pedir pelo WhatsApp'; }, 2200);
+  });
+  </script>
+</Site>

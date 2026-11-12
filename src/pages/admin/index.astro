@@ -1,0 +1,45 @@
+---
+// Visão geral (spec 5.1): quantidade por status e o que foi mexido por último.
+import Admin from '../../layouts/Admin.astro';
+import { countsByStatus, listPosts, statusLabel, statusOrder, fmtDateTime } from '../../lib/admin';
+export const prerender = false;
+const [counts, recent] = await Promise.all([countsByStatus(), listPosts({ limit: 8 })]);
+const total = Object.values(counts).reduce((a, b) => a + b, 0);
+---
+<Admin title="Visão geral" current="dashboard">
+  <div class="flex flex-col gap-10">
+    <section aria-labelledby="st" class="flex flex-col gap-4">
+      <h2 id="st" class="m-0 label-ui text-[11px] text-muted">{total} {total === 1 ? 'publicação' : 'publicações'} no banco</h2>
+      <ul class="m-0 grid list-none grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line p-0 sm:grid-cols-3 xl:grid-cols-6">
+        {statusOrder.map((k) => (
+          <li class="bg-bg">
+            <a href={`/admin/publicacoes/?status=${k}`} class="flex flex-col gap-1 p-5 hover:bg-[#0b0b0b]">
+              <span class="text-[32px] leading-none font-bold tabular-nums">{counts[k]}</span>
+              <span class="text-sm text-muted">{statusLabel[k]}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="rc" class="flex flex-col gap-4">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 id="rc" class="m-0 text-base font-bold">Mexidas por último</h2>
+        <span class="flex items-center gap-4"><a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">Ver todas</a><a href="/admin/publicacoes/nova/" class="inline-flex min-h-10 items-center rounded-[6px] bg-lime px-4 text-sm font-bold text-black hover:brightness-110">Nova publicação</a></span>
+      </div>
+      {recent.length === 0
+        ? <p class="m-0 text-sm text-muted">Nenhuma publicação ainda.</p>
+        : (
+          <ul class="m-0 flex list-none flex-col p-0">
+            {recent.map((p) => (
+              <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line py-3 last:border-b">
+                <span class="w-[72px] font-mono text-[12px] text-muted tabular-nums">{p.code ?? '—'}</span>
+                <a href={`/admin/publicacoes/${p.id}/`} class="min-w-0 flex-1 text-[15px] hover:text-lime">{p.title || 'Sem título'}</a>
+                <span class="text-[13px] text-muted">{statusLabel[p.status]} · {fmtDateTime(p.updatedAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+    </section>
+  </div>
+</Admin>

@@ -1,0 +1,24 @@
+---
+import Media from './Media.astro';
+import GlitchEyes from './GlitchEyes.astro';
+---
+<section id="top" class="relative overflow-hidden border-b border-line" aria-label="Início">
+  <div class="wrap lg:grid lg:grid-cols-[1.08fr_1fr] lg:gap-6">
+    <!-- Imagem: atrás do título no celular, coluna da direita no desktop -->
+    <Media label="Imagem do hero: busto de mármore" src="img/hero-statue.webp" alt="Estátua de mármore de um jovem de cabelos cacheados, olhando para a direita, sobre fundo preto" imgClass="object-[62%_center]" eager class="absolute top-0 right-0 h-full w-[62%] border-l border-line lg:relative lg:order-2 lg:mt-6 lg:h-auto lg:min-h-[780px] lg:w-auto lg:border">
+      <GlitchEyes src="img/hero-statue.webp" position="62% center" />
+      <span class="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(to_right,#000_0%,rgb(0_0_0/0.7)_35%,transparent_70%)] lg:hidden" aria-hidden="true"></span>
+      <span class="absolute top-0 right-0 size-14 bg-lime lg:size-[120px]" aria-hidden="true"></span>
+    </Media>
+    <div class="relative z-10 flex min-h-[540px] lg:order-1 flex-col justify-between gap-10 py-8 lg:min-h-[880px] lg:py-[72px]">
+      <div class="flex flex-col gap-4 lg:gap-7">
+        <h1 class="font-display text-[clamp(52px,15.5vw,72px)] leading-[0.98] uppercase lg:text-[clamp(96px,8.6vw,124px)]">Eu desenho<br>e <span class="text-lime">programo</span><br>sites.</h1>
+        <p class="max-w-[230px] text-sm text-ink lg:max-w-[360px] lg:text-lg">Do layout no Figma ao site no ar: landing pages, lojas virtuais e experiências em 3D.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+        <a href="#contact" class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110 lg:min-h-14 lg:px-8 lg:text-[13px]">Pedir orçamento →</a>
+        <a href="#works" class="link-ui text-[11px] lg:text-xs">Ver trabalhos</a>
+      </div>
+    </div>
+  </div>
+</section>

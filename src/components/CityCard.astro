@@ -1,0 +1,83 @@
+---
+// Card dos prédios por fora da cidade. A cidade (iframe ?card=out) monta o card e manda o conteúdo por
+// postMessage; aqui ele aparece por cima da seção de baixo, preso à borda inferior da seção da cidade
+// (position: absolute, sem empurrar o conteúdo), com o mesmo visual do card interno (card.css).
+// A seção da cidade precisa ser `relative` e ter z-index acima da seção seguinte.
+// Prédios que são sites (mensagem com `slug`) abrem o card lateral da seção Trabalhos (window.hallanSiteCard), não este.
+// Mensagens: { type: 'city:card', open, html, bodyClass, bodyStyle, plain, fonts, slug } e { type: 'city:card-live', updates }.
+// Respostas para a cidade: { type: 'city:card-back' } e { type: 'city:card-act', act: 'feed' }.
+---
+<div id="cityCardWrap" class="pointer-events-none invisible absolute inset-x-0 top-full z-10 translate-y-3 opacity-0 transition-[opacity,translate,visibility] duration-300 data-[open=true]:pointer-events-auto data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:opacity-100 motion-reduce:transition-none" data-open="false" aria-hidden="true" inert>
+  <div class="wrap pt-4">
+    <section id="cityCard" class="card-panel relative h-[clamp(300px,52vh,460px)] overflow-hidden rounded-2xl bg-white text-[#1f2937] shadow-[0_24px_60px_rgba(0,0,0,0.28)] md:h-[clamp(260px,34vh,360px)]" aria-label="Detalhes do elemento selecionado" aria-live="polite">
+      <button type="button" class="card-back" id="cardBack">← Voltar</button>
+      <div class="card-body" id="cardOutBody"></div>
+    </section>
+  </div>
+</div>
+<style is:global>
+  .card-panel { container-type: inline-size; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: normal; }
+</style>
+<script is:inline>
+  (function () {
+    var wrap = document.getElementById('cityCardWrap'), panel = document.getElementById('cityCard'), body = document.getElementById('cardOutBody');
+    var back = document.getElementById('cardBack'), fonts = {};
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function frame() { return document.getElementById('cityFrame'); }   // o iframe vem antes ou depois deste script
+    function send(msg) { try { frame().contentWindow.postMessage(msg, '*'); } catch (e) {} }
+    function setOpen(open) {
+      wrap.dataset.open = String(open);
+      wrap.setAttribute('aria-hidden', String(!open));
+      if (open) wrap.removeAttribute('inert'); else wrap.setAttribute('inert', '');
+    }
+    window.addEventListener('message', function (e) {
+      var d = e.data, f = frame();
+      if (!f || e.source !== f.contentWindow || !d) return;   // só aceita mensagens da cidade
+      if (d.type === 'city:card') {
+        var side = window.hallanSiteCard;
+        if (!d.open) { setOpen(false); if (side) side.close(false); return; }
+        // prédio de um site: abre o card lateral da seção Trabalhos no lugar deste
+        if (d.slug && side && side.open(d.slug)) { setOpen(false); return; }
+        if (side) side.close(false);
+        if (d.fonts && !fonts[d.fonts]) {   // fontes da marca do negócio
+          fonts[d.fonts] = true;
+          var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = d.fonts; document.head.appendChild(link);
+        }
+        body.className = d.bodyClass || 'card-body';
+        body.setAttribute('style', d.bodyStyle || '');
+        body.innerHTML = d.html || '';
+        panel.classList.toggle('card-plain', !!d.plain);
+        body.scrollTop = 0;
+        setOpen(true);
+        // mostra o card inteiro: rola só o necessário, depois de ele terminar de abrir
+        setTimeout(function () { panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' }); }, reduce ? 0 : 340);
+      } else if (d.type === 'city:card-live' && d.updates) {
+        d.updates.forEach(function (u) {
+          var node = body.querySelector('[data-live="' + u.key + '"]');
+          if (!node) return;
+          node.textContent = u.text;
+          if (u.cls !== undefined) node.className = u.cls;
+        });
+      }
+    });
+    panel.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-copy],[data-act]') : null;
+      if (!t) return;
+      if (t.dataset.copy) {   // "Copiar link"
+        var label = t.textContent;
+        var done = function (text) { t.textContent = text; setTimeout(function () { t.textContent = label; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.dataset.copy).then(function () { done('Link copiado'); }, function () { done('Não copiou'); });
+      } else if (t.dataset.act) {   // "Alimentar os pássaros"
+        send({ type: 'city:card-act', act: t.dataset.act });
+      }
+    });
+    back.addEventListener('click', function () { send({ type: 'city:card-back' }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && wrap.dataset.open === 'true') send({ type: 'city:card-back' }); });
+    // clicar fora do card (na página, fora da cidade) também fecha; cliques dentro da cidade já são tratados por ela
+    document.addEventListener('pointerdown', function (e) {
+      if (wrap.dataset.open !== 'true' || !e.target.closest) return;
+      if (e.target.closest('#cityCard') || e.target.closest('#cityFrame')) return;
+      send({ type: 'city:card-back' });
+    });
+  })();
+</script>

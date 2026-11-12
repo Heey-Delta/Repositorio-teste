@@ -1,0 +1,271 @@
+---
+// Stacks & Cursos. Duas caixas lado a lado:
+//  - Stacks: bolinhas com a logo de cada tecnologia, soltas numa caixa com gravidade. Dá para pegar, arrastar e jogar;
+//    um clique (sem arrastar) abre um card com os detalhes. Logos do pacote simple-icons (embutidas no build).
+//  - Cursos: cards numa rolagem infinita (a lista se repete sem fim), que anda sozinha devagar e para quando a pessoa mexe.
+// Edite as listas `stacks` e `courses` abaixo. O "&" do título fica num <span class="amp">.
+import { siClaude, siAstro, siTailwindcss, siThreedotjs, siJavascript, siTypescript, siHtml5, siCss3, siFigma, siGit } from 'simple-icons';
+const stacks = [
+  { icon: siAstro, name: 'Astro', kind: 'Framework', desc: 'Gera sites estáticos rápidos, mandando só o JavaScript que a página precisa.', use: 'Base deste site: páginas, componentes e o build.' },
+  { icon: siTailwindcss, name: 'Tailwind CSS', kind: 'Estilo', desc: 'CSS com classes utilitárias, direto no HTML, sem arquivos de estilo gigantes.', use: 'Todo o visual brutalista do site e dos projetos.' },
+  { icon: siThreedotjs, name: 'Three.js', kind: '3D', desc: 'Biblioteca de 3D em WebGL para criar cenas interativas no navegador.', use: 'A cidade isométrica do Nexus: modelos, luz, sombras e animações.' },
+  { icon: siJavascript, name: 'JavaScript', kind: 'Linguagem', desc: 'A linguagem da web: interações, animações e lógica no navegador.', use: 'Interações, física destas bolinhas e os widgets.' },
+  { icon: siTypescript, name: 'TypeScript', kind: 'Linguagem', desc: 'JavaScript com tipos, para código mais seguro e fácil de manter.', use: 'Componentes e projetos maiores.' },
+  { icon: siHtml5, name: 'HTML', kind: 'Estrutura', desc: 'A estrutura de toda página: conteúdo, semântica e acessibilidade.', use: 'Marcação semântica e acessível em todos os projetos.' },
+  { icon: siCss3, name: 'CSS', kind: 'Estilo', desc: 'Layout, cores, tipografia e animações das páginas.', use: 'Animações, glitch, glassmorphism e responsividade.' },
+  { icon: siFigma, name: 'Figma', kind: 'Design', desc: 'Ferramenta de design de interfaces, protótipos e design systems.', use: 'Wireframes e layouts antes do código.' },
+  { icon: siGit, name: 'Git', kind: 'Versionamento', desc: 'Controle de versões: histórico, ramificações e trabalho em equipe.', use: 'Todo projeto versionado no GitHub.' },
+];
+const SANTANDER = { hex: 'EC0000', path: 'M12.3 1.5c.5 2 2.6 3.4 3.2 5.6.4 1.3.2 2.6-.4 3.7 2.8.7 6.4 2.4 6.4 5.4 0 3.7-4.4 5.3-9.5 5.3S2.5 19.9 2.5 16.2c0-3 3.6-4.7 6.4-5.4-.3 1.1-.1 2.2.5 3 .1-1.6 1-2.8 2.1-4.2 1.4-1.7 1.9-3.6.8-8.1z' };
+const claude = { hex: siClaude.hex, path: siClaude.path };
+const courses = [
+  { name: 'Storytelling para marketing digital', school: 'Santander', year: 'out. 2026', icon: SANTANDER },
+  { name: 'Claude Platform 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Introduction to Claude Cowork', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Claude Code 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'AI Capabilities and Limitations', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+  { name: 'Claude 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
+];
+const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line lg:h-[480px]';
+---
+<section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
+  <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
+    <h2 id="stacks-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Stacks <span class="amp text-lime">&amp;</span> Cursos</h2>
+    <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
+      <!-- STACKS: bolinhas com física -->
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h3 class="label-ui text-[11px] text-muted lg:text-xs">Stacks</h3>
+          <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
+        </div>
+        <div id="stackBox" class={`${box} touch-none select-none`}>
+          <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-lime"></span>As stacks já vão cair</p>
+          {stacks.map((s, i) => (
+            <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-lime focus-visible:border-lime active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
+            </button>
+          ))}
+          <!-- card de detalhes (abre no clique) -->
+          <div id="stackCard" class="absolute inset-0 z-20 hidden place-items-center bg-black/80 p-5">
+            <div role="dialog" aria-modal="true" aria-labelledby="stackCardTitle" class="relative flex w-full max-w-[340px] flex-col gap-3 rounded-[4px] border border-ink bg-bg p-6">
+              <button type="button" id="stackCardClose" class="label-ui absolute top-3 right-3 cursor-pointer px-2 py-1 text-[11px] text-muted hover:text-lime" aria-label="Fechar">Fechar ✕</button>
+              <span class="grid size-14 place-items-center rounded-full border border-line"><svg id="stackCardIcon" viewBox="0 0 24 24" class="size-7" fill="currentColor" aria-hidden="true"><path d="" /></svg></span>
+              <p id="stackCardKind" class="label-ui m-0 text-[11px] text-lime"></p>
+              <h4 id="stackCardTitle" class="m-0 font-display text-[32px] leading-none uppercase"></h4>
+              <p id="stackCardDesc" class="m-0 text-sm text-muted"></p>
+              <p class="m-0 border-t border-line pt-3 text-sm"><span class="label-ui mr-2 text-[11px] text-muted">Como uso</span><span id="stackCardUse"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- CURSOS: rolagem infinita -->
+      <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h3 class="label-ui text-[11px] text-muted lg:text-xs">Cursos</h3>
+          <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Role para ver todos</p>
+        </div>
+        <div id="courseBox" class={`${box} courses-fade overflow-y-auto overscroll-contain [scrollbar-width:none]`} tabindex="0" aria-label="Lista de cursos (rolagem infinita)">
+          {[0, 1].map((copy) => (
+            <ul class="m-0 grid list-none grid-cols-1 gap-2 p-2 pb-0 sm:gap-3 sm:p-3 sm:pb-0 xl:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
+              {courses.map((c) => (
+                <li class="flex min-h-[120px] flex-col justify-between gap-3 rounded-[16px] border border-line bg-surface p-3 hover:border-lime sm:min-h-[132px] sm:rounded-[12px] sm:p-4">
+                  <svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg>
+                  <div><div class="font-display text-[15px] leading-[1.05] uppercase [overflow-wrap:anywhere] min-[400px]:text-[17px] sm:text-2xl sm:leading-none">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted tabular-nums sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<style is:global>
+  .stack-ball { will-change: transform; transition: border-color .15s; }
+  .wait-dot { animation: wait-pulse 1.2s ease-in-out infinite; }
+  @keyframes wait-pulse { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .wait-dot { animation: none; } }
+  #stackCard.open { display: grid; }
+  #courseBox::-webkit-scrollbar { display: none; }
+  .courses-fade { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
+</style>
+<script define:vars={{ stacks: stacks.map((s) => ({ name: s.name, kind: s.kind, desc: s.desc, use: s.use, path: s.icon.path })) }}>
+  // ---------- Bolinhas das stacks: gravidade, colisão, arrastar/jogar e clique para o card ----------
+  (function () {
+    var box = document.getElementById('stackBox'); if (!box) return;
+    var els = Array.prototype.slice.call(box.querySelectorAll('.stack-ball'));
+    var card = document.getElementById('stackCard'), closeBtn = document.getElementById('stackCardClose');
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var G = 2200, BOUNCE = 0.45, AIR = 0.995, FLOOR_FRICTION = 0.9;
+    var W = 0, H = 0, R = 36, balls = [], drag = null, running = false, last = 0, calm = 0, opener = null;
+
+    function size() {
+      W = box.clientWidth; H = box.clientHeight;
+      R = W < 240 ? 24 : (W < 420 ? 30 : 38);
+      els.forEach(function (el) { el.style.width = el.style.height = (R * 2) + 'px'; });
+      balls.forEach(function (b) { b.r = R; b.x = Math.min(Math.max(b.x, R), W - R); b.y = Math.min(b.y, H - R); });
+    }
+    function place(b) { b.el.style.transform = 'translate(' + (b.x - b.r) + 'px,' + (b.y - b.r) + 'px)'; }
+    function init() {
+      size();
+      balls = els.map(function (el, i) {
+        var b = { el: el, i: i, r: R, vx: (Math.random() - 0.5) * 200, vy: 0 };
+        if (reduce) {   // sem animação: arrumadas em fileiras no fundo
+          var per = Math.max(1, Math.floor(W / (R * 2.2)));
+          b.x = R * 1.1 + (i % per) * R * 2.2; b.y = H - R - Math.floor(i / per) * R * 2.1;
+        } else { b.x = R + Math.random() * (W - 2 * R); b.y = -R - i * R * 1.6; }
+        place(b); return b;
+      });
+    }
+
+    function step(dt) {
+      var n = balls.length, i, j, a, b;
+      for (i = 0; i < n; i++) {
+        a = balls[i]; if (a === drag) continue;
+        a.vy += G * dt; a.vx *= AIR; a.vy *= AIR;
+        a.x += a.vx * dt; a.y += a.vy * dt;
+        if (a.x < a.r) { a.x = a.r; a.vx = -a.vx * BOUNCE; }
+        if (a.x > W - a.r) { a.x = W - a.r; a.vx = -a.vx * BOUNCE; }
+        if (a.y > H - a.r) { a.y = H - a.r; a.vy = -a.vy * BOUNCE; a.vx *= FLOOR_FRICTION; if (Math.abs(a.vy) < 30) a.vy = 0; }
+        if (a.y >= a.r) a.inside = true;   // já entrou na caixa: a partir daí o teto também segura
+        if (a.inside && a.y < a.r) { a.y = a.r; a.vy = -a.vy * BOUNCE; a.vx *= FLOOR_FRICTION; }
+      }
+      for (var it = 0; it < 3; it++) {   // algumas passadas para as pilhas se acomodarem
+        for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
+          a = balls[i]; b = balls[j];
+          var dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy, min = a.r + b.r;
+          if (d2 >= min * min || d2 === 0) continue;
+          var d = Math.sqrt(d2), nx = dx / d, ny = dy / d, over = min - d;
+          var wa = a === drag ? 0 : (b === drag ? 1 : 0.5), wb = 1 - wa;
+          a.x -= nx * over * wa; a.y -= ny * over * wa; b.x += nx * over * wb; b.y += ny * over * wb;
+          var rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (rv < 0) {
+            var imp = -(1 + BOUNCE) * rv / 2;
+            if (a !== drag) { a.vx -= imp * nx; a.vy -= imp * ny; }
+            if (b !== drag) { b.vx += imp * nx; b.vy += imp * ny; }
+          }
+        }
+        for (i = 0; i < n; i++) { a = balls[i]; if (a === drag) continue; a.x = Math.min(Math.max(a.x, a.r), W - a.r); a.y = Math.min(a.y, H - a.r); if (a.inside && a.y < a.r) a.y = a.r; }
+      }
+      balls.forEach(place);
+    }
+    function loop(now) {
+      if (!running) return;
+      var dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+      step(dt);
+      // dormir: com todas paradas no lugar (menos de 0,25 px por quadro) por ~0,75 s, o laço para; um toque ou redimensionar acorda
+      var fast = drag ? 1 : 0;
+      for (var k = 0; k < balls.length; k++) {
+        var q = balls[k];
+        if (!q.inside || Math.abs(q.x - (q.px || 0)) > 0.25 || Math.abs(q.y - (q.py || 0)) > 0.25) fast = 1;
+        q.px = q.x; q.py = q.y;
+      }
+      calm = fast ? 0 : calm + 1;
+      if (calm > 45) { running = false; return; }
+      requestAnimationFrame(loop);
+    }
+    function start() { if (running || reduce) return; running = true; last = 0; calm = 0; requestAnimationFrame(loop); }
+    function stop() { running = false; }
+
+
+    // arrastar e jogar
+    function local(e) { var r = box.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    box.addEventListener('pointerdown', function (e) {
+      var el = e.target.closest && e.target.closest('.stack-ball'); if (!el) return;
+      if (released) start();
+      var b = balls[+el.dataset.i], p = local(e);
+      drag = b; b.ox = p.x - b.x; b.oy = p.y - b.y; b.downX = e.clientX; b.downY = e.clientY; b.downT = performance.now(); b.moved = false;
+      b.hist = [{ x: p.x, y: p.y, t: b.downT }]; b.vx = b.vy = 0;
+      el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var p = local(e), b = drag;
+      if (Math.hypot(e.clientX - b.downX, e.clientY - b.downY) > 6) b.moved = true;
+      b.x = Math.min(Math.max(p.x - b.ox, b.r), W - b.r); b.y = Math.min(Math.max(p.y - b.oy, b.r), H - b.r);
+      b.hist.push({ x: p.x, y: p.y, t: performance.now() }); if (b.hist.length > 6) b.hist.shift();
+      if (reduce) place(b);
+    });
+    function release(e) {
+      if (!drag) return;
+      var b = drag; drag = null;
+      var h = b.hist, f = h[0], l = h[h.length - 1], dt = Math.max(16, l.t - f.t) / 1000;
+      b.vx = Math.max(-2500, Math.min(2500, (l.x - f.x) / dt)); b.vy = Math.max(-2500, Math.min(2500, (l.y - f.y) / dt));
+      if (!b.moved && performance.now() - b.downT < 400) openCard(b.i, b.el);
+    }
+    box.addEventListener('pointerup', release); box.addEventListener('pointercancel', release);
+    // teclado: Enter/Espaço abre o card (o clique de teclado não passa pelo pointerdown)
+    els.forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(+el.dataset.i, el); } }); });
+
+    // card de detalhes
+    function openCard(i, from) {
+      var s = stacks[i]; opener = from;
+      document.getElementById('stackCardTitle').textContent = s.name;
+      document.getElementById('stackCardKind').textContent = s.kind;
+      document.getElementById('stackCardDesc').textContent = s.desc;
+      document.getElementById('stackCardUse').textContent = s.use;
+      document.querySelector('#stackCardIcon path').setAttribute('d', s.path);
+      card.classList.add('open'); closeBtn.focus();
+    }
+    function closeCard() { if (!card.classList.contains('open')) return; card.classList.remove('open'); if (opener) opener.focus(); }
+    closeBtn.addEventListener('click', closeCard);
+    card.addEventListener('pointerdown', function (e) { e.stopPropagation(); if (e.target === card) closeCard(); });
+    // clique em qualquer lugar fora do card também fecha
+    document.addEventListener('pointerdown', function (e) { if (card.classList.contains('open') && !card.firstElementChild.contains(e.target)) closeCard(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCard(); });
+
+    init();
+    window.addEventListener('resize', function () { size(); if (released && inView) start(); });
+    // só anima com a caixa na tela e depois da liberação (5 s após a entrada da cidade)
+    var released = false, inView = !window.IntersectionObserver;
+    function go() { if (released && inView) start(); }
+    window.addEventListener('hallan:stacks', function () { released = true; var w = document.getElementById('stackWait'); if (w) w.remove(); go(); });
+    if (window.IntersectionObserver) new IntersectionObserver(function (en) {
+      inView = en[0].isIntersecting; if (inView) go(); else stop();
+    }, { threshold: 0.15 }).observe(box);
+  })();
+
+  // ---------- Sequência: cidade termina a entrada → 5 s → bolinhas caem → 5 s → cursos começam a rolar ----------
+  (function () {
+    var STEP = 5000, fired = false;
+    function fire() {
+      if (fired) return; fired = true;
+      setTimeout(function () { window.dispatchEvent(new Event('hallan:stacks')); }, STEP);
+      setTimeout(function () { window.dispatchEvent(new Event('hallan:courses')); }, STEP * 2);
+    }
+    window.addEventListener('message', function (e) {
+      var f = document.getElementById('cityFrame');
+      if (f && e.source === f.contentWindow && e.data && e.data.type === 'city:intro-done') fire();
+    });
+    setTimeout(fire, 20000);   // se a cidade não avisar (falhou ao carregar, ficou fora da tela), libera mesmo assim
+  })();
+
+  // ---------- Cursos: rolagem infinita ----------
+  (function () {
+    var box = document.getElementById('courseBox'); if (!box) return;
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var first = box.children[0], second = box.children[1];
+    function half() { return second.offsetTop - first.offsetTop; }   // altura de uma cópia da lista
+    box.addEventListener('scroll', function () {
+      var h = half(); if (!h) return;
+      if (box.scrollTop >= h + first.offsetTop) box.scrollTop -= h;
+      else if (box.scrollTop <= 0) box.scrollTop += h;
+    }, { passive: true });
+    // anda sozinha devagar; para enquanto a pessoa está com o mouse, o dedo ou o foco na lista
+    var paused = false, visible = false, released = false, looping = false, acc = 0, lastT = 0;
+    function wanted() { return released && visible && !paused && !reduce; }
+    // o laço só roda enquanto a lista está andando na tela; parado, não gasta nada
+    function wake() { if (!looping && wanted()) { looping = true; lastT = 0; requestAnimationFrame(tick); } }
+    window.addEventListener('hallan:courses', function () { released = true; wake(); });
+    ['pointerenter', 'focusin', 'touchstart'].forEach(function (ev) { box.addEventListener(ev, function () { paused = true; }, { passive: true }); });
+    ['pointerleave', 'focusout'].forEach(function (ev) { box.addEventListener(ev, function () { paused = false; wake(); }); });
+    box.addEventListener('touchend', function () { setTimeout(function () { paused = false; wake(); }, 2500); });
+    function tick(now) {
+      if (!wanted()) { looping = false; return; }
+      var dt = Math.min(0.05, (now - (lastT || now)) / 1000); lastT = now;
+      acc += 22 * dt; var px = Math.floor(acc); if (px) { box.scrollTop += px; acc -= px; }
+      requestAnimationFrame(tick);
+    }
+    if (window.IntersectionObserver) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; wake(); }).observe(box); else visible = true;
+  })();
+</script>

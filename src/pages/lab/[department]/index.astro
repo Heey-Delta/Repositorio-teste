@@ -1,0 +1,65 @@
+---
+// Página de um departamento do laboratório: descrição, filtros por área e a lista de publicações
+import Lab from '../../../layouts/Lab.astro';
+import LabIcon from '../../../components/lab/LabIcon.astro';
+import PubCard from '../../../components/lab/PubCard.astro';
+import { getLabEntries, getCatalogPublic } from '../../../lib/lab-public';
+import { departments, up } from '../../../lab/data';
+
+export function getStaticPaths() {
+  return departments.map((d) => ({ params: { department: d.slug }, props: { dep: d } }));
+}
+const { dep } = Astro.props;
+const root = up(2);
+const entries = (await getLabEntries()).filter((e) => e.data.department === dep.slug);
+const usedAreas = [...new Set(entries.flatMap((e) => e.data.areas))];
+const noindex = entries.length === 0 || entries.every((e) => e.data.draft);
+const info = (await getCatalogPublic()).departments.find((d) => d.slug === dep.slug) ?? dep;   // descrições editáveis no Catálogo
+const description = `${dep.name}: ${info.short} ${info.about}`.slice(0, 160);
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${dep.name} · Experimental Lab`, description,
+  url: new URL(`/lab/${dep.slug}/`, Astro.site).href, inLanguage: 'pt-BR',
+}];
+---
+<Lab title={dep.name} description={description} depth={2} current={dep.slug} noindex={noindex} jsonld={jsonld} crumbs={[{ name: dep.name, path: `/lab/${dep.slug}/` }]}>
+  <section class="border-b border-line" aria-labelledby="dep-title">
+    <div class="wrap flex flex-col gap-5 py-10 lg:flex-row lg:items-end lg:justify-between lg:py-14">
+      <div class="flex flex-col gap-4">
+        <p class="label-ui m-0 flex items-center gap-3 text-[11px] text-muted"><LabIcon name={dep.icon} class="size-5" />Departamento</p>
+        <h1 id="dep-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[104px]">{dep.name}</h1>
+        <p class="m-0 max-w-[560px] text-[15px] text-muted">{info.about}</p>
+      </div>
+      <p class="m-0 font-mono text-[11px] text-muted uppercase tabular-nums">{entries.length} {entries.length === 1 ? 'publicação' : 'publicações'}</p>
+    </div>
+  </section>
+  <section class="wrap flex flex-col gap-5 py-8 lg:py-12" aria-label="Publicações">
+    {usedAreas.length > 1 && (
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar por área">
+        <button type="button" class="dep-filter label-ui border border-lime px-3 py-2 text-[11px] text-lime" data-area="" aria-pressed="true">Todas</button>
+        {usedAreas.map((a) => <button type="button" class="dep-filter label-ui border border-line px-3 py-2 text-[11px] hover:border-lime" data-area={a} aria-pressed="false">{a}</button>)}
+      </div>
+    )}
+    {entries.length > 0
+      ? <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{entries.map((e) => <li data-areas={e.data.areas.join('|')}><PubCard entry={e} root={root} /></li>)}</ul>
+      : (
+        <div class="flex flex-col items-start gap-3 py-6">
+          <p class="m-0 text-lg">Ainda não publiquei nada em {dep.name}.</p>
+          <p class="m-0 max-w-[480px] text-[15px] text-muted">Quando sair a primeira publicação, ela aparece aqui. Enquanto isso, veja o que já está no laboratório.</p>
+          <a href={`${root}lab/`} class="link-ui text-xs">Voltar para o laboratório</a>
+        </div>
+      )}
+  </section>
+  <script is:inline>
+    (function () {
+      var btns = document.querySelectorAll('.dep-filter'); if (!btns.length) return;
+      var items = document.querySelectorAll('[data-areas]');
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          var a = b.dataset.area;
+          btns.forEach(function (x) { var on = x === b; x.setAttribute('aria-pressed', String(on)); x.classList.toggle('border-lime', on); x.classList.toggle('text-lime', on); x.classList.toggle('border-line', !on); });
+          items.forEach(function (li) { li.hidden = !!a && li.dataset.areas.split('|').indexOf(a) < 0; });
+        });
+      });
+    })();
+  </script>
+</Lab>

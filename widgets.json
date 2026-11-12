@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "cidade-isometrica": {
+      "title": "Cidade Isométrica 3D",
+      "entry": "widgets/cidade-isometrica/index.html",
+      "component": "CidadeIsometrica",
+      "required": true,
+      "requiredIn": "section#works"
+    },
+    "zeta-riemann": {
+      "title": "Função zeta de Riemann (desenho animado)",
+      "entry": "widgets/zeta-riemann/index.html",
+      "component": "ZetaRiemann",
+      "required": false
+    }
+  }
+}

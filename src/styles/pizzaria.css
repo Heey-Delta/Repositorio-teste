@@ -1,0 +1,36 @@
+@import "tailwindcss" source(none);
+@source "../pages/widgets/cidade-isometrica/pizzaria.astro";
+@source "../components/SiteBack.astro";
+
+/* Identidade visual La pizzeria del figlio di Lourenzo: mozzarella 50% · forno 30% · pomodoro 15% · crosta/basilico 5% */
+@theme {
+  --color-mozzarella: #FAF4E9;
+  --color-farina: #EFE4D0;
+  --color-forno: #221C1A;
+  --color-forno-muted: #6A5E57;
+  --color-forno-soft: #BBAEA6;
+  --color-pomodoro: #B3261E;
+  --color-pomodoro-dark: #931E17;
+  --color-crosta: #E0A043;
+  --color-basilico: #3F6B3A;
+  --font-display: Fraunces, Georgia, serif;
+  --font-sans: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+  --radius-md: 10px;
+  /* o site só muda de layout em 880px (tablet) e 560px (celular), como o desenho original */
+  --breakpoint-sm: 561px;
+  --breakpoint-md: 881px;
+  --animate-glow: glow 4s ease-in-out infinite;
+  --animate-slide: slide 30s linear infinite;
+  @keyframes glow { 50% { opacity: 0.75; transform: translateX(-50%) scale(0.95); } }
+  @keyframes slide { to { transform: translateX(-50%); } }
+}
+
+@utility wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+
+@layer base {
+  html { color-scheme: light; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 800; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--color-pomodoro); outline-offset: 3px; }
+}

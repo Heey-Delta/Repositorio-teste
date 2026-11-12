@@ -1,0 +1,143 @@
+---
+// Trabalhos. Destaque: a Nexus, cidade isométrica 3D (widget obrigatório, ver widgets.json). Ao clicar num prédio que é
+// um site (pizzaria, cafeteria, restaurante), o card desse site desliza pela lateral da cidade, com a captura real
+// (public/img/work-*.webp) e o link. Parque, carros e pessoas continuam abrindo o card branco de baixo (CityCard).
+// Ao lado da cidade ficam vagas reservadas para os próximos projetos (lista `next`).
+// No celular os cards viram um carrossel; no desktop, a cidade ocupa 2/3 e as vagas ficam empilhadas à direita.
+// O card branco abre por cima da seção de baixo, preso à borda inferior desta seção (por isso `relative z-30`).
+import CityCard from './CityCard.astro';
+const sites = {
+  pizzaria: { title: 'Pizzaria Lourenzo', kind: 'Cardápio e pedido pelo WhatsApp', href: 'widgets/cidade-isometrica/pizzaria/', img: 'img/work-pizzaria.webp', alt: 'Página inicial da pizzaria: título “A margherita do jeito que o pai ensinou” e a pizzaria em 3D' },
+  cafeteria: { title: 'Un buon caffè', kind: 'Cafeteria italiana', href: 'widgets/cidade-isometrica/cafeteria/', img: 'img/work-cafeteria.webp', alt: 'Página inicial da cafeteria: título “O café como se toma na Itália” e a cafeteria em 3D' },
+  restaurante: { title: 'Kaoru Kaze', kind: 'Restaurante japonês com reservas', href: 'widgets/cidade-isometrica/restaurante/', img: 'img/work-restaurante.webp', alt: 'Página inicial do restaurante japonês Kaoru Kaze, escura, com o logo em dourado' },
+};
+// Vagas para os próximos projetos: quando tiver um, troque o item por { title, kind, href, img, alt } e ele vira um card de site.
+const next = [1, 2, 3];
+const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full border border-line text-ink transition-[border-color,color,opacity] hover:border-lime hover:text-lime disabled:cursor-default disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink';
+---
+<section id="works" class="relative z-30 border-b border-line" aria-labelledby="works-title">
+  <div class="wrap flex flex-col gap-5 py-8 lg:gap-10 lg:py-16">
+    <div class="flex items-end justify-between gap-6">
+      <h2 id="works-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/ Trabalhos</h2>
+      <p class="hidden max-w-[300px] text-[15px] text-muted lg:block">Uma cidade 3D interativa. Clique numa casa para ver o site que mora nela.</p>
+      <div class="flex items-center gap-2 lg:hidden">
+        <button type="button" id="worksPrev" class={arrow} aria-label="Projeto anterior"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+        <span id="worksCount" class="label-ui min-w-[64px] text-center text-[11px] tabular-nums" aria-live="polite">01 / 04</span>
+        <button type="button" id="worksNext" class={arrow} aria-label="Próximo projeto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+
+    <div id="worksTrack" class="-mx-5 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 lg:overflow-visible lg:p-0">
+      <!-- NEXUS: a cidade isométrica (destaque) -->
+      <article class="works-card relative min-h-[460px] min-w-[88%] shrink-0 snap-start overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-[660px] lg:min-w-0">
+        <!-- fundo da cidade: degradê suave na cor de destaque do site (muda com o tempo); mais forte embaixo, some até o topo -->
+        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--lime)_30%,transparent),color-mix(in_oklab,var(--lime)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
+        <iframe class="absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
+        <div class="pointer-events-none absolute bottom-0 left-0">
+          <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
+            <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Nexus</h3>
+            <p class="label-ui text-[11px] text-muted lg:text-xs">Cidade 3D interativa · 2026</p>
+            <a href="widgets/cidade-isometrica/index.html" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">Abrir em tela cheia →</a>
+          </div>
+        </div>
+        <!-- card do site, na lateral da cidade (abre ao clicar numa casa). Fica no vão da moldura de vidro (16 px): raio 24 − 16 = 8 -->
+        <aside id="siteCard" class="site-card absolute top-4 right-4 bottom-4 z-20 flex w-[min(320px,calc(100%-32px))] flex-col overflow-hidden rounded-[8px] border border-line bg-bg" aria-label="Site selecionado na cidade" data-open="false" inert>
+          <span class="relative block min-h-0 flex-1 overflow-hidden border-b border-line bg-[#111]"><img id="siteCardImg" src="" alt="" width="960" height="600" decoding="async" class="absolute inset-0 size-full object-cover object-left-top" /></span>
+          <div class="flex flex-col gap-1.5 p-4 lg:p-5">
+            <h3 id="siteCardTitle" class="m-0 font-display text-[26px] leading-none uppercase"></h3>
+            <p id="siteCardKind" class="m-0 text-[13px] text-muted"></p>
+            <a id="siteCardLink" href="#" class="link-ui mt-2 self-start text-[11px] lg:text-xs">Ver site →</a>
+          </div>
+          <button type="button" id="siteCardClose" class="label-ui absolute top-2.5 right-2.5 cursor-pointer rounded-full bg-bg/85 px-3 py-1.5 text-[11px] text-ink hover:text-lime" aria-label="Fechar">Fechar ✕</button>
+        </aside>
+      </article>
+      <!-- vagas para os próximos projetos -->
+      <div class="contents lg:grid lg:grid-rows-3 lg:gap-6">
+        {next.map((n) => (
+          <article class="works-card flex min-h-[460px] min-w-[88%] shrink-0 snap-start flex-col overflow-hidden rounded-3xl border border-dashed border-line sm:min-w-[70%] lg:min-h-0 lg:min-w-0">
+            <span class="next-slot block min-h-0 flex-1 border-b border-dashed border-line" aria-hidden="true"></span>
+            <div class="flex items-end justify-between gap-3 p-4 lg:px-5 lg:py-4">
+              <div class="flex min-w-0 flex-col gap-1">
+                <h3 class="m-0 font-display text-[26px] leading-none uppercase lg:text-[22px]">Próximo projeto</h3>
+                <p class="m-0 text-[13px] text-muted">Vaga aberta</p>
+              </div>
+              <a href="#contact" class="link-ui shrink-0 text-[11px]">Pode ser o seu →</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+  <CityCard />
+</section>
+<style is:global>
+  .site-card { transform: translateX(calc(100% + 24px)); opacity: 0; transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .3s; pointer-events: none; }
+  .site-card[data-open="true"] { transform: none; opacity: 1; pointer-events: auto; }
+  .next-slot { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / .035) 14px 15px); }
+  #worksTrack::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { .site-card { transition: none; } }
+</style>
+<script is:inline>
+  // A cidade 3D (iframe + Three.js, centenas de KB) só começa a carregar depois que a página terminou de carregar,
+  // para não disputar a conexão com a primeira imagem (o "lazy" do navegador carregava cedo demais).
+  // Se a pessoa rolar até a seção antes disso, carrega na hora.
+  (function () {
+    var f = document.getElementById('cityFrame'); if (!f || !f.dataset.src) return;
+    var go = function () { if (!f.src) f.src = f.dataset.src; };
+    var later = function () { (window.requestIdleCallback || setTimeout)(go, { timeout: 1500 }); };
+    if (document.readyState === 'complete') later(); else addEventListener('load', later);
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); go(); } });
+      io.observe(f);
+    }
+  })();
+</script>
+<script is:inline define:vars={{ sites }}>
+  // Card lateral dos sites: a cidade manda { type: 'city:card', slug } (via CityCard, que chama window.hallanSiteCard)
+  (function () {
+    var card = document.getElementById('siteCard'); if (!card) return;
+    var img = document.getElementById('siteCardImg'), title = document.getElementById('siteCardTitle');
+    var kind = document.getElementById('siteCardKind'), link = document.getElementById('siteCardLink');
+    function frame() { return document.getElementById('cityFrame'); }
+    function isOpen() { return card.dataset.open === 'true'; }
+    function close(tellCity) {
+      if (!isOpen()) return;
+      card.dataset.open = 'false'; card.setAttribute('inert', '');
+      if (tellCity) try { frame().contentWindow.postMessage({ type: 'city:card-back' }, '*'); } catch (e) {}
+    }
+    function open(slug) {
+      var w = sites[slug]; if (!w) return false;
+      img.src = w.img; img.alt = w.alt; title.textContent = w.title; kind.textContent = w.kind; link.href = w.href;
+      card.dataset.open = 'true'; card.removeAttribute('inert');
+      return true;
+    }
+    window.hallanSiteCard = { open: open, close: close, isOpen: isOpen };
+    document.getElementById('siteCardClose').addEventListener('click', function () { close(true); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(true); });
+    document.addEventListener('pointerdown', function (e) {
+      if (!isOpen() || !e.target.closest) return;
+      if (e.target.closest('#siteCard') || e.target.closest('#cityFrame')) return;
+      close(true);
+    });
+  })();
+</script>
+<script is:inline>
+  // Carrossel do celular: setas e contador (no desktop os cards ficam numa grade e nada disso é usado)
+  (function () {
+    var track = document.getElementById('worksTrack'), count = document.getElementById('worksCount');
+    var prev = document.getElementById('worksPrev'), next = document.getElementById('worksNext');
+    if (!track) return;
+    var cards = track.querySelectorAll('.works-card');
+    function step() { return cards[0].getBoundingClientRect().width + 16; }
+    function update() {
+      var max = track.scrollWidth - track.clientWidth;
+      var i = track.scrollLeft >= max - 2 ? cards.length - 1 : Math.min(cards.length - 1, Math.round(track.scrollLeft / step()));
+      count.textContent = '0' + (i + 1) + ' / 0' + cards.length;
+      prev.disabled = track.scrollLeft <= 2; next.disabled = track.scrollLeft >= max - 2;
+    }
+    track.addEventListener('scroll', update, { passive: true });
+    prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+    next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+    update();
+  })();
+</script>

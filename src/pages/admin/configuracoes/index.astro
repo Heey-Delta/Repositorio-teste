@@ -1,0 +1,130 @@
+---
+// Configurações: saúde do sistema, atualizar o site, sessões abertas e registro de ações e logins.
+import Admin from '../../../layouts/Admin.astro';
+import { db, schema as s } from '../../../db/client';
+import { SESSION_COOKIE, sha256 } from '../../../lib/auth';
+import { fmtDateTime } from '../../../lib/admin';
+import { desc, gt, sql } from 'drizzle-orm';
+export const prerender = false;
+
+let dbOk = true;
+try { await db().execute(sql`select 1`); } catch { dbOk = false; }
+const env = (k: string) => Boolean(process.env[k]);
+const health = [
+  { ok: dbOk, label: 'Banco de dados (Neon)', fix: 'O admin não consegue ler o banco: confira DATABASE_URL e o status da Neon.' },
+  { ok: env('GITHUB_CLIENT_ID') && env('GITHUB_CLIENT_SECRET') && env('ADMIN_GITHUB_ID'), label: 'Login pelo GitHub', fix: 'Faltam GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET ou ADMIN_GITHUB_ID nas variáveis do Vercel.' },
+  { ok: env('VERCEL_DEPLOY_HOOK_URL'), label: 'Publicação automática (Deploy Hook)', fix: 'Sem VERCEL_DEPLOY_HOOK_URL, salvar no admin não atualiza o site.' },
+  { ok: env('BLOB_READ_WRITE_TOKEN'), label: 'Armazenamento de imagens e PDFs (Vercel Blob)', fix: 'Sem BLOB_READ_WRITE_TOKEN, não dá para enviar arquivos.' },
+  { ok: env('CRON_SECRET'), label: 'Publicação dos agendados (tarefa diária)', fix: 'Sem CRON_SECRET, as publicações agendadas não entram sozinhas.' },
+];
+
+const current = sha256(Astro.cookies.get(SESSION_COOKIE)?.value ?? '');
+const [sessions, log, attempts] = dbOk ? await Promise.all([
+  db().select().from(s.sessions).where(gt(s.sessions.expiresAt, new Date())).orderBy(desc(s.sessions.createdAt)),
+  db().select().from(s.adminLog).orderBy(desc(s.adminLog.createdAt)).limit(60),
+  db().select().from(s.authAttempts).orderBy(desc(s.authAttempts.createdAt)).limit(40),
+]) : [[], [], []];
+
+const device = (ua: string | null) => {
+  if (!ua) return 'Navegador desconhecido';
+  const os = /iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Outro sistema';
+  const br = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'navegador';
+  return `${br} · ${os}`;
+};
+const maskIp = (ip: string) => (ip.includes('.') ? ip.split('.').slice(0, 2).join('.') + '.*.*' : ip.split(':').slice(0, 3).join(':') + ':…');
+const actions: Record<string, string> = {
+  login: 'Entrou no admin', logout: 'Saiu', 'post.create': 'Criou publicação', 'post.save': 'Salvou publicação', 'post.delete': 'Excluiu publicação',
+  'media.upload': 'Enviou arquivo', 'media.update': 'Editou arquivo', 'media.delete': 'Excluiu arquivo', 'author.save': 'Salvou o perfil do autor',
+  'site.rebuild': 'Atualizou o site', 'redirect.create': 'Criou redirecionamento', 'redirect.on': 'Ativou redirecionamento', 'redirect.off': 'Desativou redirecionamento',
+  'redirect.delete': 'Excluiu redirecionamento', 'session.revoke-others': 'Encerrou outras sessões',
+};
+const label = (a: string) => actions[a] ?? (a.startsWith('catalog.') ? `Catálogo: ${a.slice(8)}` : a);
+const outcome: Record<string, string> = { start: 'Início do login', ok: 'Login feito', denied: 'Conta sem acesso', error: 'Login com erro' };
+const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
+---
+<Admin title="Configurações" current="config">
+  <div class="flex max-w-[1040px] flex-col gap-8">
+    <section aria-labelledby="hTitle" class={card}>
+      <h2 id="hTitle" class="m-0 text-base font-bold">Saúde do sistema</h2>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
+        {health.map((h) => (
+          <li class="flex gap-3">
+            <span aria-hidden="true" class:list={['w-4 shrink-0', h.ok ? 'text-lime' : 'text-[#ff8a8a]']}>{h.ok ? '✓' : '✕'}</span>
+            <span class="flex flex-col"><span>{h.label}<span class="sr-only">{h.ok ? ': funcionando' : ': com problema'}</span></span>{!h.ok && <span class="text-xs text-muted">{h.fix}</span>}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="sTitle" class={card}>
+      <h2 id="sTitle" class="m-0 text-base font-bold">Site</h2>
+      <p class="m-0 text-sm text-muted">Endereço: <a href={Astro.site!.origin} target="_blank" rel="noopener" class="text-ink underline">{Astro.site!.host}</a>. O site se atualiza sozinho quando você publica; use o botão se quiser forçar uma atualização (por exemplo, depois de mudar algo direto no Vercel).</p>
+      <div class="flex items-center gap-4">
+        <button type="button" id="rebuild" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink disabled:cursor-wait disabled:opacity-60">Atualizar o site agora</button>
+        <span id="rebuildState" class="text-[13px] text-muted" role="status"></span>
+      </div>
+    </section>
+
+    <section aria-labelledby="sesTitle" class={card}>
+      <h2 id="sesTitle" class="m-0 text-base font-bold">Sessões abertas</h2>
+      <p class="m-0 text-sm text-muted">Cada navegador em que você entrou fica conectado por 30 dias. Se usou um computador que não é seu, encerre as outras sessões.</p>
+      <ul class="m-0 flex list-none flex-col p-0 text-sm">
+        {sessions.map((x) => (
+          <li class="flex flex-wrap justify-between gap-2 border-t border-line py-2 last:border-b">
+            <span>{device(x.userAgent)}{x.tokenHash === current && <span class="text-lime"> · este navegador</span>}</span>
+            <span class="text-muted tabular-nums">desde {fmtDateTime(x.createdAt)}</span>
+          </li>
+        ))}
+      </ul>
+      {sessions.length > 1 && (
+        <div class="flex items-center gap-4">
+          <button type="button" id="revoke" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Encerrar as outras sessões</button>
+          <span id="revokeState" class="text-[13px] text-muted" role="status"></span>
+        </div>
+      )}
+    </section>
+
+    <section aria-labelledby="logTitle" class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div class="flex flex-col gap-3">
+        <h2 id="logTitle" class="m-0 text-base font-bold">Registro de ações</h2>
+        {log.length ? (
+          <ul class="m-0 flex list-none flex-col p-0 text-sm">
+            {log.map((l) => (
+              <li class="flex flex-wrap justify-between gap-x-3 gap-y-0.5 border-t border-line py-2 last:border-b">
+                <span>{label(l.action)}{l.target && l.action.startsWith('post.') && l.action !== 'post.delete' ? <> · <a href={`/admin/publicacoes/${l.target}/`} class="text-muted underline hover:text-ink">abrir</a></> : l.target && !/^[0-9a-f-]{36}$/.test(l.target) && l.action !== 'login' ? <span class="text-muted"> · {l.target}</span> : null}</span>
+                <span class="text-muted tabular-nums">{fmtDateTime(l.createdAt)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p class="m-0 text-sm text-muted">Nada registrado ainda.</p>}
+      </div>
+      <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-base font-bold">Tentativas de login</h2>
+        {attempts.length ? (
+          <ul class="m-0 flex list-none flex-col p-0 text-sm">
+            {attempts.map((a) => (
+              <li class="flex flex-wrap justify-between gap-x-3 border-t border-line py-2 last:border-b">
+                <span class:list={[a.outcome === 'denied' || a.outcome === 'error' ? 'text-[#ff8a8a]' : '']}>{outcome[a.outcome] ?? a.outcome} <span class="font-mono text-xs text-muted">{maskIp(a.ip)}</span></span>
+                <span class="text-muted tabular-nums">{fmtDateTime(a.createdAt)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p class="m-0 text-sm text-muted">Nenhuma ainda.</p>}
+      </div>
+    </section>
+  </div>
+  <script>
+    document.getElementById('rebuild')!.addEventListener('click', async (e) => {
+      const b = e.currentTarget as HTMLButtonElement, st = document.getElementById('rebuildState')!;
+      b.disabled = true; st.textContent = 'Pedindo a atualização…';
+      const out = await (await fetch('/api/site/rebuild', { method: 'POST' })).json().catch(() => ({}));
+      st.textContent = ({ started: 'Atualização iniciada: o site muda em cerca de 1 minuto.', unconfigured: 'Falta o Deploy Hook (veja a saúde do sistema).', failed: 'Não deu para pedir a atualização agora.' } as Record<string, string>)[out.site] ?? 'Algo deu errado.';
+      b.disabled = false;
+    });
+    document.getElementById('revoke')?.addEventListener('click', async () => {
+      const st = document.getElementById('revokeState')!;
+      const out = await (await fetch('/api/sessions', { method: 'POST' })).json().catch(() => ({}));
+      if (typeof out.revoked === 'number') location.reload(); else st.textContent = 'Não deu para encerrar.';
+    });
+  </script>
+</Admin>

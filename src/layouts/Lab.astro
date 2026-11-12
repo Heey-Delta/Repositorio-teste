@@ -1,0 +1,158 @@
+---
+// Layout do Experimental Lab (/lab/...): SEO (canonical, Open Graph, dados estruturados, noindex em rascunhos),
+// cabeçalho com o menu compacto do laboratório, busca global (título, código, tag, área) e rodapé.
+import Base from './Base.astro';
+import LabIcon from '../components/lab/LabIcon.astro';
+import { getLabEntries, getAuthor, authorLd } from '../lib/lab-public';
+import { departments, departmentBySlug, up, LAB_NAME } from '../lab/data';
+
+interface Crumb { name: string; path: string; }
+interface Props {
+  title: string; description: string; depth: number;
+  noindex?: boolean; current?: string; crumbs?: Crumb[];
+  jsonld?: Record<string, unknown>[]; ogType?: string; canonical?: string; ogImage?: { url: string; alt: string } | null;
+  article?: { published: Date; modified: Date; section: string; tags: string[] };
+}
+const { title, description, depth, noindex = false, current = 'overview', crumbs = [], jsonld = [], ogType = 'website', canonical: canonicalOverride, ogImage: ogOverride, article } = Astro.props;
+// sem capa, a imagem de compartilhamento é a do laboratório na página inicial
+const ogImage = ogOverride ?? { url: new URL('/img/laboratorio.webp', Astro.site).href, alt: 'Cúpula escura sobre uma cidade em ruínas, em meio-tom preto e branco' };
+const root = up(depth);
+const canonical = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site).href;
+const fullTitle = `${title} · ${LAB_NAME} · Hallan`;
+const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
+
+// trilha de navegação também como dado estruturado (o Google mostra no resultado)
+const allCrumbs = [{ name: 'Hallan', path: '/' }, { name: LAB_NAME, path: '/lab/' }, ...crumbs];
+const ld = [
+  { '@context': 'https://schema.org', ...authorLd(Astro.site, await getAuthor()) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: allCrumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.path, Astro.site).href })) },
+  ...jsonld,
+];
+
+// índice da busca global
+const index = (await getLabEntries()).map((e) => ({
+  t: e.data.title, c: e.data.code ?? '', d: departmentBySlug(e.data.department).name,
+  k: [...e.data.tags, ...e.data.areas].join(' '),
+  u: `${root}lab/${e.data.department}/${e.id.split('/').pop()}/`,
+}));
+const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...departments.map((d) => ({ slug: d.slug, name: d.slug === 'visual-archive' ? 'Archive' : d.name, href: `${root}lab/${d.slug}/` }))];
+---
+<Base title={fullTitle} description={description} fonts={fonts} lang="pt-BR" bodyClass="lab-body" analytics={!noindex}>
+  <Fragment slot="head">
+    <link rel="canonical" href={canonical}>
+    {noindex && <meta name="robots" content="noindex, follow">}
+    <meta property="og:type" content={ogType}>
+    <meta property="og:site_name" content={`${LAB_NAME} · Hallan`}>
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={canonical}>
+    <meta property="og:locale" content="pt_BR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content={ogImage.url}><meta property="og:image:alt" content={ogImage.alt}><meta name="twitter:image" content={ogImage.url}>
+    {article && <>
+      <meta property="article:published_time" content={article.published.toISOString()}>
+      <meta property="article:modified_time" content={article.modified.toISOString()}>
+      <meta property="article:author" content="Hallan">
+      <meta property="article:section" content={article.section}>
+      {article.tags.map((t) => <meta property="article:tag" content={t}>)}
+    </>}
+    <link rel="alternate" type="application/rss+xml" title={`${LAB_NAME} · Hallan`} href={new URL('/lab/rss.xml', Astro.site).href}>
+    {ld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+  </Fragment>
+
+  <header class="sticky top-0 z-50 border-b border-line bg-bg/95">
+    <div class="wrap flex h-16 items-center justify-between gap-4">
+      <a href={root} class="font-display text-[26px] leading-none" aria-label="/HALLAN, voltar ao site">/HALLAN</a>
+      <nav class="hidden items-center gap-5 xl:flex" aria-label="Laboratório">
+        {nav.map((n) => (
+          <a href={n.href} class:list={['label-ui flex items-center gap-2 text-[11px] whitespace-nowrap hover:text-lime', n.slug === current ? 'text-lime' : 'text-ink']} aria-current={n.slug === current ? 'page' : undefined}>
+            {n.slug === current && <span class="size-1.5 rounded-full bg-lime" aria-hidden="true"></span>}{n.name}
+          </a>
+        ))}
+      </nav>
+      <div class="flex items-center gap-1">
+        <button type="button" id="labSearchBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime" aria-label="Buscar no laboratório" aria-expanded="false" aria-controls="labSearch"><LabIcon name="search" class="size-5" /></button>
+        <button type="button" id="labMenuBtn" class="grid size-11 cursor-pointer place-items-center hover:text-lime xl:hidden" aria-label="Abrir menu" aria-expanded="false" aria-controls="labMenu">
+          <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><path d="M0 1h22M0 7h22M0 13h22" stroke="currentColor" stroke-width="1.6"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav id="labMenu" class="hidden border-t border-line bg-bg xl:hidden" aria-label="Laboratório (celular)">
+      <div class="wrap grid py-2">
+        {nav.map((n) => <a href={n.href} class:list={['label-ui border-b border-line py-3.5 text-[13px] last:border-b-0 hover:text-lime', n.slug === current && 'text-lime']}>{n.name}</a>)}
+      </div>
+    </nav>
+    <div id="labSearch" class="hidden border-t border-line bg-bg">
+      <div class="wrap flex flex-col gap-3 py-4">
+        <label for="labSearchInput" class="text-xs text-muted">Buscar por título, assunto ou código (ex.: RES-001)</label>
+        <input id="labSearchInput" type="search" autocomplete="off" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-lime" placeholder="percepção, EXP-001, brutalismo…">
+        <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0" aria-live="polite"></ul>
+      </div>
+    </div>
+  </header>
+
+  {crumbs.length > 0 && (
+    <nav class="wrap pt-5 text-xs text-muted" aria-label="Você está em">
+      <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
+      {crumbs.map((c, i) => <> <span aria-hidden="true">/</span> {i < crumbs.length - 1 ? <a href={`${root}${c.path.slice(1)}`} class="hover:text-lime">{c.name}</a> : <span class="text-ink">{c.name}</span>}</>)}
+    </nav>
+  )}
+
+  <main><slot /></main>
+
+  <footer class="mt-0 border-t border-line">
+    <div class="wrap flex flex-col gap-6 py-8 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+      <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none">/HALLAN</a><span class="text-xs text-muted">Experimental Lab</span></div>
+      <nav class="flex flex-wrap gap-x-5 gap-y-2 text-[13px]" aria-label="Rodapé do laboratório">
+        <a href={`${root}lab/`} class="hover:text-lime">Lab</a>
+        <a href={`${root}lab/autor/`} class="hover:text-lime">Autor</a>
+        <a href={`${root}#works`} class="hover:text-lime">Trabalhos</a>
+        <a href={`${root}#about`} class="hover:text-lime">Sobre</a>
+        <a href={`${root}#contact`} class="hover:text-lime">Contato</a>
+      </nav>
+      <a href={`${root}#contact`} class="label-ui self-start text-xs hover:text-lime lg:justify-self-end">Falar comigo →</a>
+    </div>
+    <div class="wrap flex flex-wrap justify-between gap-2 border-t border-line py-5 text-xs text-muted">
+      <span class="tabular-nums">© 2026 Hallan</span>
+    </div>
+  </footer>
+
+  <script is:inline define:vars={{ index }}>
+    (function () {
+      function toggle(btn, panel, other) {
+        var open = btn.getAttribute('aria-expanded') !== 'true';
+        btn.setAttribute('aria-expanded', String(open)); panel.classList.toggle('hidden', !open);
+        if (open && other) { other.btn.setAttribute('aria-expanded', 'false'); other.panel.classList.add('hidden'); }
+        return open;
+      }
+      var sBtn = document.getElementById('labSearchBtn'), sPanel = document.getElementById('labSearch');
+      var mBtn = document.getElementById('labMenuBtn'), mPanel = document.getElementById('labMenu');
+      var input = document.getElementById('labSearchInput'), out = document.getElementById('labSearchOut');
+      sBtn.addEventListener('click', function () { if (toggle(sBtn, sPanel, { btn: mBtn, panel: mPanel })) input.focus(); });
+      mBtn.addEventListener('click', function () { toggle(mBtn, mPanel, { btn: sBtn, panel: sPanel }); });
+      var norm = function (s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+      var items = index.map(function (i) { return { i: i, s: norm(i.t + ' ' + i.c + ' ' + i.d + ' ' + i.k) }; });
+      input.addEventListener('input', function () {
+        var q = norm(input.value.trim()); out.innerHTML = '';
+        if (q.length < 2) return;
+        var hits = items.filter(function (x) { return q.split(/\s+/).every(function (w) { return x.s.indexOf(w) >= 0; }); }).slice(0, 8);
+        if (!hits.length) { out.innerHTML = '<li class="py-3 text-sm text-muted">Nada com “' + input.value.trim().replace(/[<>&]/g, '') + '”. Tente outra palavra.</li>'; return; }
+        hits.forEach(function (x) {
+          var li = document.createElement('li'), a = document.createElement('a');
+          a.href = x.i.u; a.className = 'flex items-baseline gap-3 border-b border-line py-3 hover:text-lime';
+          var c = document.createElement('span'); c.className = 'font-mono text-[11px] text-lime'; c.textContent = x.i.c;
+          var t = document.createElement('span'); t.className = 'text-[15px]'; t.textContent = x.i.t;
+          a.appendChild(c); a.appendChild(t); li.appendChild(a); out.appendChild(li);
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { sBtn.setAttribute('aria-expanded', 'false'); sPanel.classList.add('hidden'); mBtn.setAttribute('aria-expanded', 'false'); mPanel.classList.add('hidden'); }
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); if (sPanel.classList.contains('hidden')) sBtn.click(); else input.focus(); }
+      });
+    })();
+  </script>
+</Base>
+<style is:global>
+  .wire { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / .05) 14px 15px), #0b0b0b; border: 1px dashed var(--line); }
+</style>

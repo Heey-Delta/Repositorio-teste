@@ -1,0 +1,12 @@
+---
+// Página pública de cada publicação do Lab (gerada no build). O conteúdo está em components/lab/Article.astro.
+import Article from '../../../components/lab/Article.astro';
+import { getLabEntries } from '../../../lib/lab-public';
+
+export async function getStaticPaths() {
+  const all = await getLabEntries();
+  return all.map((entry) => ({ params: { department: entry.data.department, slug: entry.id.split('/').pop() }, props: { entry, all } }));
+}
+const { entry, all } = Astro.props;
+---
+<Article entry={entry} all={all} />

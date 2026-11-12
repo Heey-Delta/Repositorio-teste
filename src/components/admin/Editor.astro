@@ -1,0 +1,324 @@
+---
+// Editor de publicação: a página tem o mesmo visual do artigo público e é editada ali mesmo
+// (título, resumo e corpo). Os metadados ficam na gaveta "Detalhes". O comportamento está em src/scripts/editor.ts.
+import Base from '../../layouts/Base.astro';
+import type { PostDraft } from '../../lib/posts';
+import { statusLabel } from '../../lib/admin';
+
+interface Option { id: number; name: string; slug: string }
+interface Props {
+  id: string | null;
+  draft: PostDraft;
+  updatedAt: string | null;
+  login: string;
+  options: { departments: (Option & { code: string })[]; contentTypes: Option[]; areas: (Option & { about: string })[]; posts: { id: string; code: string | null; title: string; status: keyof typeof statusLabel }[] };
+  revisions: { id: number; login: string; note: string | null; createdAt: Date }[];
+  cover: { id: string; url: string; alt: string | null; width: number | null; height: number | null } | null;
+  attachments: { id: string; url: string; alt: string | null; caption: string | null; size: number; width: number | null; height: number | null }[];
+}
+const { id, draft, updatedAt, login, options, revisions, cover, attachments } = Astro.props;
+const dep = options.departments.find((d) => d.id === draft.departmentId) ?? options.departments[0];
+const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
+const data = JSON.stringify({ id, draft, updatedAt, login, cover, attachments, areas: options.areas, contentTypes: options.contentTypes, departments: options.departments, posts: options.posts, site: Astro.site?.origin })
+  .replace(/</g, '\\u003c');
+const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
+const levels = ['Introdutório', 'Intermediário', 'Aprofundado'];
+const formats = ['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion'];
+const schemaTypes = ['Article', 'TechArticle', 'BlogPosting', 'CreativeWork', 'Report'];
+const fmt = (d: Date) => d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+const localInput = (iso: string | null | undefined) => {
+  if (!iso) return '';
+  const d = new Date(iso), p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
+const tools = [
+  ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
+  ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
+  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
+];
+---
+<Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} fonts={fonts} bodyClass="editor-body">
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
+  <script type="application/json" id="editorData" set:html={data} />
+
+  <header class="sticky top-0 z-40 border-b border-line bg-bg">
+    <div class="flex h-14 items-center gap-3 px-4 lg:px-6">
+      <a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">← Publicações</a>
+      <p id="saveState" class="m-0 min-w-0 flex-1 truncate text-[13px] text-muted" role="status" aria-live="polite">{id ? 'Tudo salvo' : 'Ainda não salva'}</p>
+      <a id="viewLink" href={`/lab/${dep.slug}/${draft.slug}/`} target="_blank" rel="noopener" hidden={!id || draft.status !== 'published'} class="hidden text-sm text-muted hover:text-ink sm:inline">Ver no site ↗</a>
+      <button type="button" id="previewBtn" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Prévia</button>
+      <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
+      <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
+    </div>
+    <div id="toolbar" role="toolbar" aria-label="Formatação do texto" class="flex gap-1 overflow-x-auto border-t border-line px-4 py-1.5 lg:px-6">
+      {tools.map(([cmd, name, glyph]) => (
+        <button type="button" data-cmd={cmd} aria-label={name} title={name} aria-pressed={['undo', 'redo', 'link', 'hr'].includes(cmd) ? undefined : 'false'}
+          class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
+      ))}
+    </div>
+  </header>
+
+  <div id="page" class="editor-page">
+    <article class="pb-24">
+      <header class="border-b border-line">
+        <div class="wrap flex flex-col gap-5 py-8 lg:py-12">
+          <p class="label-ui m-0 text-[11px] text-muted"><span id="depLabel">{dep.name}</span> · <span id="codeLabel">{draft.code ?? 'sem código'}</span></p>
+          <h1 id="title" contenteditable="plaintext-only" spellcheck="true" data-placeholder="Título da publicação" aria-label="Título"
+            class="editable m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{draft.title}</h1>
+          <div class="flex max-w-[680px] flex-col gap-1.5">
+            <p id="summary" contenteditable="plaintext-only" spellcheck="true" data-placeholder="Resumo em uma ou duas frases. Vira a descrição no Google." aria-label="Resumo"
+              class="editable m-0 text-base text-muted lg:text-lg">{draft.summary}</p>
+            <p class="m-0 text-xs text-muted tabular-nums"><span id="summaryCount">0</span> / 160 caracteres</p>
+          </div>
+          <p class="m-0 text-sm">Por <strong>Hallan</strong></p>
+        </div>
+        <div id="coverBox" class="cover-box mx-auto max-w-[1440px]"></div>
+      </header>
+      <div class="wrap py-10 lg:py-14">
+        <div id="body" class="lab-prose max-w-[720px]" aria-label="Corpo da publicação"></div>
+      </div>
+    </article>
+  </div>
+
+  <aside id="details" aria-label="Detalhes da publicação" class="details fixed top-0 right-0 bottom-0 z-50 flex w-full flex-col border-l border-line bg-bg sm:w-[400px]">
+    <div class="flex h-14 shrink-0 items-center justify-between border-b border-line px-5">
+      <h2 class="m-0 text-base font-bold">Detalhes</h2>
+      <button type="button" id="detailsClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar detalhes">✕</button>
+    </div>
+    <form id="meta" class="flex flex-1 flex-col gap-8 overflow-y-auto px-5 py-6" novalidate>
+      <fieldset class="m-0 flex flex-col gap-4 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Publicação</legend>
+        <label class={label}>Status
+          <select name="status" class={`${field} h-11`}>
+            {Object.entries(statusLabel).map(([k, v]) => <option value={k} selected={k === draft.status}>{v}</option>)}
+          </select>
+        </label>
+        <label class={label} id="scheduledWrap" hidden={draft.status !== 'scheduled'}>Publicar em
+          <input type="datetime-local" name="scheduledAt" value={localInput(draft.scheduledAt)} class={`${field} h-11`}>
+        </label>
+        <label class={label}>Departamento
+          <select name="departmentId" class={`${field} h-11`}>
+            {options.departments.map((d) => <option value={d.id} selected={d.id === draft.departmentId}>{d.name}</option>)}
+          </select>
+        </label>
+        <label class={label}>Tipo de conteúdo
+          <select name="contentTypeId" class={`${field} h-11`}>
+            <option value="">Sem tipo</option>
+            {options.contentTypes.map((t) => <option value={t.id} selected={t.id === draft.contentTypeId}>{t.name}</option>)}
+          </select>
+        </label>
+        <div class={label}>
+          <label for="f-code">Código editorial</label>
+          <div class="flex gap-2">
+            <input id="f-code" name="code" value={draft.code ?? ''} placeholder="EXP-001" autocomplete="off" class={`${field} h-11 font-mono uppercase tabular-nums`}>
+            <button type="button" id="genCode" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] text-ink hover:border-ink">Gerar</button>
+          </div>
+        </div>
+        <label class={label}>Endereço
+          <input name="slug" value={draft.slug} autocomplete="off" spellcheck="false" class={`${field} h-11 font-mono text-[13px]`}>
+          <span class="text-xs">Se já estiver no ar, o endereço antigo continua funcionando e leva para o novo.</span>
+          <span class="text-xs break-all"><span id="slugPrefix">/lab/{dep.slug}/</span><span id="slugEcho" class="text-ink">{draft.slug}</span>/</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-4 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Classificação</legend>
+        <label class={label}>Estágio
+          <select name="stage" class={`${field} h-11`}>{Object.entries(stages).map(([k, v]) => <option value={k} selected={k === draft.stage}>{v}</option>)}</select>
+        </label>
+        <label class={label}>Nível
+          <select name="level" class={`${field} h-11`}>{levels.map((l) => <option selected={l === draft.level}>{l}</option>)}</select>
+        </label>
+        <label class={label} id="formatWrap" hidden={dep.slug !== 'field-notes'}>Formato (Field Notes)
+          <select name="format" class={`${field} h-11`}>
+            <option value="">Sem formato</option>
+            {formats.map((f) => <option selected={f === draft.format}>{f}</option>)}
+          </select>
+        </label>
+        <fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
+          <legend class="mb-1.5 text-[13px] text-muted">Assuntos</legend>
+          {options.areas.map((a) => (
+            <label class="flex min-h-9 cursor-pointer items-center gap-3 text-[14px]" title={a.about}>
+              <input type="checkbox" name="areaIds" value={a.id} checked={draft.areaIds.includes(a.id)} class="size-4 accent-[var(--lime)]">{a.name}
+            </label>
+          ))}
+        </fieldset>
+        <label class={label}>Tags <span class="text-xs">separadas por vírgula</span>
+          <input name="tags" value={draft.tags.join(', ')} autocomplete="off" class={`${field} h-11`}>
+        </label>
+        <label class={label}>Projeto do portfólio relacionado
+          <input name="relatedProject" value={draft.relatedProject ?? ''} placeholder="ex.: cidade-isometrica" autocomplete="off" class={`${field} h-11`}>
+        </label>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-4 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Transparência</legend>
+        <label class={label}>Metodologia
+          <textarea name="methodology" rows="3" class={`${field} py-2`} placeholder="Como foi feito, com que fontes e testes.">{draft.methodology ?? ''}</textarea>
+        </label>
+        <label class={label}>Uso de IA
+          <textarea name="aiAssistance" rows="2" class={`${field} py-2`} placeholder="Se houve, em que parte. Deixe vazio se não houve.">{draft.aiAssistance ?? ''}</textarea>
+        </label>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Referências</legend>
+        <p class="m-0 text-xs text-muted">Aparecem numeradas no fim da publicação, nesta ordem.</p>
+        <ol id="refList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
+        <button type="button" id="addRef" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">+ Adicionar referência</button>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Anexos</legend>
+        <p class="m-0 text-xs text-muted">PDFs para baixar no fim da publicação (relatórios, apresentações, documentos).</p>
+        <ul id="attList" class="m-0 flex list-none flex-col p-0"></ul>
+        <button type="button" id="addAtt" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">+ Anexar PDF</button>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Publicações relacionadas</legend>
+        <p class="m-0 text-xs text-muted">Aparecem em "Continua em" nas duas publicações.</p>
+        <ul id="relList" class="m-0 flex list-none flex-col p-0"></ul>
+        <div class="flex gap-2">
+          <label for="relPick" class="sr-only">Escolher publicação relacionada</label>
+          <select id="relPick" class={`${field} h-11 min-w-0 flex-1`}>
+            <option value="">Escolher publicação…</option>
+            {options.posts.filter((p) => p.id !== id).map((p) => <option value={p.id}>{[p.code, p.title || 'Sem título'].filter(Boolean).join(' · ')}{p.status !== 'published' ? ` (${statusLabel[p.status].toLowerCase()})` : ''}</option>)}
+          </select>
+          <button type="button" id="addRel" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink">Adicionar</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-4 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Google e compartilhamento</legend>
+        <div class="flex flex-col gap-1 rounded-[8px] border border-line p-4" aria-label="Prévia no Google">
+          <span id="serpUrl" class="truncate text-xs text-muted"></span>
+          <span id="serpTitle" class="text-[17px] leading-snug text-[#8ab4f8]"></span>
+          <span id="serpDesc" class="text-[13px] leading-snug text-muted"></span>
+        </div>
+        <label class={label}>Título no Google <span class="text-xs tabular-nums"><span id="metaTitleCount">0</span> / 60</span>
+          <input name="metaTitle" value={draft.seo.metaTitle ?? ''} placeholder="Vazio: usa o título" class={`${field} h-11`}>
+        </label>
+        <label class={label}>Descrição no Google <span class="text-xs tabular-nums"><span id="metaDescCount">0</span> / 160</span>
+          <textarea name="metaDescription" rows="3" placeholder="Vazio: usa o resumo" class={`${field} py-2`}>{draft.seo.metaDescription ?? ''}</textarea>
+        </label>
+        <label class={label}>URL canônica
+          <input name="canonicalUrl" type="url" value={draft.seo.canonicalUrl ?? ''} placeholder="Vazio: o próprio endereço" class={`${field} h-11`}>
+        </label>
+        <label class={label}>Dados estruturados
+          <select name="schemaType" class={`${field} h-11`}>
+            <option value="">Automático pelo departamento</option>
+            {schemaTypes.map((t) => <option selected={t === draft.seo.schemaType}>{t}</option>)}
+          </select>
+        </label>
+        <label class="flex min-h-9 cursor-pointer items-center gap-3 text-[14px]">
+          <input type="checkbox" name="noindex" checked={draft.seo.noindex} class="size-4 accent-[var(--lime)]">Não mostrar no Google
+        </label>
+      </fieldset>
+
+      <section aria-labelledby="revTitle" class="flex flex-col gap-3">
+        <h3 id="revTitle" class="label-ui m-0 text-[11px] text-muted">Versões</h3>
+        <p id="revEmpty" class="m-0 text-[13px] text-muted" hidden={revisions.length > 0}>As versões aparecem a cada salvamento.</p>
+        <ol id="revList" class="m-0 flex list-none flex-col p-0">
+          {revisions.map((r, i) => (
+            <li data-rev={r.id} class="flex items-center justify-between gap-3 border-t border-line py-2.5 text-[13px] last:border-b">
+              <span class="min-w-0"><span class="font-mono text-muted tabular-nums">#{r.id}</span> {fmt(r.createdAt)}{r.note && <span class="text-muted"> · {r.note}</span>}</span>
+              {i === 0 ? <span class="shrink-0 text-xs text-muted">atual</span>
+                : <span class="flex shrink-0 gap-1">
+                    <button type="button" data-compare={r.id} class="cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]">Comparar</button>
+                    <button type="button" data-restore={r.id} class="cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]">Restaurar</button>
+                  </span>}
+            </li>
+          ))}
+        </ol>
+      </section>
+      {id && (
+        <section aria-labelledby="dupTitle" class="flex flex-col gap-3 border-t border-line pt-6">
+          <h3 id="dupTitle" class="label-ui m-0 text-[11px] text-muted">Duplicar</h3>
+          <p class="m-0 text-xs text-muted">Cria uma cópia em rascunho, com o próximo código e outro endereço. Bom para usar uma publicação como modelo.</p>
+          <button type="button" id="duplicatePost" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">Duplicar publicação</button>
+        </section>
+        <section aria-labelledby="dangerTitle" class="flex flex-col gap-3 border-t border-line pt-6">
+          <h3 id="dangerTitle" class="label-ui m-0 text-[11px] text-muted">Excluir</h3>
+          <p class="m-0 text-xs text-muted">Apaga a publicação, as versões e as ligações. Não dá para desfazer. Para tirar do ar sem apagar, use o status Arquivado.</p>
+          <button type="button" id="deletePost" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-[#ff5a5a] px-4 text-[13px] text-[#ff8a8a] hover:bg-[#1a0b0b]">Excluir publicação</button>
+        </section>
+      )}
+    </form>
+  </aside>
+  <dialog id="mediaDialog" aria-labelledby="mediaTitle" class="media-dialog m-auto w-[min(720px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
+    <form id="mediaForm" method="dialog" class="flex max-h-[min(86dvh,760px)] flex-col">
+      <div class="flex h-14 shrink-0 items-center justify-between border-b border-line px-5">
+        <h2 id="mediaTitle" class="m-0 text-base font-bold">Imagem</h2>
+        <button type="button" id="mediaClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar">✕</button>
+      </div>
+      <div class="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
+        <label class="media-drop flex min-h-[180px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[8px] border border-dashed border-line p-4 text-center hover:border-ink">
+          <img id="mediaPreview" alt="" hidden class="max-h-[240px] w-auto rounded-[4px]">
+          <span id="mediaPick" class="text-sm">Escolher imagem do computador <span class="block text-xs text-muted">JPG, PNG, WebP, AVIF ou GIF. O admin reduz e converte para WebP antes de enviar.</span></span>
+          <input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" class="sr-only">
+        </label>
+        <div id="mediaLibWrap" class="flex flex-col gap-2" hidden>
+          <p class="m-0 text-[13px] text-muted">Ou use uma imagem já enviada</p>
+          <ul id="mediaLib" class="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-5"></ul>
+        </div>
+        <label class="flex flex-col gap-1.5 text-[13px] text-muted"><span id="mediaAltLabel">Texto alternativo</span> <span id="mediaAltHint" class="text-xs">Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.</span>
+          <textarea id="mediaAlt" rows="2" maxlength="300" class="rounded-[6px] border border-line bg-bg px-3 py-2 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]"></textarea>
+        </label>
+        <label id="mediaCaptionWrap" class="flex flex-col gap-1.5 text-[13px] text-muted">Legenda <span class="text-xs">Opcional: crédito ou origem.</span>
+          <input id="mediaCaption" maxlength="500" class="h-11 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime">
+        </label>
+        <p id="mediaError" role="alert" class="m-0 text-[13px] text-[#ff8a8a]" hidden></p>
+      </div>
+      <div class="flex shrink-0 items-center justify-end gap-3 border-t border-line px-5 py-3">
+        <button type="button" id="mediaCancel" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Cancelar</button>
+        <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="diffDialog" aria-labelledby="diffTitle" class="media-dialog m-auto w-[min(920px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
+    <div class="flex max-h-[min(88dvh,820px)] flex-col">
+      <div class="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-2">
+        <h2 id="diffTitle" class="m-0 text-base font-bold">Comparar versões</h2>
+        <button type="button" id="diffClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar">✕</button>
+      </div>
+      <div id="diffBody" class="flex flex-1 flex-col gap-6 overflow-y-auto px-5 py-5 text-[14px]"></div>
+    </div>
+  </dialog>
+</Base>
+
+<script>
+  import '../../scripts/editor';
+</script>
+
+<style is:global>
+  .editor-body { --details-w: 400px; }
+  .editable { outline: none; border-radius: 4px; }
+  .editable:empty::before { content: attr(data-placeholder); color: #5c5c58; pointer-events: none; }
+  .editable:focus-visible { box-shadow: 0 0 0 1px var(--line); }
+  #body .ProseMirror { outline: none; min-height: 50vh; }
+  .lab-prose :where(.ProseMirror > * + *) { margin-top: 1.1em; }
+  #body .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #5c5c58; float: left; height: 0; pointer-events: none; }
+  .tool[aria-pressed="true"] { background: #1c1c1c; color: var(--lime); }
+  .details { transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility 0s .2s; }
+  .details[data-open="true"] { transform: none; visibility: visible; transition: transform .2s ease; }
+  @media (min-width: 1280px) {
+    .details { top: 0; }
+    .editor-body[data-details="true"] .editor-page { padding-right: var(--details-w); }
+    .editor-body[data-details="true"] > header { padding-right: var(--details-w); }
+  }
+  .details.no-anim, .details.no-anim[data-open="true"] { transition: none; }
+  @media (prefers-reduced-motion: reduce) { .details, .details[data-open="true"] { transition: none; } }
+  #saveState[data-tone="error"] { color: #ff8a8a; }
+  .diff-line { white-space: pre-wrap; word-break: break-word; padding: 1px 10px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.6; }
+  .diff-line[data-op="+"] { background: #0f2a12; color: #c9f5c9; }
+  .diff-line[data-op="-"] { background: #2e1010; color: #f5c9c9; text-decoration: line-through; text-decoration-color: rgb(245 201 201 / .4); }
+  .diff-line[data-op="…"] { color: var(--muted); }
+  .media-dialog::backdrop { background: rgb(0 0 0 / .7); }
+  .media-lib-item[aria-pressed="true"] { outline: 2px solid var(--lime); outline-offset: 2px; }
+  #body .ProseMirror img { max-width: 100%; height: auto; }
+  #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--lime); outline-offset: 2px; }
+  #saveState[data-tone="dirty"] { color: var(--ink); }
+</style>
