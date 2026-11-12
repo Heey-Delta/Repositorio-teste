@@ -1,50 +1,122 @@
 ---
-// Biblioteca de mídia (spec 5.4): arquivos enviados, onde são usados e o texto alternativo de cada um.
-// O envio acontece no editor (capa e imagens no texto), que reduz e converte as imagens antes de mandar.
+// Biblioteca de mídia (spec 5.4): envio de imagens e PDFs, onde cada arquivo é usado, texto alternativo e exclusão
+// dos que não estão em uso. Imagens são reduzidas e convertidas para WebP no navegador antes de enviar.
 import Admin from '../../../layouts/Admin.astro';
 import { listMedia, mediaUsage } from '../../../lib/media';
 export const prerender = false;
-const media = await listMedia(200);
-const usage = await mediaUsage(media.map((m) => m.id));
-const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.round(n / 1024)} KB`);
+const media = await listMedia(300);
+const usage = await mediaUsage(media);
+const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const field = 'rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const kindFilter = Astro.url.searchParams.get('tipo');
+const shown = kindFilter === 'pdf' || kindFilter === 'image' ? media.filter((m) => m.kind === kindFilter) : media;
 ---
 <Admin title="Mídia" current="midia">
-  <div class="flex flex-col gap-6">
-    <p class="m-0 max-w-[640px] text-sm text-muted">Imagens e arquivos enviados pelo editor. O texto alternativo é lido por quem usa leitor de tela e pelo Google; mudar aqui atualiza as próximas vezes que a imagem for escolhida.</p>
-    {media.length === 0
-      ? <p class="m-0 text-sm text-muted">Nenhum arquivo ainda. Envie a primeira imagem pelo editor, em "Adicionar imagem de capa" ou no botão Imagem.</p>
-      : (
-        <ul class="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
-          {media.map((m) => (
-            <li class="flex flex-col overflow-hidden rounded-[8px] border border-line">
-              {m.kind === 'image'
-                ? <img src={m.url} alt={m.alt ?? ''} loading="lazy" class="aspect-[4/3] w-full border-b border-line object-cover">
-                : <a href={m.url} target="_blank" rel="noopener" class="grid aspect-[4/3] place-items-center border-b border-line font-mono text-sm text-muted">PDF ↗</a>}
-              <form class="media-edit flex flex-1 flex-col gap-3 p-4" data-id={m.id} data-kind={m.kind}>
-                <p class="m-0 flex flex-wrap gap-x-3 text-xs text-muted tabular-nums">
-                  <span>{m.mime.split('/')[1].toUpperCase()}</span><span>{kb(m.size)}</span>
-                  {m.width && <span>{m.width}×{m.height}</span>}
-                  <span>{usage.get(m.id) ? `capa de ${usage.get(m.id)} ${usage.get(m.id) === 1 ? 'publicação' : 'publicações'}` : 'sem uso como capa'}</span>
-                </p>
-                <label class="flex flex-col gap-1 text-xs text-muted">Texto alternativo
-                  <textarea name="alt" rows="2" maxlength="300" class={`${field} py-2`}>{m.alt ?? ''}</textarea>
-                </label>
-                <label class="flex flex-col gap-1 text-xs text-muted">Legenda
-                  <input name="caption" value={m.caption ?? ''} maxlength="500" class={`${field} h-10`}>
-                </label>
-                <div class="mt-auto flex items-center justify-between gap-3">
-                  <button type="button" class="copy cursor-pointer text-xs text-muted hover:text-ink" data-url={m.url}>Copiar link</button>
-                  <span class="flex items-center gap-3"><span class="status text-xs text-muted" role="status"></span>
-                  <button type="submit" class="min-h-9 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink">Salvar</button></span>
-                </div>
-              </form>
-            </li>
+  <div class="flex flex-col gap-8">
+    <form id="uploadForm" class="flex max-w-[720px] flex-col gap-4 rounded-[8px] border border-line p-5" novalidate>
+      <h2 class="m-0 text-base font-bold">Enviar arquivo</h2>
+      <label class="flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-line p-4 text-center hover:border-ink">
+        <span id="upPick" class="text-sm">Escolher imagem ou PDF</span>
+        <span class="text-xs text-muted">JPG, PNG, WebP, AVIF, GIF ou PDF, até 4 MB. Imagens são reduzidas e convertidas para WebP antes de enviar.</span>
+        <input id="upFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,application/pdf" class="sr-only">
+      </label>
+      <label class="flex flex-col gap-1 text-xs text-muted"><span id="upAltLabel">Texto alternativo (imagem) ou título (PDF)</span>
+        <input id="upAlt" maxlength="300" class={`${field} h-10`}>
+      </label>
+      <label class="flex flex-col gap-1 text-xs text-muted">Legenda ou crédito (opcional)
+        <input id="upCaption" maxlength="500" class={`${field} h-10`}>
+      </label>
+      <div class="flex items-center gap-4">
+        <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Enviar</button>
+        <p id="upState" class="m-0 text-[13px] text-muted" role="status"></p>
+      </div>
+    </form>
+
+    <div class="flex flex-col gap-4">
+      <nav aria-label="Filtrar por tipo">
+        <ul class="m-0 flex list-none gap-2 p-0">
+          {[['', 'Todos'], ['image', 'Imagens'], ['pdf', 'PDFs']].map(([k, label]) => (
+            <li><a href={k ? `?tipo=${k}` : '?'} aria-current={(kindFilter ?? '') === k ? 'true' : undefined}
+              class:list={['inline-flex min-h-9 items-center rounded-full border px-4 text-sm', (kindFilter ?? '') === k ? 'border-lime text-lime' : 'border-line hover:border-ink']}>{label}</a></li>
           ))}
         </ul>
-      )}
+      </nav>
+      {shown.length === 0
+        ? <p class="m-0 text-sm text-muted">Nenhum arquivo aqui ainda.</p>
+        : (
+          <ul class="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
+            {shown.map((m) => {
+              const used = usage.get(m.id);
+              return (
+                <li class="flex flex-col overflow-hidden rounded-[8px] border border-line" data-id={m.id}>
+                  {m.kind === 'image'
+                    ? <img src={m.url} alt={m.alt ?? ''} loading="lazy" class="aspect-[4/3] w-full border-b border-line object-cover">
+                    : <a href={m.url} target="_blank" rel="noopener" class="grid aspect-[4/3] place-items-center border-b border-line px-4 text-center text-sm text-muted hover:text-ink">PDF ↗<span class="block text-xs">{m.alt}</span></a>}
+                  <form class="media-edit flex flex-1 flex-col gap-3 p-4" data-id={m.id} data-kind={m.kind}>
+                    <p class="m-0 flex flex-wrap gap-x-3 text-xs text-muted tabular-nums">
+                      <span>{m.mime.split('/')[1].toUpperCase()}</span><span>{kb(m.size)}</span>
+                      {m.width && <span>{m.width}×{m.height}</span>}
+                    </p>
+                    <p class="m-0 text-xs">{used ? <span class="text-ink">Em uso: {used.join('; ')}</span> : <span class="text-muted">Sem uso</span>}</p>
+                    <label class="flex flex-col gap-1 text-xs text-muted">{m.kind === 'image' ? 'Texto alternativo' : 'Título do arquivo'}
+                      <textarea name="alt" rows="2" maxlength="300" class={`${field} py-2`}>{m.alt ?? ''}</textarea>
+                    </label>
+                    <label class="flex flex-col gap-1 text-xs text-muted">Legenda
+                      <input name="caption" value={m.caption ?? ''} maxlength="500" class={`${field} h-10`}>
+                    </label>
+                    <div class="mt-auto flex flex-wrap items-center justify-between gap-3">
+                      <span class="flex gap-3">
+                        <button type="button" class="copy cursor-pointer text-xs text-muted hover:text-ink" data-url={m.url}>Copiar link</button>
+                        {!used && <button type="button" class="remove cursor-pointer text-xs text-[#ff8a8a] hover:underline">Excluir</button>}
+                      </span>
+                      <span class="flex items-center gap-3"><span class="status text-xs text-muted" role="status"></span>
+                      <button type="submit" class="min-h-9 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink">Salvar</button></span>
+                    </div>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+    </div>
   </div>
   <script>
+    import { prepareFile, sendFile, kb, type Prepared } from '../../../scripts/media-upload';
+
+    // envio
+    const upFile = document.getElementById('upFile') as HTMLInputElement;
+    const upAlt = document.getElementById('upAlt') as HTMLInputElement, upCaption = document.getElementById('upCaption') as HTMLInputElement;
+    const upState = document.getElementById('upState')!, upPick = document.getElementById('upPick')!;
+    let prepared: Prepared | null = null;
+    const fail = (msg: string) => { upState.style.color = '#ff8a8a'; upState.textContent = msg; };
+    upFile.addEventListener('change', async () => {
+      const file = upFile.files?.[0];
+      prepared = null; upState.textContent = '';
+      if (!file) return;
+      try {
+        prepared = await prepareFile(file);
+        const pdf = file.type === 'application/pdf';
+        upPick.textContent = `${file.name} · ${kb(prepared.blob.size)}${pdf ? '' : ' depois de otimizar'}`;
+        document.getElementById('upAltLabel')!.textContent = pdf ? 'Título do arquivo' : 'Texto alternativo';
+        if (pdf && !upAlt.value) upAlt.value = file.name.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ');
+        upAlt.focus();
+      } catch { fail('Não consegui abrir esse arquivo. Tente outro.'); }
+    });
+    document.getElementById('uploadForm')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      upAlt.removeAttribute('aria-invalid');
+      if (!prepared) return fail('Escolha um arquivo.');
+      if (upAlt.value.trim().length < 3) { upAlt.setAttribute('aria-invalid', 'true'); upAlt.focus(); return fail('Escreva o texto alternativo (ou o título, no PDF).'); }
+      if (prepared.blob.size > 4 * 1024 * 1024) return fail('O arquivo passou de 4 MB.');
+      const btn = (e.currentTarget as HTMLFormElement).querySelector('button')!;
+      btn.disabled = true; upState.style.color = ''; upState.textContent = 'Enviando…';
+      try {
+        await sendFile(prepared, { alt: upAlt.value.trim(), caption: upCaption.value.trim() });
+        location.reload();
+      } catch (err) { fail((err as Error).message); btn.disabled = false; }
+    });
+
+    // edição, cópia de link e exclusão
     document.querySelectorAll<HTMLFormElement>('.media-edit').forEach((form) => {
       const status = form.querySelector<HTMLElement>('.status')!;
       form.addEventListener('submit', async (e) => {
@@ -65,6 +137,14 @@ const field = 'rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink 
         await navigator.clipboard?.writeText(b.dataset.url!);
         b.textContent = 'Link copiado';
         setTimeout(() => { b.textContent = 'Copiar link'; }, 1500);
+      });
+      form.querySelector<HTMLButtonElement>('.remove')?.addEventListener('click', async () => {
+        if (!confirm('Excluir este arquivo de vez? Não dá para desfazer.')) return;
+        status.textContent = 'Excluindo…';
+        const res = await fetch(`/api/media/${form.dataset.id}`, { method: 'DELETE' });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok) { form.closest('li')!.remove(); return; }
+        status.textContent = out.error ?? 'Não deu para excluir';
       });
     });
   </script>

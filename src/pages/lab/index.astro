@@ -8,9 +8,11 @@ import LabIcon from '../../components/lab/LabIcon.astro';
 import Wire from '../../components/lab/Wire.astro';
 import Cover from '../../components/lab/Cover.astro';
 import PubCard from '../../components/lab/PubCard.astro';
-import { getLabEntries } from '../../lib/lab-public';
+import { getLabEntries, getCatalogPublic } from '../../lib/lab-public';
+import { statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
+
+const { departments, areas } = await getCatalogPublic();   // descrições editáveis no Catálogo do admin
 const personId = new URL('/#hallan', Astro.site).href;
-import { departments, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 const root = up(1);
 const all = await getLabEntries();

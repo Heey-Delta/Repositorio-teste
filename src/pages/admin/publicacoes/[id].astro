@@ -6,4 +6,4 @@ export const prerender = false;
 const [post, options] = await Promise.all([loadPost(Astro.params.id!), editorOptions()]);
 if (!post) return new Response('Publicação não encontrada', { status: 404 });
 ---
-<Editor id={post.id} draft={post.draft} updatedAt={post.updatedAt.toISOString()} login={Astro.locals.admin!.login} options={options} revisions={post.revisions} cover={post.cover} />
+<Editor id={post.id} draft={post.draft} updatedAt={post.updatedAt.toISOString()} login={Astro.locals.admin!.login} options={options} revisions={post.revisions} cover={post.cover} attachments={post.attachments} />

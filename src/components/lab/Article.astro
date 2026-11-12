@@ -26,6 +26,7 @@ const jsonld = [{
   wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
   about: d.areas.map((name) => ({ '@type': 'Thing', name })),
   ...(d.references.length ? { citation: d.references.map((r) => ({ '@type': 'CreativeWork', name: r.title, ...(r.url ? { url: r.url } : {}), ...(r.author ? { author: r.author } : {}), ...(r.publisher ? { publisher: r.publisher } : {}) })) } : {}),
+  ...(d.attachments.length ? { associatedMedia: d.attachments.map((a) => ({ '@type': 'MediaObject', name: a.title, contentUrl: a.url, encodingFormat: a.mime, contentSize: `${a.size} B` })) } : {}),
   articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
 }];
 const meta = [
@@ -81,6 +82,17 @@ const meta = [
         )}
       </div>
     </div>
+    {d.attachments.length > 0 && (
+      <section class="wrap border-t border-line py-8" aria-labelledby="files">
+        <h2 id="files" class="label-ui m-0 mb-4 text-[11px] text-muted">Arquivos</h2>
+        <ul class="m-0 flex list-none flex-col gap-3 p-0 text-sm">{d.attachments.map((a) => (
+          <li class="flex flex-col gap-0.5">
+            <a href={a.url} download rel="noopener" class="underline hover:text-lime">{a.title}</a>
+            <span class="text-xs text-muted">PDF · {a.size > 1048576 ? `${(a.size / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(a.size / 1024))} KB`}{a.caption && ` · ${a.caption}`}</span>
+          </li>
+        ))}</ul>
+      </section>
+    )}
     {d.references.length > 0 && (
       <section class="wrap border-t border-line py-8" aria-labelledby="refs">
         <h2 id="refs" class="label-ui m-0 mb-4 text-[11px] text-muted">Referências</h2>

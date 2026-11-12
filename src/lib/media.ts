@@ -1,7 +1,7 @@
 // Biblioteca de mídia: arquivos no Vercel Blob, dados (texto alternativo, legenda, tamanho) na tabela `media`.
 // As imagens chegam já otimizadas pelo navegador (WebP, até 2000 px); aqui só conferimos tipo, tamanho e o texto alternativo.
-import { put } from '@vercel/blob';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { put, del } from '@vercel/blob';
+import { desc, eq } from 'drizzle-orm';
 import { db, schema as s } from '../db/client';
 import { SaveError, slugify } from './posts';
 
@@ -51,12 +51,41 @@ export function listMedia(limit = 60) {
   return db().select().from(s.media).orderBy(desc(s.media.createdAt)).limit(limit);
 }
 
-export async function mediaUsage(ids: string[]) {
-  if (!ids.length) return new Map<string, number>();
-  const rows = await db().select({ id: s.posts.coverMediaId }).from(s.posts).where(inArray(s.posts.coverMediaId, ids));
-  const m = new Map<string, number>();
-  for (const r of rows) if (r.id) m.set(r.id, (m.get(r.id) ?? 0) + 1);
-  return m;
+// Onde cada arquivo é usado: capa, imagem de compartilhamento, anexo ou dentro do texto de alguma publicação
+export async function mediaUsage(items: { id: string; url: string }[]) {
+  const usage = new Map<string, string[]>();
+  if (!items.length) return usage;
+  const [posts, seo, att] = await Promise.all([
+    db().select({ id: s.posts.id, title: s.posts.title, cover: s.posts.coverMediaId, body: s.posts.body }).from(s.posts),
+    db().select({ postId: s.seoMetadata.postId, og: s.seoMetadata.ogMediaId }).from(s.seoMetadata),
+    db().select({ postId: s.postMedia.postId, mediaId: s.postMedia.mediaId }).from(s.postMedia),
+  ]);
+  const title = new Map(posts.map((p) => [p.id, p.title || 'Sem título']));
+  for (const m of items) {
+    const where = new Set<string>();
+    for (const p of posts) {
+      if (p.cover === m.id) where.add(`capa de "${p.title || 'Sem título'}"`);
+      else if (p.body.includes(m.url)) where.add(`texto de "${p.title || 'Sem título'}"`);
+    }
+    for (const r of seo) if (r.og === m.id) where.add(`compartilhamento de "${title.get(r.postId)}"`);
+    for (const r of att) if (r.mediaId === m.id) where.add(`anexo de "${title.get(r.postId)}"`);
+    if (where.size) usage.set(m.id, [...where]);
+  }
+  return usage;
+}
+
+// Exclui só o que não está em uso, para nenhuma página ficar com imagem ou link quebrado
+export async function deleteMedia(id: string, login: string) {
+  const [m] = await db().select().from(s.media).where(eq(s.media.id, id));
+  if (!m) throw new SaveError('Arquivo não encontrado.', undefined, 404);
+  const used = (await mediaUsage([m])).get(id);
+  if (used) throw new SaveError(`Esse arquivo está em uso (${used.join(', ')}). Tire de lá antes de excluir.`, undefined, 409);
+  await del(m.url);
+  await db().batch([
+    db().delete(s.media).where(eq(s.media.id, id)),
+    db().insert(s.adminLog).values({ login, action: 'media.delete', target: m.pathname }),
+  ]);
+  return { ok: true };
 }
 
 export async function updateMedia(id: string, data: { alt: string; caption: string }, login: string) {

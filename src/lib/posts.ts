@@ -35,6 +35,8 @@ export const postInput = z.object({
     author: optText(200), url: z.string().trim().nullable().transform((v) => v || null).refine((v) => v === null || /^https?:\/\/\S+$/.test(v), 'O link da referência precisa começar com https://'),
     sourceType: optText(40), publisher: optText(200), publishedOn: optText(40), accessedOn: optText(40),
   })).max(50).default([]),
+  // PDFs anexados (biblioteca de mídia), na ordem em que aparecem
+  attachments: z.array(z.object({ mediaId: z.uuid() })).max(20).default([]),
   // spec 7.1: ligações com outras publicações do Lab
   relations: z.array(z.object({ postId: z.uuid(), kind: z.enum(['related', 'origin', 'documents', 'continues']) })).max(12).default([]),
   scheduledAt: z.string().nullable().transform((v) => (v ? new Date(v) : null)).refine((d) => d === null || !isNaN(+d), 'Data inválida.'),
@@ -81,6 +83,8 @@ export async function loadPost(id: string) {
       .innerJoin(s.references, eq(s.references.id, s.postReferences.referenceId)).where(eq(s.postReferences.postId, id)).orderBy(asc(s.postReferences.sortOrder)),
     db().select({ postId: s.postRelations.toPostId, kind: s.postRelations.kind }).from(s.postRelations).where(eq(s.postRelations.fromPostId, id)),
   ]);
+  const attRows = await db().select({ m: s.media }).from(s.postMedia).innerJoin(s.media, eq(s.media.id, s.postMedia.mediaId))
+    .where(and(eq(s.postMedia.postId, id), eq(s.postMedia.role, 'attachment'))).orderBy(asc(s.postMedia.sortOrder));
   const p = row.posts, seo = row.seo_metadata;
   const draft: PostDraft = {
     title: p.title, summary: p.summary, body: p.body, departmentId: p.departmentId, contentTypeId: p.contentTypeId,
@@ -89,13 +93,14 @@ export async function loadPost(id: string) {
     methodology: p.methodology, aiAssistance: p.aiAssistance, scheduledAt: p.scheduledAt?.toISOString() ?? null, coverMediaId: p.coverMediaId,
     references: refRows.map(({ r }) => ({ id: r.id, title: r.title, author: r.author, url: r.url, sourceType: r.sourceType, publisher: r.publisher, publishedOn: r.publishedOn, accessedOn: r.accessedOn })),
     relations: relRows.map((r) => ({ postId: r.postId, kind: r.kind as 'related' })),
+    attachments: attRows.map(({ m }) => ({ mediaId: m.id })),
     seo: {
       metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null,
       noindex: seo?.noindex ?? false, schemaType: (seo?.schemaType ?? null) as PostDraft['seo']['schemaType'],
     },
   };
   const [cover] = p.coverMediaId ? await db().select().from(s.media).where(eq(s.media.id, p.coverMediaId)) : [];
-  return { id: p.id, draft, cover: cover ?? null, createdAt: p.createdAt, updatedAt: p.updatedAt, publishedAt: p.publishedAt, revisions: revs };
+  return { id: p.id, draft, cover: cover ?? null, attachments: attRows.map(({ m }) => m), createdAt: p.createdAt, updatedAt: p.updatedAt, publishedAt: p.publishedAt, revisions: revs };
 }
 
 export function listRevisions(postId: string) {
@@ -186,6 +191,11 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
     const found = await db().select({ id: s.posts.id }).from(s.posts).where(inArray(s.posts.id, relations.map((r) => r.postId)));
     if (found.length !== relations.length) throw new SaveError('Uma das publicações relacionadas não existe mais. Remova e escolha de novo.', 'relations');
   }
+  const attIds = [...new Set(input.attachments.map((a) => a.mediaId))];
+  if (attIds.length) {
+    const found = await db().select({ id: s.media.id, kind: s.media.kind }).from(s.media).where(inArray(s.media.id, attIds));
+    if (found.length !== attIds.length || found.some((m) => m.kind !== 'pdf')) throw new SaveError('Um dos anexos não existe mais ou não é PDF. Remova e anexe de novo.', 'attachments');
+  }
   const snapshot = { ...input, relations, scheduledAt: input.scheduledAt?.toISOString() ?? null };
   const none = () => db().select({ x: s.posts.id }).from(s.posts).limit(0);
   const [, , , , , , revision] = await db().batch([
@@ -201,6 +211,8 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
     refIds.length ? db().insert(s.postReferences).values(refIds.map((referenceId, sortOrder) => ({ postId: id!, referenceId, sortOrder }))).onConflictDoNothing() : none(),
     db().delete(s.postRelations).where(eq(s.postRelations.fromPostId, id)),
     relations.length ? db().insert(s.postRelations).values(relations.map((r) => ({ fromPostId: id!, toPostId: r.postId, kind: r.kind }))) : none(),
+    db().delete(s.postMedia).where(and(eq(s.postMedia.postId, id), eq(s.postMedia.role, 'attachment'))),
+    attIds.length ? db().insert(s.postMedia).values(attIds.map((mediaId, sortOrder) => ({ postId: id!, mediaId, role: 'attachment', sortOrder }))) : none(),
   ]);
   // estava no ar e mudou de endereço: o antigo passa a redirecionar (301) para o novo
   const newPath = await postPath(values.departmentId, values.slug);
@@ -209,6 +221,25 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   // só gera o site de novo se a publicação estava ou passou a estar no ar
   const site = wasLive || isLive(values.status, values.scheduledAt, now) ? await triggerRebuild(login, id) : null;
   return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site, redirected, refIds };
+}
+
+// Duplicar: nova publicação em rascunho com o mesmo conteúdo, código seguinte do departamento e endereço livre
+export async function duplicatePost(id: string, login: string) {
+  const post = await loadPost(id);
+  if (!post) throw new SaveError('Publicação não encontrada.', undefined, 404);
+  const d = post.draft;
+  const base = `${d.slug}-copia`.slice(0, 90);
+  let slug = base;
+  for (let n = 2; ; n++) {
+    const [taken] = await db().select({ id: s.posts.id }).from(s.posts).where(and(eq(s.posts.departmentId, d.departmentId), eq(s.posts.slug, slug)));
+    if (!taken) break;
+    slug = `${base}-${n}`;
+  }
+  const input = postInput.parse({
+    ...d, title: `${d.title} (cópia)`.slice(0, 200), status: 'draft', scheduledAt: null, slug,
+    code: d.code ? await nextCode(d.departmentId) : null,
+  });
+  return savePost({ id: null, input, login, note: `Duplicada de ${d.code ?? d.title}` });
 }
 
 // Exclusão definitiva: some do banco com versões, ligações e SEO (as imagens continuam na biblioteca de mídia)

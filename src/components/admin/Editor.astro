@@ -14,11 +14,12 @@ interface Props {
   options: { departments: (Option & { code: string })[]; contentTypes: Option[]; areas: (Option & { about: string })[]; posts: { id: string; code: string | null; title: string; status: keyof typeof statusLabel }[] };
   revisions: { id: number; login: string; note: string | null; createdAt: Date }[];
   cover: { id: string; url: string; alt: string | null; width: number | null; height: number | null } | null;
+  attachments: { id: string; url: string; alt: string | null; caption: string | null; size: number; width: number | null; height: number | null }[];
 }
-const { id, draft, updatedAt, login, options, revisions, cover } = Astro.props;
+const { id, draft, updatedAt, login, options, revisions, cover, attachments } = Astro.props;
 const dep = options.departments.find((d) => d.id === draft.departmentId) ?? options.departments[0];
 const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
-const data = JSON.stringify({ id, draft, updatedAt, login, cover, departments: options.departments, posts: options.posts, site: Astro.site?.origin })
+const data = JSON.stringify({ id, draft, updatedAt, login, cover, attachments, areas: options.areas, contentTypes: options.contentTypes, departments: options.departments, posts: options.posts, site: Astro.site?.origin })
   .replace(/</g, '\\u003c');
 const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
 const levels = ['Introdutório', 'Intermediário', 'Aprofundado'];
@@ -170,6 +171,13 @@ const tools = [
       </fieldset>
 
       <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend class="label-ui mb-1 text-[11px] text-muted">Anexos</legend>
+        <p class="m-0 text-xs text-muted">PDFs para baixar no fim da publicação (relatórios, apresentações, documentos).</p>
+        <ul id="attList" class="m-0 flex list-none flex-col p-0"></ul>
+        <button type="button" id="addAtt" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">+ Anexar PDF</button>
+      </fieldset>
+
+      <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
         <legend class="label-ui mb-1 text-[11px] text-muted">Publicações relacionadas</legend>
         <p class="m-0 text-xs text-muted">Aparecem em "Continua em" nas duas publicações.</p>
         <ul id="relList" class="m-0 flex list-none flex-col p-0"></ul>
@@ -218,12 +226,20 @@ const tools = [
             <li data-rev={r.id} class="flex items-center justify-between gap-3 border-t border-line py-2.5 text-[13px] last:border-b">
               <span class="min-w-0"><span class="font-mono text-muted tabular-nums">#{r.id}</span> {fmt(r.createdAt)}{r.note && <span class="text-muted"> · {r.note}</span>}</span>
               {i === 0 ? <span class="shrink-0 text-xs text-muted">atual</span>
-                : <button type="button" data-restore={r.id} class="shrink-0 cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]">Restaurar</button>}
+                : <span class="flex shrink-0 gap-1">
+                    <button type="button" data-compare={r.id} class="cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]">Comparar</button>
+                    <button type="button" data-restore={r.id} class="cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]">Restaurar</button>
+                  </span>}
             </li>
           ))}
         </ol>
       </section>
       {id && (
+        <section aria-labelledby="dupTitle" class="flex flex-col gap-3 border-t border-line pt-6">
+          <h3 id="dupTitle" class="label-ui m-0 text-[11px] text-muted">Duplicar</h3>
+          <p class="m-0 text-xs text-muted">Cria uma cópia em rascunho, com o próximo código e outro endereço. Bom para usar uma publicação como modelo.</p>
+          <button type="button" id="duplicatePost" class="min-h-10 cursor-pointer self-start rounded-[6px] border border-line px-4 text-[13px] hover:border-ink">Duplicar publicação</button>
+        </section>
         <section aria-labelledby="dangerTitle" class="flex flex-col gap-3 border-t border-line pt-6">
           <h3 id="dangerTitle" class="label-ui m-0 text-[11px] text-muted">Excluir</h3>
           <p class="m-0 text-xs text-muted">Apaga a publicação, as versões e as ligações. Não dá para desfazer. Para tirar do ar sem apagar, use o status Arquivado.</p>
@@ -248,7 +264,7 @@ const tools = [
           <p class="m-0 text-[13px] text-muted">Ou use uma imagem já enviada</p>
           <ul id="mediaLib" class="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-5"></ul>
         </div>
-        <label class="flex flex-col gap-1.5 text-[13px] text-muted">Texto alternativo <span class="text-xs">Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.</span>
+        <label class="flex flex-col gap-1.5 text-[13px] text-muted"><span id="mediaAltLabel">Texto alternativo</span> <span id="mediaAltHint" class="text-xs">Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.</span>
           <textarea id="mediaAlt" rows="2" maxlength="300" class="rounded-[6px] border border-line bg-bg px-3 py-2 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]"></textarea>
         </label>
         <label id="mediaCaptionWrap" class="flex flex-col gap-1.5 text-[13px] text-muted">Legenda <span class="text-xs">Opcional: crédito ou origem.</span>
@@ -261,6 +277,15 @@ const tools = [
         <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
       </div>
     </form>
+  </dialog>
+  <dialog id="diffDialog" aria-labelledby="diffTitle" class="media-dialog m-auto w-[min(920px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
+    <div class="flex max-h-[min(88dvh,820px)] flex-col">
+      <div class="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-2">
+        <h2 id="diffTitle" class="m-0 text-base font-bold">Comparar versões</h2>
+        <button type="button" id="diffClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar">✕</button>
+      </div>
+      <div id="diffBody" class="flex flex-1 flex-col gap-6 overflow-y-auto px-5 py-5 text-[14px]"></div>
+    </div>
   </dialog>
 </Base>
 
@@ -287,6 +312,10 @@ const tools = [
   .details.no-anim, .details.no-anim[data-open="true"] { transition: none; }
   @media (prefers-reduced-motion: reduce) { .details, .details[data-open="true"] { transition: none; } }
   #saveState[data-tone="error"] { color: #ff8a8a; }
+  .diff-line { white-space: pre-wrap; word-break: break-word; padding: 1px 10px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.6; }
+  .diff-line[data-op="+"] { background: #0f2a12; color: #c9f5c9; }
+  .diff-line[data-op="-"] { background: #2e1010; color: #f5c9c9; text-decoration: line-through; text-decoration-color: rgb(245 201 201 / .4); }
+  .diff-line[data-op="…"] { color: var(--muted); }
   .media-dialog::backdrop { background: rgb(0 0 0 / .7); }
   .media-lib-item[aria-pressed="true"] { outline: 2px solid var(--lime); outline-offset: 2px; }
   #body .ProseMirror img { max-width: 100%; height: auto; }

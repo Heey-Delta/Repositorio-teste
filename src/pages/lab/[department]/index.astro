@@ -3,7 +3,7 @@
 import Lab from '../../../layouts/Lab.astro';
 import LabIcon from '../../../components/lab/LabIcon.astro';
 import PubCard from '../../../components/lab/PubCard.astro';
-import { getLabEntries } from '../../../lib/lab-public';
+import { getLabEntries, getCatalogPublic } from '../../../lib/lab-public';
 import { departments, up } from '../../../lab/data';
 
 export function getStaticPaths() {
@@ -14,7 +14,8 @@ const root = up(2);
 const entries = (await getLabEntries()).filter((e) => e.data.department === dep.slug);
 const usedAreas = [...new Set(entries.flatMap((e) => e.data.areas))];
 const noindex = entries.length === 0 || entries.every((e) => e.data.draft);
-const description = `${dep.name}: ${dep.short} ${dep.about}`.slice(0, 160);
+const info = (await getCatalogPublic()).departments.find((d) => d.slug === dep.slug) ?? dep;   // descrições editáveis no Catálogo
+const description = `${dep.name}: ${info.short} ${info.about}`.slice(0, 160);
 const jsonld = [{
   '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${dep.name} · Experimental Lab`, description,
   url: new URL(`/lab/${dep.slug}/`, Astro.site).href, inLanguage: 'pt-BR',
@@ -26,7 +27,7 @@ const jsonld = [{
       <div class="flex flex-col gap-4">
         <p class="label-ui m-0 flex items-center gap-3 text-[11px] text-muted"><LabIcon name={dep.icon} class="size-5" />Departamento</p>
         <h1 id="dep-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[104px]">{dep.name}</h1>
-        <p class="m-0 max-w-[560px] text-[15px] text-muted">{dep.about}</p>
+        <p class="m-0 max-w-[560px] text-[15px] text-muted">{info.about}</p>
       </div>
       <p class="m-0 font-mono text-[11px] text-muted uppercase tabular-nums">{entries.length} {entries.length === 1 ? 'publicação' : 'publicações'}</p>
     </div>

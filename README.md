@@ -110,5 +110,9 @@ admin (`/admin/`); as páginas do Lab são geradas no build a partir delas. As c
 - **Pré-visualização:** botão "Prévia" no editor (salva antes, se preciso). Mostra a página como vai ao ar, em qualquer status, no tamanho de computador ou de celular, com o mesmo componente do site (`src/components/lab/Article.astro`).
 - **Perfil do autor:** `/admin/perfil/` (nome, título profissional, bio, especialidades e perfis). Vira a identidade de autoria (Person) nos dados estruturados do Lab.
 - **Busca:** a lista de publicações busca por título, código, endereço ou resumo, junto com o filtro de status.
+- **Duplicar:** no editor (gaveta Detalhes), cria uma cópia em rascunho com o próximo código e outro endereço.
+- **Versões:** cada versão tem "Comparar" (campos que mudaram e o texto linha a linha, contra a última salva) e "Restaurar".
+- **Mídia:** `/admin/midia/` envia imagens e PDFs, mostra onde cada arquivo é usado e só deixa excluir o que não está em uso. PDFs podem ser anexados às publicações (seção "Arquivos" no fim da página).
+- **Catálogo:** `/admin/catalogo/` edita as frases e descrições dos departamentos (nome, código e endereço ficam fixos), cria e edita assuntos e renomeia, junta e exclui tags.
 - **Imagens:** capa e imagens no texto são enviadas pelo editor. O navegador reduz para até 2000 px e converte para WebP; o servidor confere o tipo real do arquivo (JPG, PNG, WebP, AVIF, GIF ou PDF; SVG não) e exige texto alternativo. Os arquivos ficam no Vercel Blob (store `hallan-lab-midia`) e a lista em `/admin/midia/`.
 - **Variáveis no Vercel:** `DATABASE_URL` (criada pela Neon), `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_GITHUB_ID`, `BLOB_READ_WRITE_TOKEN` (criada pelo Blob), `CRON_SECRET` e `VERCEL_DEPLOY_HOOK_URL`. O OAuth App do GitHub usa o retorno `https://hallan-dante.vercel.app/api/auth/callback`.

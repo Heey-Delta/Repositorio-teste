@@ -5,12 +5,15 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
+import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
 
 type Dep = { id: number; slug: string; name: string; code: string };
-type Media = { id: string; url: string; alt: string | null; caption?: string | null; width: number | null; height: number | null; kind?: string };
+type Media = { id: string; url: string; alt: string | null; caption?: string | null; width: number | null; height: number | null; kind?: string; size?: number };
 const data = JSON.parse(document.getElementById('editorData')!.textContent!) as {
   id: string | null; draft: Record<string, any>; updatedAt: string | null; login: string; departments: Dep[]; site: string; cover: Media | null;
   posts: { id: string; code: string | null; title: string; status: string }[];
+  attachments: Media[];
+  areas: { id: number; name: string }[]; contentTypes: { id: number; name: string }[];
 };
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
@@ -77,7 +80,8 @@ function syncToolbar() {
 }
 
 // ---------- título, resumo e contadores ----------
-let slugTouched = Boolean(data.draft.slug) && data.draft.slug !== slugify(data.draft.title ?? '');
+// o endereço acompanha o título só em publicação nova: depois de salva, muda apenas se for editado à mão
+let slugTouched = Boolean(data.id) || (Boolean(data.draft.slug) && data.draft.slug !== slugify(data.draft.title ?? ''));
 for (const el of [titleEl, summaryEl]) {
   el.addEventListener('paste', (e) => {
     e.preventDefault();
@@ -185,6 +189,7 @@ function collect() {
     slug: f('slug').value.trim(),
     coverMediaId: cover?.id ?? null,
     references: collectRefs(),
+    attachments: [...attList.querySelectorAll<HTMLElement>('li')].map((li) => ({ mediaId: li.dataset.id! })),
     relations: [...relList.querySelectorAll<HTMLElement>('li')].map((li) => ({ postId: li.dataset.post!, kind: li.querySelector('select')!.value })),
     areaIds: [...form.querySelectorAll<HTMLInputElement>('input[name="areaIds"]:checked')].map((i) => Number(i.value)),
     tags: f('tags').value.split(',').map((t) => t.trim()).filter(Boolean),
@@ -290,13 +295,22 @@ function addRevision(id: number, note: string | null) {
   revList.prepend(li);
 }
 function restoreButton(id: number) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.dataset.restore = String(id);
-  b.className = 'shrink-0 cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]';
-  b.textContent = 'Restaurar';
-  return b;
+  const wrap = document.createElement('span');
+  wrap.className = 'flex shrink-0 gap-1';
+  for (const [attr, text] of [['compare', 'Comparar'], ['restore', 'Restaurar']]) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset[attr] = String(id);
+    b.className = 'cursor-pointer rounded-[4px] px-2 py-1 text-xs text-ink hover:bg-[#141414]';
+    b.textContent = text;
+    wrap.append(b);
+  }
+  return wrap;
 }
+revList.addEventListener('click', (e) => {
+  const c = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-compare]');
+  if (c && postId) void openDiff(Number(c.dataset.compare));
+});
 revList.addEventListener('click', async (e) => {
   const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-restore]');
   if (!b || !postId) return;
@@ -350,34 +364,47 @@ const dialog = $<HTMLDialogElement>('#mediaDialog');
 const fileInput = $<HTMLInputElement>('#mediaFile'), preview = $<HTMLImageElement>('#mediaPreview');
 const altInput = $<HTMLTextAreaElement>('#mediaAlt'), captionInput = $<HTMLInputElement>('#mediaCaption');
 const mediaError = $('#mediaError'), mediaOk = $<HTMLButtonElement>('#mediaOk'), lib = $('#mediaLib');
-let mode: 'cover' | 'inline' = 'inline';
+let mode: 'cover' | 'inline' | 'attachment' = 'inline';
 let picked: Media | null = null;
-let prepared: { blob: Blob; name: string; width: number; height: number } | null = null;
+let prepared: Prepared | null = null;
 
 function mediaFail(msg: string) { mediaError.textContent = msg; mediaError.hidden = false; }
-async function openMedia(m: 'cover' | 'inline') {
+const pickHint = $('#mediaPick').innerHTML;
+async function openMedia(m: 'cover' | 'inline' | 'attachment') {
   mode = m; picked = null; prepared = null;
+  const pdf = m === 'attachment';
   fileInput.value = ''; altInput.value = ''; captionInput.value = '';
+  fileInput.accept = pdf ? 'application/pdf' : 'image/jpeg,image/png,image/webp,image/avif,image/gif';
   altInput.removeAttribute('aria-invalid'); mediaError.hidden = true;
   preview.hidden = true; $('#mediaPick').hidden = false;
-  $('#mediaTitle').textContent = m === 'cover' ? 'Imagem de capa' : 'Inserir imagem no texto';
+  $('#mediaPick').innerHTML = pdf ? 'Escolher PDF do computador <span class="block text-xs text-muted">Até 4 MB.</span>' : pickHint;
+  $('#mediaAltLabel').textContent = pdf ? 'Título do arquivo' : 'Texto alternativo';
+  $('#mediaAltHint').textContent = pdf ? 'Obrigatório. É o nome que aparece no link de download.' : 'Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.';
+  mediaOk.textContent = pdf ? 'Anexar' : 'Usar imagem';
+  $('#mediaTitle').textContent = m === 'cover' ? 'Imagem de capa' : pdf ? 'Anexar PDF' : 'Inserir imagem no texto';
   dialog.showModal();
   try {
     const res = await fetch('/api/media');
     const { media } = await res.json() as { media: Media[] };
-    const images = media.filter((x) => x.kind === 'image');
+    const images = media.filter((x) => x.kind === (pdf ? 'pdf' : 'image'));
     $('#mediaLibWrap').hidden = images.length === 0;
     lib.replaceChildren(...images.map((x) => {
       const li = document.createElement('li');
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'media-lib-item block aspect-square w-full cursor-pointer overflow-hidden rounded-[4px] border border-line';
       b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', x.alt ?? 'Imagem sem descrição');
-      const img = document.createElement('img'); img.src = x.url; img.alt = ''; img.loading = 'lazy'; img.className = 'size-full object-cover';
-      b.append(img);
+      if (pdf) {
+        b.className += ' grid place-items-center p-2 text-center text-[11px] text-muted';
+        b.textContent = `PDF · ${x.alt ?? 'sem título'}`;
+      } else {
+        const img = document.createElement('img'); img.src = x.url; img.alt = ''; img.loading = 'lazy'; img.className = 'size-full object-cover';
+        b.append(img);
+      }
       b.addEventListener('click', () => {
         lib.querySelectorAll('[aria-pressed]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
         picked = x; prepared = null; fileInput.value = '';
-        preview.src = x.url; preview.hidden = false; $('#mediaPick').hidden = true;
+        if (pdf) $('#mediaPick').textContent = `PDF escolhido: ${x.alt ?? 'sem título'}`;
+        else { preview.src = x.url; preview.hidden = false; $('#mediaPick').hidden = true; }
         altInput.value = x.alt ?? ''; captionInput.value = x.caption ?? '';
       });
       li.append(b);
@@ -386,52 +413,35 @@ async function openMedia(m: 'cover' | 'inline') {
   } catch { $('#mediaLibWrap').hidden = true; }
 }
 
-// Reduz para no máximo 2000 px de largura e converte para WebP; GIF fica como está (pode ser animado)
-async function optimize(file: File) {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 2000 / bitmap.width);
-  const width = Math.round(bitmap.width * scale), height = Math.round(bitmap.height * scale);
-  if (file.type === 'image/gif') return { blob: file as Blob, name: file.name, width, height };
-  const canvas = document.createElement('canvas');
-  canvas.width = width; canvas.height = height;
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height);
-  const webp = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/webp', 0.82));
-  const blob = webp && webp.type === 'image/webp' && (webp.size < file.size || scale < 1) ? webp : file;
-  return { blob, name: blob === file ? file.name : file.name.replace(/\.[a-z0-9]+$/i, '') + '.webp', width, height };
-}
-
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   mediaError.hidden = true; picked = null;
   lib.querySelectorAll('[aria-pressed]').forEach((o) => o.setAttribute('aria-pressed', 'false'));
   try {
-    prepared = await optimize(file);
-    preview.src = URL.createObjectURL(prepared.blob); preview.hidden = false; $('#mediaPick').hidden = true;
-    if (prepared.blob.size > 4 * 1024 * 1024) mediaFail('Mesmo reduzida, a imagem passou de 4 MB. Tente outra.');
+    prepared = await prepareFile(file);
+    if (mode === 'attachment') {
+      $('#mediaPick').textContent = `${file.name} · ${kb(file.size)}`;
+      if (!altInput.value) altInput.value = file.name.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ');
+    } else { preview.src = URL.createObjectURL(prepared.blob); preview.hidden = false; $('#mediaPick').hidden = true; }
+    if (prepared.blob.size > 4 * 1024 * 1024) mediaFail(mode === 'attachment' ? 'O PDF passou de 4 MB. Reduza o arquivo e tente de novo.' : 'Mesmo reduzida, a imagem passou de 4 MB. Tente outra.');
     altInput.focus();
-  } catch { prepared = null; mediaFail('Não consegui abrir essa imagem. Tente outro arquivo.'); }
+  } catch { prepared = null; mediaFail('Não consegui abrir esse arquivo. Tente outro.'); }
 });
 
 $('#mediaForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   mediaError.hidden = true;
   const alt = altInput.value.trim(), caption = captionInput.value.trim();
-  if (!picked && !prepared) return mediaFail('Escolha uma imagem do computador ou uma já enviada.');
-  if (alt.length < 3) { altInput.setAttribute('aria-invalid', 'true'); altInput.focus(); return mediaFail('Escreva o texto alternativo.'); }
+  const pdf = mode === 'attachment';
+  if (!picked && !prepared) return mediaFail(pdf ? 'Escolha um PDF do computador ou um já enviado.' : 'Escolha uma imagem do computador ou uma já enviada.');
+  if (alt.length < 3) { altInput.setAttribute('aria-invalid', 'true'); altInput.focus(); return mediaFail(pdf ? 'Dê um título ao arquivo.' : 'Escreva o texto alternativo.'); }
   altInput.removeAttribute('aria-invalid');
   mediaOk.disabled = true; mediaOk.textContent = 'Enviando…';
   try {
     let media: Media;
     if (prepared) {
-      const body = new FormData();
-      body.append('file', prepared.blob, prepared.name);
-      body.append('alt', alt); body.append('caption', caption);
-      body.append('width', String(prepared.width)); body.append('height', String(prepared.height));
-      const res = await fetch('/api/media', { method: 'POST', body });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) return mediaFail(out.error ?? 'Não deu para enviar a imagem.');
-      media = out.media;
+      try { media = await sendFile(prepared, { alt, caption }); } catch (err) { return mediaFail((err as Error).message); }
     } else {
       media = picked!;
       if ((media.alt ?? '') !== alt || (media.caption ?? '') !== caption) {
@@ -442,13 +452,14 @@ $('#mediaForm').addEventListener('submit', async (e) => {
       }
     }
     if (mode === 'cover') { cover = media; renderCover(); }
+    else if (mode === 'attachment') addAttachment(media);
     else editor.chain().focus().setImage({ src: media.url, alt: media.alt ?? '' }).run();
     markDirty();
     dialog.close();
   } catch {
     mediaFail('Sem conexão. Tente de novo.');
   } finally {
-    mediaOk.disabled = false; mediaOk.textContent = 'Usar imagem';
+    mediaOk.disabled = false; mediaOk.textContent = mode === 'attachment' ? 'Anexar' : 'Usar imagem';
   }
 });
 for (const id of ['#mediaClose', '#mediaCancel']) $(id).addEventListener('click', () => dialog.close());
@@ -521,6 +532,26 @@ refList.addEventListener('click', (e) => {
 $('#addRef').addEventListener('click', () => { addRef().querySelector<HTMLInputElement>('[data-field="title"]')!.focus(); markDirty(); });
 for (const r of (data.draft.references ?? []) as Ref[]) addRef(r);
 
+// ---------- anexos (PDF) ----------
+const attList = $('#attList');
+function addAttachment(m: Media) {
+  if (attList.querySelector(`[data-id="${m.id}"]`)) return;
+  const li = document.createElement('li');
+  li.dataset.id = m.id;
+  li.className = 'flex items-center justify-between gap-2 border-t border-line py-2.5 text-[13px] last:border-b';
+  const a = document.createElement('a');
+  a.href = m.url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'min-w-0 truncate hover:text-lime';
+  a.textContent = `${m.alt ?? 'Arquivo sem título'}${m.size ? ` · ${kb(m.size)}` : ''}`;
+  const rm = document.createElement('button');
+  rm.type = 'button'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remover anexo'); rm.title = 'Remover anexo';
+  rm.className = 'grid size-8 shrink-0 cursor-pointer place-items-center rounded-[4px] text-[13px] text-muted hover:bg-[#141414] hover:text-ink';
+  rm.addEventListener('click', () => { li.remove(); markDirty(); });
+  li.append(a, rm);
+  attList.append(li);
+}
+$('#addAtt').addEventListener('click', () => openMedia('attachment'));
+for (const m of (data.attachments ?? []) as Media[]) addAttachment(m);
+
 // ---------- publicações relacionadas ----------
 const relList = $('#relList'), relPick = $<HTMLSelectElement>('#relPick');
 const kinds: [string, string][] = [['related', 'Relacionada'], ['origin', 'Deu origem a esta'], ['documents', 'Documenta esta'], ['continues', 'Continuação']];
@@ -547,6 +578,111 @@ function addRel(postId: string, kind = 'related') {
 }
 $('#addRel').addEventListener('click', () => { if (relPick.value) { addRel(relPick.value); relPick.value = ''; markDirty(); } });
 for (const r of (data.draft.relations ?? []) as { postId: string; kind: string }[]) addRel(r.postId, r.kind);
+
+// ---------- comparar versões ----------
+// Compara a versão escolhida com a última salva: campos que mudaram e o corpo linha a linha
+const diffDialog = $<HTMLDialogElement>('#diffDialog'), diffBody = $('#diffBody');
+$('#diffClose').addEventListener('click', () => diffDialog.close());
+type Snap = Record<string, any>;
+const nameOf = (list: { id: number; name: string }[] | undefined, id: unknown) => list?.find((x) => x.id === id)?.name ?? (id == null ? '' : String(id));
+const statusNames: Record<string, string> = { idea: 'Ideia', draft: 'Rascunho', review: 'Revisão', scheduled: 'Agendado', published: 'Publicado', archived: 'Arquivado' };
+const fields: [string, (s: Snap) => string][] = [
+  ['Título', (s) => s.title ?? ''], ['Resumo', (s) => s.summary ?? ''], ['Status', (s) => statusNames[s.status] ?? s.status ?? ''],
+  ['Departamento', (s) => nameOf(data.departments, s.departmentId)], ['Tipo de conteúdo', (s) => nameOf(data.contentTypes, s.contentTypeId)],
+  ['Código', (s) => s.code ?? ''], ['Endereço', (s) => s.slug ?? ''], ['Estágio', (s) => s.stage ?? ''], ['Nível', (s) => s.level ?? ''], ['Formato', (s) => s.format ?? ''],
+  ['Assuntos', (s) => (s.areaIds ?? []).map((id: number) => nameOf(data.areas, id)).join(', ')], ['Tags', (s) => (s.tags ?? []).join(', ')],
+  ['Projeto relacionado', (s) => s.relatedProject ?? ''], ['Metodologia', (s) => s.methodology ?? ''], ['Uso de IA', (s) => s.aiAssistance ?? ''],
+  ['Capa', (s) => (s.coverMediaId ? 'com capa' : 'sem capa')], ['Título no Google', (s) => s.seo?.metaTitle ?? ''], ['Descrição no Google', (s) => s.seo?.metaDescription ?? ''],
+  ['URL canônica', (s) => s.seo?.canonicalUrl ?? ''], ['Fora do Google', (s) => (s.seo?.noindex ? 'sim' : 'não')],
+  ['Referências', (s) => (s.references ?? []).map((r: Snap) => r.title).join(' · ')], ['Anexos', (s) => String((s.attachments ?? []).length)],
+  ['Relacionadas', (s) => (s.relations ?? []).map((r: Snap) => data.posts.find((p) => p.id === r.postId)?.title ?? '?').join(' · ')],
+];
+
+// diferença linha a linha (maior subsequência comum); textos muito longos caem numa comparação simples
+function diffLines(a: string[], b: string[]): [string, string][] {
+  if (a.length * b.length > 4_000_000) return [...a.map((l) => ['-', l] as [string, string]), ...b.map((l) => ['+', l] as [string, string])];
+  const n = a.length, m = b.length, w = m + 1;
+  const dp = new Uint32Array((n + 1) * w);
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    dp[i * w + j] = a[i] === b[j] ? dp[(i + 1) * w + j + 1] + 1 : Math.max(dp[(i + 1) * w + j], dp[i * w + j + 1]);
+  const out: [string, string][] = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { out.push([' ', a[i]]); i++; j++; }
+    else if (dp[(i + 1) * w + j] >= dp[i * w + j + 1]) out.push(['-', a[i++]]);
+    else out.push(['+', b[j++]]);
+  }
+  while (i < n) out.push(['-', a[i++]]);
+  while (j < m) out.push(['+', b[j++]]);
+  return out;
+}
+
+async function openDiff(revId: number) {
+  const newest = Number(revList.querySelector('li')?.dataset.rev ?? 0);
+  diffBody.textContent = 'Carregando…';
+  $('#diffTitle').textContent = `Versão #${revId} → atual (#${newest})`;
+  diffDialog.showModal();
+  try {
+    const [oldRes, newRes] = await Promise.all([fetch(`/api/posts/${postId}/revisions/${revId}`), fetch(`/api/posts/${postId}/revisions/${newest}`)]);
+    if (!oldRes.ok || !newRes.ok) throw new Error();
+    const a = (await oldRes.json()).snapshot as Snap, b = (await newRes.json()).snapshot as Snap;
+    diffBody.replaceChildren();
+    if (dirty) {
+      const p = document.createElement('p'); p.className = 'm-0 text-[13px] text-[#ffd34d]';
+      p.textContent = 'Você tem alterações não salvas: a comparação usa a última versão salva.';
+      diffBody.append(p);
+    }
+    const changed = fields.filter(([, get]) => get(a) !== get(b));
+    const sec = document.createElement('section'); sec.className = 'flex flex-col gap-2';
+    const h = document.createElement('h3'); h.className = 'label-ui m-0 text-[11px] text-muted'; h.textContent = 'Campos';
+    sec.append(h);
+    if (!changed.length) { const p = document.createElement('p'); p.className = 'm-0 text-muted'; p.textContent = 'Nenhum campo mudou.'; sec.append(p); }
+    else {
+      const dl = document.createElement('dl'); dl.className = 'm-0 grid gap-x-4 gap-y-3 sm:grid-cols-[160px_1fr]';
+      for (const [label, get] of changed) {
+        const dt = document.createElement('dt'); dt.className = 'text-[13px] text-muted'; dt.textContent = label;
+        const dd = document.createElement('dd'); dd.className = 'm-0 flex flex-col gap-1';
+        const was = document.createElement('span'); was.className = 'diff-line rounded-[4px]'; was.dataset.op = '-'; was.textContent = get(a) || '(vazio)';
+        const now = document.createElement('span'); now.className = 'diff-line rounded-[4px]'; now.dataset.op = '+'; now.textContent = get(b) || '(vazio)';
+        dd.append(was, now); dl.append(dt, dd);
+      }
+      sec.append(dl);
+    }
+    diffBody.append(sec);
+    const body = document.createElement('section'); body.className = 'flex flex-col gap-2';
+    const h2 = document.createElement('h3'); h2.className = 'label-ui m-0 text-[11px] text-muted'; h2.textContent = 'Texto';
+    body.append(h2);
+    const ops = diffLines(String(a.body ?? '').split('\n'), String(b.body ?? '').split('\n'));
+    if (ops.every(([op]) => op === ' ')) { const p = document.createElement('p'); p.className = 'm-0 text-muted'; p.textContent = 'O texto não mudou.'; body.append(p); }
+    else {
+      const box = document.createElement('div'); box.className = 'overflow-hidden rounded-[6px] border border-line py-1';
+      // mostra só os trechos alterados, com 2 linhas de contexto
+      const keep = ops.map((_, k) => ops.slice(Math.max(0, k - 2), k + 3).some(([op]) => op !== ' '));
+      let skipped = false;
+      ops.forEach(([op, line], k) => {
+        if (!keep[k]) { if (!skipped) { const d = document.createElement('div'); d.className = 'diff-line'; d.dataset.op = '…'; d.textContent = '…'; box.append(d); } skipped = true; return; }
+        skipped = false;
+        const d = document.createElement('div'); d.className = 'diff-line'; d.dataset.op = op; d.textContent = `${op === ' ' ? ' ' : op} ${line}`;
+        box.append(d);
+      });
+      body.append(box);
+    }
+    diffBody.append(body);
+  } catch {
+    diffBody.textContent = 'Não deu para carregar as versões. Tente de novo.';
+  }
+}
+
+// ---------- duplicar ----------
+document.getElementById('duplicatePost')?.addEventListener('click', async () => {
+  if (dirty && !confirm('A cópia usa a versão salva. Você tem alterações não salvas que não vão para a cópia. Continuar?')) return;
+  setState('Duplicando…');
+  const res = await fetch(`/api/posts/${postId}/duplicate`, { method: 'POST' });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) { setState(out.error ?? 'Não deu para duplicar.', 'error'); return; }
+  dirty = false;
+  location.href = `/admin/publicacoes/${out.id}/`;
+});
 
 // ---------- exclusão ----------
 document.getElementById('deletePost')?.addEventListener('click', async () => {

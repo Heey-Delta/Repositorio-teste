@@ -1,0 +1,146 @@
+---
+// Catálogo (spec 5.3): descrições dos departamentos, assuntos e tags. Cada alteração atualiza o site.
+import Admin from '../../../layouts/Admin.astro';
+import { getCatalog } from '../../../lib/catalog';
+export const prerender = false;
+const { departments, areas, tags } = await getCatalog();
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const btn = 'min-h-9 shrink-0 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink disabled:cursor-wait disabled:opacity-60';
+const danger = 'min-h-9 shrink-0 cursor-pointer rounded-[6px] px-3 text-[13px] text-[#ff8a8a] hover:bg-[#1a0b0b]';
+const h2 = 'm-0 text-base font-bold';
+---
+<Admin title="Catálogo" current="catalogo">
+  <div class="flex max-w-[960px] flex-col gap-12">
+    <p id="catState" class="m-0 text-[13px] text-muted" role="status">Cada alteração atualiza o site em cerca de 1 minuto.</p>
+
+    <section aria-labelledby="depTitle" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <h2 id="depTitle" class={h2}>Departamentos</h2>
+        <p class="m-0 text-[13px] text-muted">A frase curta aparece na página inicial do Lab; a descrição, no topo da página do departamento. Nome, código e endereço ficam fixos.</p>
+      </div>
+      <ul class="m-0 flex list-none flex-col gap-3 p-0">
+        {departments.map((d) => (
+          <li>
+            <form class="cat-form flex flex-col gap-3 rounded-[8px] border border-line p-4" data-action="department.update" data-id={d.id}>
+              <p class="m-0 flex flex-wrap items-baseline gap-x-3 text-sm"><strong class="font-bold">{d.name}</strong><span class="font-mono text-xs text-muted">{d.code} · /lab/{d.slug}/</span></p>
+              <label class="flex flex-col gap-1 text-xs text-muted">Frase curta
+                <input name="short" value={d.short} maxlength="140" class={`${field} h-10`}>
+              </label>
+              <label class="flex flex-col gap-1 text-xs text-muted">Descrição
+                <textarea name="about" rows="2" maxlength="500" class={`${field} py-2`}>{d.about}</textarea>
+              </label>
+              <div><button type="submit" class={btn}>Salvar</button></div>
+            </form>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="areaTitle" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <h2 id="areaTitle" class={h2}>Assuntos</h2>
+        <p class="m-0 text-[13px] text-muted">Temas que atravessam os departamentos. Aparecem em "Por assunto" e na ficha de cada publicação.</p>
+      </div>
+      <ul class="m-0 flex list-none flex-col p-0">
+        {areas.map((a) => (
+          <li class="border-t border-line py-3 last:border-b">
+            <form class="cat-form grid items-end gap-2 sm:grid-cols-[200px_1fr_auto]" data-action="area.update" data-id={a.id}>
+              <label class="flex flex-col gap-1 text-xs text-muted">Nome<input name="name" value={a.name} maxlength="60" class={`${field} h-10`}></label>
+              <label class="flex flex-col gap-1 text-xs text-muted">Descrição<input name="about" value={a.about} maxlength="200" class={`${field} h-10`}></label>
+              <div class="flex items-center gap-2">
+                <span class="w-[86px] text-xs text-muted tabular-nums">{a.uses} {a.uses === 1 ? 'publicação' : 'publicações'}</span>
+                <button type="submit" class={btn}>Salvar</button>
+                {a.uses === 0 && <button type="button" class={`cat-delete ${danger}`} data-action="area.delete" data-id={a.id} data-name={a.name}>Excluir</button>}
+              </div>
+            </form>
+          </li>
+        ))}
+      </ul>
+      <form class="cat-form grid items-end gap-2 rounded-[8px] border border-dashed border-line p-4 sm:grid-cols-[200px_1fr_auto]" data-action="area.create">
+        <label class="flex flex-col gap-1 text-xs text-muted">Novo assunto<input name="name" maxlength="60" placeholder="Ex.: Tipografia" class={`${field} h-10`}></label>
+        <label class="flex flex-col gap-1 text-xs text-muted">Descrição<input name="about" maxlength="200" class={`${field} h-10`}></label>
+        <button type="submit" class={btn}>Criar</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="tagTitle" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <h2 id="tagTitle" class={h2}>Tags</h2>
+        <p class="m-0 text-[13px] text-muted">Criadas ao escrever nas publicações. Para unir repetidas ("3D" e "3d web", por exemplo), marque-as e use "Juntar".</p>
+      </div>
+      {tags.length === 0 ? <p class="m-0 text-sm text-muted">Nenhuma tag ainda.</p> : (
+        <>
+          <div id="mergeBar" class="flex flex-wrap items-center gap-2 rounded-[8px] border border-line p-3 text-[13px]" hidden>
+            <span id="mergeCount"></span>
+            <label class="flex items-center gap-2">ficar com<select id="mergeInto" class={`${field} h-9 w-auto`}></select></label>
+            <button type="button" id="mergeBtn" class={btn}>Juntar</button>
+          </div>
+          <ul class="m-0 flex list-none flex-col p-0">
+            {tags.map((t) => (
+              <li class="border-t border-line py-2 last:border-b">
+                <form class="cat-form flex flex-wrap items-center gap-2" data-action="tag.update" data-id={t.id}>
+                  <input type="checkbox" class="tag-pick size-4 accent-[var(--lime)]" value={t.id} data-name={t.name} aria-label={`Marcar ${t.name}`}>
+                  <label class="sr-only" for={`tag-${t.id}`}>Nome da tag</label>
+                  <input id={`tag-${t.id}`} name="name" value={t.name} maxlength="40" class={`${field} h-9 max-w-[260px] flex-1`}>
+                  <span class="w-[86px] text-xs text-muted tabular-nums">{t.uses} {t.uses === 1 ? 'publicação' : 'publicações'}</span>
+                  <button type="submit" class={btn}>Salvar</button>
+                  {t.uses === 0 && <button type="button" class={`cat-delete ${danger}`} data-action="tag.delete" data-id={t.id} data-name={t.name}>Excluir</button>}
+                </form>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  </div>
+  <script>
+    const state = document.getElementById('catState')!;
+    async function send(body: Record<string, unknown>, form?: HTMLFormElement) {
+      form?.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid'));
+      state.style.color = ''; state.textContent = 'Salvando…';
+      const res = await fetch('/api/catalog', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        state.style.color = '#ff8a8a'; state.textContent = out.error ?? 'Não deu para salvar.';
+        const el = out.field && form?.elements.namedItem(out.field) as HTMLElement | null;
+        if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+        state.scrollIntoView({ block: 'nearest' });
+        return false;
+      }
+      sessionStorage.setItem('catMsg', out.site === 'started' ? 'Salvo. O site atualiza em cerca de 1 minuto.' : 'Salvo.');
+      location.reload();
+      return true;
+    }
+    try { const msg = sessionStorage.getItem('catMsg'); if (msg) { state.textContent = msg; sessionStorage.removeItem('catMsg'); } } catch {}
+
+    document.querySelectorAll<HTMLFormElement>('.cat-form').forEach((form) => form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const body: Record<string, unknown> = { action: form.dataset.action };
+      if (form.dataset.id) body.id = Number(form.dataset.id);
+      for (const el of form.querySelectorAll<HTMLInputElement>('input[name], textarea[name]')) body[el.name] = el.value;
+      void send(body, form);
+    }));
+    document.querySelectorAll<HTMLButtonElement>('.cat-delete').forEach((b) => b.addEventListener('click', () => {
+      if (confirm(`Excluir "${b.dataset.name}"?`)) void send({ action: b.dataset.action, id: Number(b.dataset.id) });
+    }));
+
+    // juntar tags marcadas
+    const picks = [...document.querySelectorAll<HTMLInputElement>('.tag-pick')];
+    const bar = document.getElementById('mergeBar'), into = document.getElementById('mergeInto') as HTMLSelectElement | null;
+    function refreshMerge() {
+      const checked = picks.filter((p) => p.checked);
+      if (!bar || !into) return;
+      bar.hidden = checked.length < 2;
+      document.getElementById('mergeCount')!.textContent = `${checked.length} tags marcadas`;
+      const keep = into.value;
+      into.replaceChildren(...checked.map((p) => new Option(p.dataset.name!, p.value)));
+      if (checked.some((p) => p.value === keep)) into.value = keep;
+    }
+    picks.forEach((p) => p.addEventListener('change', refreshMerge));
+    document.getElementById('mergeBtn')?.addEventListener('click', () => {
+      const ids = picks.filter((p) => p.checked).map((p) => Number(p.value));
+      const keep = into!.selectedOptions[0]?.text;
+      if (confirm(`Juntar ${ids.length} tags em "${keep}"? As outras somem e as publicações passam a usar "${keep}".`)) void send({ action: 'tag.merge', ids, into: Number(into!.value) });
+    });
+  </script>
+</Admin>
