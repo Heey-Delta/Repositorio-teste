@@ -1,0 +1,83 @@
+---
+// Analytics: números do Lab que o admin já conhece (publicações, assuntos, atualizações do site) e os atalhos
+// para as medições de fora: Vercel Web Analytics (visitas) e Google Search Console (busca).
+import Admin from '../../../layouts/Admin.astro';
+import { countsByStatus, statusLabel, statusOrder, fmtDateTime } from '../../../lib/admin';
+import { db, schema as s } from '../../../db/client';
+import { and, count, desc, eq, gte, isNotNull } from 'drizzle-orm';
+export const prerender = false;
+
+const since = new Date(); since.setUTCMonth(since.getUTCMonth() - 5, 1); since.setUTCHours(0, 0, 0, 0);
+const [counts, pubs, areaUse, tagUse, rebuilds, totals] = await Promise.all([
+  countsByStatus(),
+  db().select({ at: s.posts.publishedAt }).from(s.posts).where(and(eq(s.posts.status, 'published'), isNotNull(s.posts.publishedAt), gte(s.posts.publishedAt, since))),
+  db().select({ name: s.areas.name, n: count() }).from(s.postAreas).innerJoin(s.areas, eq(s.areas.id, s.postAreas.areaId)).groupBy(s.areas.name).orderBy(desc(count())).limit(8),
+  db().select({ name: s.tags.name, n: count() }).from(s.postTags).innerJoin(s.tags, eq(s.tags.id, s.postTags.tagId)).groupBy(s.tags.name).orderBy(desc(count())).limit(12),
+  db().select().from(s.adminLog).where(eq(s.adminLog.action, 'site.rebuild')).orderBy(desc(s.adminLog.createdAt)).limit(8),
+  db().select({ minutes: s.posts.readingMinutes }).from(s.posts).where(eq(s.posts.status, 'published')),
+]);
+const months = Array.from({ length: 6 }, (_, i) => { const d = new Date(since); d.setUTCMonth(since.getUTCMonth() + i); return d; });
+const perMonth = months.map((m) => ({
+  label: m.toLocaleDateString('pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''),
+  n: pubs.filter((p) => p.at && p.at.getUTCFullYear() === m.getUTCFullYear() && p.at.getUTCMonth() === m.getUTCMonth()).length,
+}));
+const max = Math.max(1, ...perMonth.map((m) => m.n));
+const minutes = totals.reduce((a, b) => a + (b.minutes ?? 0), 0);
+const card = 'flex flex-col gap-3 rounded-[8px] border border-line p-5';
+---
+<Admin title="Analytics" current="analytics">
+  <div class="flex max-w-[1040px] flex-col gap-8">
+    <section aria-labelledby="extTitle" class="grid gap-4 md:grid-cols-2">
+      <h2 id="extTitle" class="sr-only">Medições externas</h2>
+      <div class={card}>
+        <h3 class="m-0 text-base font-bold">Visitas · Vercel Web Analytics</h3>
+        <p class="m-0 text-sm text-muted">Páginas mais vistas, de onde vêm as visitas, países e aparelhos, sem cookies. O site já envia os dados; para começar a contar, ative uma vez em <strong class="text-ink">Vercel → hallan-dante → Analytics → Enable</strong>.</p>
+        <a href="https://vercel.com/oh-alla/hallan-dante/analytics" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-lime">Abrir no Vercel ↗</a>
+      </div>
+      <div class={card}>
+        <h3 class="m-0 text-base font-bold">Busca · Google Search Console</h3>
+        <p class="m-0 text-sm text-muted">Quantas vezes o site apareceu no Google, cliques, termos pesquisados e páginas indexadas. Recomendo cadastrar depois de decidir o domínio próprio e enviar o <code class="text-ink">sitemap.xml</code>.</p>
+        <a href="https://search.google.com/search-console" target="_blank" rel="noopener" class="self-start text-sm underline hover:text-lime">Abrir o Search Console ↗</a>
+      </div>
+    </section>
+
+    <section aria-labelledby="statusTitle" class="flex flex-col gap-3">
+      <h2 id="statusTitle" class="m-0 text-base font-bold">Publicações</h2>
+      <ul class="m-0 grid list-none grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line p-0 sm:grid-cols-3 lg:grid-cols-6">
+        {statusOrder.map((k) => <li class="flex flex-col gap-1 bg-bg p-4"><span class="text-[26px] leading-none font-bold tabular-nums">{counts[k]}</span><span class="text-sm text-muted">{statusLabel[k]}</span></li>)}
+      </ul>
+      <p class="m-0 text-sm text-muted">No ar: {counts.published} {counts.published === 1 ? 'publicação' : 'publicações'}, cerca de {minutes} {minutes === 1 ? 'minuto' : 'minutos'} de leitura no total.</p>
+    </section>
+
+    <section aria-labelledby="monthTitle" class="flex flex-col gap-3">
+      <h2 id="monthTitle" class="m-0 text-base font-bold">Publicadas por mês</h2>
+      <ol class="m-0 flex h-[160px] list-none items-end gap-3 p-0" aria-label="Publicações nos últimos 6 meses">
+        {perMonth.map((m) => (
+          <li class="flex flex-1 flex-col items-center gap-2">
+            <span class="text-xs tabular-nums">{m.n}</span>
+            <span class="w-full rounded-t-[4px] bg-lime" style={`height:${Math.max(2, (m.n / max) * 110)}px`} aria-hidden="true"></span>
+            <span class="text-xs text-muted">{m.label}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-base font-bold">Assuntos mais usados</h2>
+        {areaUse.length ? <ul class="m-0 flex list-none flex-col gap-1.5 p-0 text-sm">{areaUse.map((a) => <li class="flex justify-between gap-3 border-b border-line pb-1.5"><span>{a.name}</span><span class="text-muted tabular-nums">{a.n}</span></li>)}</ul> : <p class="m-0 text-sm text-muted">Nenhum ainda.</p>}
+      </div>
+      <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-base font-bold">Tags mais usadas</h2>
+        {tagUse.length ? <ul class="m-0 flex list-none flex-wrap gap-2 p-0 text-sm">{tagUse.map((t) => <li class="rounded-full border border-line px-3 py-1">{t.name} <span class="text-muted tabular-nums">{t.n}</span></li>)}</ul> : <p class="m-0 text-sm text-muted">Nenhuma ainda.</p>}
+      </div>
+    </section>
+
+    <section aria-labelledby="rbTitle" class="flex flex-col gap-3">
+      <h2 id="rbTitle" class="m-0 text-base font-bold">Últimas atualizações do site</h2>
+      {rebuilds.length ? (
+        <ul class="m-0 flex list-none flex-col p-0 text-sm">{rebuilds.map((r) => <li class="flex justify-between gap-3 border-t border-line py-2 last:border-b"><span class="text-muted">{r.target?.startsWith('catálogo') || r.target?.startsWith('perfil') || r.target?.includes('agendada') || r.target?.startsWith('exclusão') || r.target === 'manual' ? r.target : 'publicação salva'}</span><span class="text-muted tabular-nums">{fmtDateTime(r.createdAt)}</span></li>)}</ul>
+      ) : <p class="m-0 text-sm text-muted">Nenhuma ainda.</p>}
+    </section>
+  </div>
+</Admin>

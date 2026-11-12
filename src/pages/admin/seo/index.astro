@@ -1,0 +1,79 @@
+---
+// SEO & GEO: diagnóstico de cada publicação (menos as arquivadas) e do perfil do autor, com o que corrigir.
+import Admin from '../../../layouts/Admin.astro';
+import { auditAuthor, auditPosts, type Check } from '../../../lib/seo-audit';
+import { statusLabel } from '../../../lib/admin';
+export const prerender = false;
+const [posts, author] = await Promise.all([auditPosts(), auditAuthor()]);
+const site = Astro.site!.origin;
+const tone = (n: number) => (n >= 85 ? 'text-lime' : n >= 60 ? 'text-[#ffd34d]' : 'text-[#ff8a8a]');
+const issues = (checks: Check[]) => checks.filter((c) => !c.ok).sort((a, b) => (a.level === b.level ? 0 : a.level === 'erro' ? -1 : 1));
+---
+<Admin title="SEO & GEO" current="seo">
+  <div class="flex max-w-[1040px] flex-col gap-10">
+    <nav aria-label="SEO & GEO" class="flex gap-2 text-sm">
+      <a href="/admin/seo/" aria-current="page" class="inline-flex min-h-9 items-center rounded-full border border-lime px-4 text-lime">Diagnóstico</a>
+      <a href="/admin/seo/redirecionamentos/" class="inline-flex min-h-9 items-center rounded-full border border-line px-4 hover:border-ink">Redirecionamentos</a>
+    </nav>
+    <p class="m-0 max-w-[720px] text-sm text-muted"><strong class="text-ink">SEO</strong> é o Google entender e mostrar bem cada página. <strong class="text-ink">GEO</strong> é buscadores com IA (ChatGPT, Gemini, Perplexity, as respostas do Google) entenderem, confiarem e citarem o conteúdo. A parte técnica (sitemap, robots, dados estruturados, endereços) o site já faz sozinho; aqui fica o que depende do conteúdo.</p>
+
+    <section aria-labelledby="authTitle" class="flex flex-col gap-3">
+      <h2 id="authTitle" class="m-0 text-base font-bold">Autor</h2>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
+        {author.map((c) => (
+          <li class="flex gap-3">
+            <span aria-hidden="true" class:list={['w-4 shrink-0', c.ok ? 'text-lime' : c.level === 'erro' ? 'text-[#ff8a8a]' : 'text-[#ffd34d]']}>{c.ok ? '✓' : c.level === 'erro' ? '✕' : '!'}</span>
+            <span class="flex flex-col"><span>{c.label}<span class="sr-only">{c.ok ? ': ok' : `: ${c.level}`}</span></span>{!c.ok && <span class="text-xs text-muted">{c.fix}</span>}</span>
+          </li>
+        ))}
+      </ul>
+      {author.some((c) => !c.ok) && <a href="/admin/perfil/" class="self-start text-sm underline hover:text-lime">Completar o perfil do autor</a>}
+    </section>
+
+    <section aria-labelledby="postsTitle" class="flex flex-col gap-3">
+      <h2 id="postsTitle" class="m-0 text-base font-bold">Publicações</h2>
+      {posts.length === 0 ? <p class="m-0 text-sm text-muted">Nenhuma publicação ainda.</p> : (
+        <ul class="m-0 flex list-none flex-col p-0">
+          {posts.map((p) => {
+            const open = issues(p.checks);
+            return (
+              <li class="border-t border-line last:border-b">
+                <details class="group">
+                  <summary class="flex cursor-pointer list-none items-center gap-4 py-3">
+                    <span class:list={['w-12 shrink-0 text-right text-lg font-bold tabular-nums', tone(p.score)]}>{p.score}</span>
+                    <span class="min-w-0 flex-1"><span class="font-mono text-xs text-muted">{p.code ?? '—'}</span> <span class="text-[15px]">{p.title}</span></span>
+                    <span class="hidden text-xs text-muted sm:inline">{statusLabel[p.status]}</span>
+                    <span class="w-[110px] text-right text-xs text-muted">{open.length ? `${open.length} ${open.length === 1 ? 'ponto' : 'pontos'} a melhorar` : 'Tudo certo'}</span>
+                  </summary>
+                  <div class="flex flex-col gap-3 pb-4 pl-16">
+                    {open.length > 0 && (
+                      <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
+                        {open.map((c) => (
+                          <li class="flex gap-3">
+                            <span class:list={['w-12 shrink-0 text-[11px] uppercase', c.level === 'erro' ? 'text-[#ff8a8a]' : 'text-[#ffd34d]']}>{c.group}</span>
+                            <span class="flex flex-col"><span>{c.label}</span><span class="text-xs text-muted">{c.fix}</span></span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <a href={`/admin/publicacoes/${p.id}/`} class="self-start text-sm underline hover:text-lime">Abrir no editor</a>
+                  </div>
+                </details>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+
+    <section aria-labelledby="techTitle" class="flex flex-col gap-3">
+      <h2 id="techTitle" class="m-0 text-base font-bold">O que o site já faz sozinho</h2>
+      <ul class="m-0 flex list-none flex-col gap-1.5 p-0 text-sm text-muted">
+        <li>Mapa do site para o Google: <a href={`${site}/sitemap.xml`} target="_blank" rel="noopener" class="underline hover:text-ink">sitemap.xml</a> (só o que está no ar e liberado)</li>
+        <li>Regras para robôs: <a href={`${site}/robots.txt`} target="_blank" rel="noopener" class="underline hover:text-ink">robots.txt</a> (admin e API bloqueados)</li>
+        <li>Feed: <a href={`${site}/lab/rss.xml`} target="_blank" rel="noopener" class="underline hover:text-ink">rss.xml</a></li>
+        <li>Endereço canônico, Open Graph, dados estruturados (artigo, autor, citações, anexos e trilha), redirecionamentos 301 e página 404</li>
+      </ul>
+    </section>
+  </div>
+</Admin>

@@ -38,7 +38,7 @@ const index = (await getLabEntries()).map((e) => ({
 }));
 const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...departments.map((d) => ({ slug: d.slug, name: d.slug === 'visual-archive' ? 'Archive' : d.name, href: `${root}lab/${d.slug}/` }))];
 ---
-<Base title={fullTitle} description={description} fonts={fonts} lang="pt-BR" bodyClass="lab-body">
+<Base title={fullTitle} description={description} fonts={fonts} lang="pt-BR" bodyClass="lab-body" analytics={!noindex}>
   <Fragment slot="head">
     <link rel="canonical" href={canonical}>
     {noindex && <meta name="robots" content="noindex, follow">}
