@@ -3,7 +3,7 @@
 // corpo em Markdown, referências e publicações relacionadas. Dados estruturados: Article (ou TechArticle em Research).
 import Lab from '../../../layouts/Lab.astro';
 import PubCard from '../../../components/lab/PubCard.astro';
-import Wire from '../../../components/lab/Wire.astro';
+import Cover from '../../../components/lab/Cover.astro';
 import { getLabEntries, renderMarkdown } from '../../../lib/lab-public';
 import { departmentBySlug, statuses, fmtDate, up } from '../../../lab/data';
 
@@ -22,6 +22,7 @@ const jsonld = [{
   headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
   datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
   author: { '@type': 'Person', name: d.author }, publisher: { '@type': 'Person', name: 'Hallan' },
+  ...(d.cover ? { image: d.cover.url } : {}),
   articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
 }];
 const meta = [
@@ -29,7 +30,7 @@ const meta = [
   ['Assuntos', d.areas.join(' / ')], ['Nível', d.level],
 ];
 ---
-<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
+<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} ogImage={d.cover} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
   crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code ?? d.title, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
   <article>
     <header class="border-b border-line">
@@ -42,7 +43,7 @@ const meta = [
           <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-lime hover:text-lime">Copiar link</button>
         </div>
       </div>
-      <Wire label="Imagem de capa da publicação" class="mx-auto min-h-[240px] max-w-[1440px] border-x-0 lg:min-h-[420px]" />
+      {d.cover && <div class="mx-auto max-w-[1440px] border-t border-line"><Cover cover={d.cover} eager class="max-h-[640px]" /></div>}
     </header>
     <div class="wrap grid gap-10 py-10 lg:grid-cols-[260px_1fr] lg:gap-16 lg:py-14">
       <aside class="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start" aria-label="Ficha da publicação">

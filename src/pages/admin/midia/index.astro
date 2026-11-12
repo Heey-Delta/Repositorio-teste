@@ -1,0 +1,71 @@
+---
+// Biblioteca de mídia (spec 5.4): arquivos enviados, onde são usados e o texto alternativo de cada um.
+// O envio acontece no editor (capa e imagens no texto), que reduz e converte as imagens antes de mandar.
+import Admin from '../../../layouts/Admin.astro';
+import { listMedia, mediaUsage } from '../../../lib/media';
+export const prerender = false;
+const media = await listMedia(200);
+const usage = await mediaUsage(media.map((m) => m.id));
+const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.round(n / 1024)} KB`);
+const field = 'rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+---
+<Admin title="Mídia" current="midia">
+  <div class="flex flex-col gap-6">
+    <p class="m-0 max-w-[640px] text-sm text-muted">Imagens e arquivos enviados pelo editor. O texto alternativo é lido por quem usa leitor de tela e pelo Google; mudar aqui atualiza as próximas vezes que a imagem for escolhida.</p>
+    {media.length === 0
+      ? <p class="m-0 text-sm text-muted">Nenhum arquivo ainda. Envie a primeira imagem pelo editor, em "Adicionar imagem de capa" ou no botão Imagem.</p>
+      : (
+        <ul class="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
+          {media.map((m) => (
+            <li class="flex flex-col overflow-hidden rounded-[8px] border border-line">
+              {m.kind === 'image'
+                ? <img src={m.url} alt={m.alt ?? ''} loading="lazy" class="aspect-[4/3] w-full border-b border-line object-cover">
+                : <a href={m.url} target="_blank" rel="noopener" class="grid aspect-[4/3] place-items-center border-b border-line font-mono text-sm text-muted">PDF ↗</a>}
+              <form class="media-edit flex flex-1 flex-col gap-3 p-4" data-id={m.id} data-kind={m.kind}>
+                <p class="m-0 flex flex-wrap gap-x-3 text-xs text-muted tabular-nums">
+                  <span>{m.mime.split('/')[1].toUpperCase()}</span><span>{kb(m.size)}</span>
+                  {m.width && <span>{m.width}×{m.height}</span>}
+                  <span>{usage.get(m.id) ? `capa de ${usage.get(m.id)} ${usage.get(m.id) === 1 ? 'publicação' : 'publicações'}` : 'sem uso como capa'}</span>
+                </p>
+                <label class="flex flex-col gap-1 text-xs text-muted">Texto alternativo
+                  <textarea name="alt" rows="2" maxlength="300" class={`${field} py-2`}>{m.alt ?? ''}</textarea>
+                </label>
+                <label class="flex flex-col gap-1 text-xs text-muted">Legenda
+                  <input name="caption" value={m.caption ?? ''} maxlength="500" class={`${field} h-10`}>
+                </label>
+                <div class="mt-auto flex items-center justify-between gap-3">
+                  <button type="button" class="copy cursor-pointer text-xs text-muted hover:text-ink" data-url={m.url}>Copiar link</button>
+                  <span class="flex items-center gap-3"><span class="status text-xs text-muted" role="status"></span>
+                  <button type="submit" class="min-h-9 cursor-pointer rounded-[6px] border border-line px-3 text-[13px] hover:border-ink">Salvar</button></span>
+                </div>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+  </div>
+  <script>
+    document.querySelectorAll<HTMLFormElement>('.media-edit').forEach((form) => {
+      const status = form.querySelector<HTMLElement>('.status')!;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alt = form.querySelector('textarea')!, caption = form.querySelector('input')!;
+        alt.removeAttribute('aria-invalid');
+        status.textContent = 'Salvando…';
+        const res = await fetch(`/api/media/${form.dataset.id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ alt: alt.value, caption: caption.value }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok) { status.textContent = 'Salvo'; return; }
+        status.textContent = out.error ?? 'Não deu para salvar';
+        if (out.field === 'alt') { alt.setAttribute('aria-invalid', 'true'); alt.focus(); }
+      });
+      form.querySelector<HTMLButtonElement>('.copy')!.addEventListener('click', async (e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        await navigator.clipboard?.writeText(b.dataset.url!);
+        b.textContent = 'Link copiado';
+        setTimeout(() => { b.textContent = 'Copiar link'; }, 1500);
+      });
+    });
+  </script>
+</Admin>

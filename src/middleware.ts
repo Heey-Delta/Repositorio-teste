@@ -7,7 +7,7 @@ import { readSession } from './lib/auth';
 const OPEN = new Set(['/admin/login', '/api/auth/github', '/api/auth/callback', '/api/auth/logout', '/api/cron/agendados']);
 const CSP = [
   "default-src 'self'", "script-src 'self' 'unsafe-inline'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src https://fonts.gstatic.com", "img-src 'self' data: https:", "connect-src 'self'",
+  "font-src https://fonts.gstatic.com", "img-src 'self' data: blob: https:", "connect-src 'self'",
   "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self' https://github.com",
 ].join('; ');
 

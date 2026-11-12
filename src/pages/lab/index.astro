@@ -6,6 +6,7 @@
 import Lab from '../../layouts/Lab.astro';
 import LabIcon from '../../components/lab/LabIcon.astro';
 import Wire from '../../components/lab/Wire.astro';
+import Cover from '../../components/lab/Cover.astro';
 import PubCard from '../../components/lab/PubCard.astro';
 import { getLabEntries } from '../../lib/lab-public';
 import { departments, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
@@ -85,8 +86,8 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
   <!-- EM ANDAMENTO (experimento em destaque) -->
   {featured && (
     <section id="andamento" class="scroll-mt-16 border-b border-line" aria-labelledby="featured-title">
-      <div class="wrap grid gap-8 py-12 lg:grid-cols-[1.25fr_0.75fr] lg:items-center lg:gap-14 lg:py-20">
-        <Wire label="Render do experimento" class="min-h-[300px] lg:order-2 lg:min-h-[520px]" />
+      <div class:list={['wrap grid gap-8 py-12 lg:items-center lg:gap-14 lg:py-20', featured.data.cover && 'lg:grid-cols-[1.25fr_0.75fr]']}>
+        <Cover cover={featured.data.cover} class="max-h-[560px] border border-line lg:order-2" />
         <div class="flex flex-col gap-5 lg:order-1">
           <p class={eyebrow}>Em andamento</p>
           <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-lime">{featured.data.title}</a></h2>
@@ -111,8 +112,8 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
       <ul class="m-0 flex list-none flex-col p-0">
         {research.map((e) => (
           <li class="border-t border-line last:border-b">
-            <a href={href(e)} class="group grid gap-5 py-6 md:grid-cols-[280px_1fr] md:items-center lg:grid-cols-[360px_1fr] lg:gap-10">
-              <Wire label="Imagem da pesquisa" class="min-h-[180px] lg:min-h-[220px]" />
+            <a href={href(e)} class:list={['group grid gap-5 py-6 md:items-center lg:gap-10', e.data.cover && 'md:grid-cols-[280px_1fr] lg:grid-cols-[360px_1fr]']}>
+              <Cover cover={e.data.cover} class="aspect-[4/3] border border-line" />
               <span class="flex flex-col gap-3">
                 <span class={`${mono} text-muted`}>{[e.data.code, e.data.areas.join(' / ')].filter(Boolean).join(' · ')}</span>
                 <span class="text-[26px] leading-[1.15] font-bold group-hover:text-lime lg:text-[34px]">{e.data.title}</span>
@@ -151,7 +152,9 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         {archive.map((e) => (
           <li>
             <a href={href(e)} class="group flex flex-col gap-2">
-              <Wire label="Referência" class="aspect-square" />
+              {e.data.cover
+                ? <Cover cover={e.data.cover} class="aspect-square border border-line" />
+                : <span class="flex aspect-square items-end border border-line p-3 font-mono text-[11px] text-muted uppercase tabular-nums">{e.data.code}</span>}
               <span class="text-[13px] leading-snug group-hover:text-lime">{e.data.title}</span>
             </a>
           </li>
@@ -172,7 +175,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
           {open.map((e) => (
             <li>
               <a href={href(e)} class="group flex h-full flex-col border border-line hover:border-lime">
-                <Wire label="Prévia da ferramenta" class="min-h-[200px] border-0 border-b" />
+                <Cover cover={e.data.cover} class="aspect-[16/9] border-b border-line" />
                 <span class="flex flex-col gap-2 p-5"><span class="text-xl font-bold group-hover:text-lime">{e.data.title}</span><span class="text-[13px] text-muted">{e.data.description}</span></span>
               </a>
             </li>

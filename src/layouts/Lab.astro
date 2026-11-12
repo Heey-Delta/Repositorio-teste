@@ -10,9 +10,9 @@ interface Crumb { name: string; path: string; }
 interface Props {
   title: string; description: string; depth: number;
   noindex?: boolean; current?: string; crumbs?: Crumb[];
-  jsonld?: Record<string, unknown>[]; ogType?: string; canonical?: string;
+  jsonld?: Record<string, unknown>[]; ogType?: string; canonical?: string; ogImage?: { url: string; alt: string } | null;
 }
-const { title, description, depth, noindex = false, current = 'overview', crumbs = [], jsonld = [], ogType = 'website', canonical: canonicalOverride } = Astro.props;
+const { title, description, depth, noindex = false, current = 'overview', crumbs = [], jsonld = [], ogType = 'website', canonical: canonicalOverride, ogImage } = Astro.props;
 const root = up(depth);
 const canonical = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site).href;
 const fullTitle = `${title} · ${LAB_NAME} · Hallan`;
@@ -45,6 +45,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
     <meta property="og:url" content={canonical}>
     <meta property="og:locale" content="pt_BR">
     <meta name="twitter:card" content="summary_large_image">
+    {ogImage && <><meta property="og:image" content={ogImage.url}><meta property="og:image:alt" content={ogImage.alt}><meta name="twitter:image" content={ogImage.url}></>}
     {ld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
   </Fragment>
 

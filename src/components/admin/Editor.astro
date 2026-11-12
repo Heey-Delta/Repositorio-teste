@@ -13,11 +13,12 @@ interface Props {
   login: string;
   options: { departments: (Option & { code: string })[]; contentTypes: Option[]; areas: (Option & { about: string })[] };
   revisions: { id: number; login: string; note: string | null; createdAt: Date }[];
+  cover: { id: string; url: string; alt: string | null; width: number | null; height: number | null } | null;
 }
-const { id, draft, updatedAt, login, options, revisions } = Astro.props;
+const { id, draft, updatedAt, login, options, revisions, cover } = Astro.props;
 const dep = options.departments.find((d) => d.id === draft.departmentId) ?? options.departments[0];
 const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
-const data = JSON.stringify({ id, draft, updatedAt, login, departments: options.departments, site: Astro.site?.origin })
+const data = JSON.stringify({ id, draft, updatedAt, login, cover, departments: options.departments, site: Astro.site?.origin })
   .replace(/</g, '\\u003c');
 const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
 const levels = ['Introdutório', 'Intermediário', 'Aprofundado'];
@@ -33,7 +34,7 @@ const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] te
 const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 const tools = [
   ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
-  ['link', 'Link', 'Link'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
+  ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
   ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 ---
@@ -71,6 +72,7 @@ const tools = [
           </div>
           <p class="m-0 text-sm">Por <strong>Hallan</strong></p>
         </div>
+        <div id="coverBox" class="cover-box mx-auto max-w-[1440px]"></div>
       </header>
       <div class="wrap py-10 lg:py-14">
         <div id="body" class="lab-prose max-w-[720px]" aria-label="Corpo da publicação"></div>
@@ -200,6 +202,36 @@ const tools = [
       </section>
     </form>
   </aside>
+  <dialog id="mediaDialog" aria-labelledby="mediaTitle" class="media-dialog m-auto w-[min(720px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
+    <form id="mediaForm" method="dialog" class="flex max-h-[min(86dvh,760px)] flex-col">
+      <div class="flex h-14 shrink-0 items-center justify-between border-b border-line px-5">
+        <h2 id="mediaTitle" class="m-0 text-base font-bold">Imagem</h2>
+        <button type="button" id="mediaClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar">✕</button>
+      </div>
+      <div class="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
+        <label class="media-drop flex min-h-[180px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[8px] border border-dashed border-line p-4 text-center hover:border-ink">
+          <img id="mediaPreview" alt="" hidden class="max-h-[240px] w-auto rounded-[4px]">
+          <span id="mediaPick" class="text-sm">Escolher imagem do computador <span class="block text-xs text-muted">JPG, PNG, WebP, AVIF ou GIF. O admin reduz e converte para WebP antes de enviar.</span></span>
+          <input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" class="sr-only">
+        </label>
+        <div id="mediaLibWrap" class="flex flex-col gap-2" hidden>
+          <p class="m-0 text-[13px] text-muted">Ou use uma imagem já enviada</p>
+          <ul id="mediaLib" class="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-5"></ul>
+        </div>
+        <label class="flex flex-col gap-1.5 text-[13px] text-muted">Texto alternativo <span class="text-xs">Obrigatório. Descreva o que a imagem mostra para quem não consegue vê-la.</span>
+          <textarea id="mediaAlt" rows="2" maxlength="300" class="rounded-[6px] border border-line bg-bg px-3 py-2 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]"></textarea>
+        </label>
+        <label id="mediaCaptionWrap" class="flex flex-col gap-1.5 text-[13px] text-muted">Legenda <span class="text-xs">Opcional: crédito ou origem.</span>
+          <input id="mediaCaption" maxlength="500" class="h-11 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime">
+        </label>
+        <p id="mediaError" role="alert" class="m-0 text-[13px] text-[#ff8a8a]" hidden></p>
+      </div>
+      <div class="flex shrink-0 items-center justify-end gap-3 border-t border-line px-5 py-3">
+        <button type="button" id="mediaCancel" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Cancelar</button>
+        <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
+      </div>
+    </form>
+  </dialog>
 </Base>
 
 <script>
@@ -225,5 +257,9 @@ const tools = [
   .details.no-anim, .details.no-anim[data-open="true"] { transition: none; }
   @media (prefers-reduced-motion: reduce) { .details, .details[data-open="true"] { transition: none; } }
   #saveState[data-tone="error"] { color: #ff8a8a; }
+  .media-dialog::backdrop { background: rgb(0 0 0 / .7); }
+  .media-lib-item[aria-pressed="true"] { outline: 2px solid var(--lime); outline-offset: 2px; }
+  #body .ProseMirror img { max-width: 100%; height: auto; }
+  #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--lime); outline-offset: 2px; }
   #saveState[data-tone="dirty"] { color: var(--ink); }
 </style>

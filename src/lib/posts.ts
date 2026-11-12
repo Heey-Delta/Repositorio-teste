@@ -26,6 +26,7 @@ export const postInput = z.object({
   relatedProject: optText(120),
   methodology: optText(2000),
   aiAssistance: optText(2000),
+  coverMediaId: z.uuid().nullable().default(null),
   scheduledAt: z.string().nullable().transform((v) => (v ? new Date(v) : null)).refine((d) => d === null || !isNaN(+d), 'Data inválida.'),
   seo: z.object({
     metaTitle: optText(70),
@@ -71,13 +72,14 @@ export async function loadPost(id: string) {
     title: p.title, summary: p.summary, body: p.body, departmentId: p.departmentId, contentTypeId: p.contentTypeId,
     status: p.status, stage: p.stage, level: p.level, format: p.format as PostDraft['format'], code: p.code, slug: p.slug,
     areaIds: areaRows.map((a) => a.id), tags: tagRows.map((t) => t.name), relatedProject: p.relatedProject,
-    methodology: p.methodology, aiAssistance: p.aiAssistance, scheduledAt: p.scheduledAt?.toISOString() ?? null,
+    methodology: p.methodology, aiAssistance: p.aiAssistance, scheduledAt: p.scheduledAt?.toISOString() ?? null, coverMediaId: p.coverMediaId,
     seo: {
       metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null,
       noindex: seo?.noindex ?? false, schemaType: (seo?.schemaType ?? null) as PostDraft['seo']['schemaType'],
     },
   };
-  return { id: p.id, draft, createdAt: p.createdAt, updatedAt: p.updatedAt, publishedAt: p.publishedAt, revisions: revs };
+  const [cover] = p.coverMediaId ? await db().select().from(s.media).where(eq(s.media.id, p.coverMediaId)) : [];
+  return { id: p.id, draft, cover: cover ?? null, createdAt: p.createdAt, updatedAt: p.updatedAt, publishedAt: p.publishedAt, revisions: revs };
 }
 
 export function listRevisions(postId: string) {
@@ -107,6 +109,10 @@ async function checkUnique(input: PostInput, id: string | null) {
     if (sameCode) throw new SaveError(`O código ${input.code} já está em uso.`, 'code', 409);
   }
   if (input.status === 'scheduled' && !input.scheduledAt) throw new SaveError('Escolha a data do agendamento.', 'scheduledAt');
+  if (input.coverMediaId) {
+    const [m] = await db().select({ kind: s.media.kind }).from(s.media).where(eq(s.media.id, input.coverMediaId));
+    if (!m || m.kind !== 'image') throw new SaveError('A imagem de capa não foi encontrada. Escolha outra.', 'cover');
+  }
 }
 
 async function tagIds(names: string[]) {
@@ -141,7 +147,7 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   const values = {
     title: input.title, summary: input.summary, body: input.body, departmentId: input.departmentId, contentTypeId: input.contentTypeId,
     status: input.status, stage: input.stage, level: input.level, format: input.format, code: input.code, slug: input.slug,
-    relatedProject: input.relatedProject, methodology: input.methodology, aiAssistance: input.aiAssistance,
+    relatedProject: input.relatedProject, methodology: input.methodology, aiAssistance: input.aiAssistance, coverMediaId: input.coverMediaId,
     scheduledAt: input.status === 'scheduled' ? input.scheduledAt : null, publishedAt,
     readingMinutes: Math.max(1, Math.ceil(words(input.body) / 200)), updatedAt: now,
   };

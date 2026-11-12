@@ -17,6 +17,7 @@ export interface LabEntry {
     draft: boolean;   // "não mostrar no Google": a página existe, mas fica fora do índice e do sitemap
     readingMinutes: number | null; methodology: string | null; aiAssistance: string | null;
     seo: { metaTitle: string | null; metaDescription: string | null; canonicalUrl: string | null; schemaType: string | null };
+    cover: { url: string; alt: string; width: number | null; height: number | null } | null;
   };
 }
 
@@ -30,11 +31,12 @@ async function load(): Promise<LabEntry[]> {
     return [];
   }
   const now = new Date();
-  const rows = await db().select({ p: s.posts, dep: s.departments.slug, author: s.authors.name, seo: s.seoMetadata })
+  const rows = await db().select({ p: s.posts, dep: s.departments.slug, author: s.authors.name, seo: s.seoMetadata, cover: s.media })
     .from(s.posts)
     .innerJoin(s.departments, eq(s.departments.id, s.posts.departmentId))
     .innerJoin(s.authors, eq(s.authors.id, s.posts.authorId))
     .leftJoin(s.seoMetadata, eq(s.seoMetadata.postId, s.posts.id))
+    .leftJoin(s.media, eq(s.media.id, s.posts.coverMediaId))
     .where(or(eq(s.posts.status, 'published'), and(eq(s.posts.status, 'scheduled'), lte(s.posts.scheduledAt, now))));
   if (!rows.length) return [];
 
@@ -55,7 +57,7 @@ async function load(): Promise<LabEntry[]> {
   const codeOf = new Map(rows.map((r) => [r.p.id, r.p.code]));
   const day = (d: Date) => d.toISOString().slice(0, 10);
 
-  return rows.map(({ p, dep, author, seo }) => {
+  return rows.map(({ p, dep, author, seo, cover }) => {
     const date = p.publishedAt ?? p.scheduledAt ?? p.createdAt;
     const related = relRows.filter((r) => r.fromPostId === p.id).map((r) => codeOf.get(r.toPostId)).filter((c): c is string => Boolean(c));
     return {
@@ -70,11 +72,13 @@ async function load(): Promise<LabEntry[]> {
         references: (refsBy.get(p.id) ?? []).sort((a, b) => a.sort - b.sort).map((r) => ({ title: r.title, url: r.url ?? undefined })),
         draft: seo?.noindex ?? false, readingMinutes: p.readingMinutes, methodology: p.methodology, aiAssistance: p.aiAssistance,
         seo: { metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null, schemaType: seo?.schemaType ?? null },
+        cover: cover ? { url: cover.url, alt: cover.alt ?? '', width: cover.width, height: cover.height } : null,
       },
     } satisfies LabEntry;
   }).sort((a, b) => +b.data.date - +a.data.date);
 }
 
+const attr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const decode = (v: string) => v.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
 // Markdown do corpo em HTML, com âncoras nos títulos (o sumário da publicação usa os de nível 2)
@@ -90,6 +94,10 @@ export function renderMarkdown(md: string) {
         const slug = slugger.slug(text);
         headings.push({ depth, slug, text });
         return `<h${depth} id="${slug}">${html}</h${depth}>\n`;
+      },
+      // imagens do corpo: carregam só perto da tela, sem travar o resto da página
+      image({ href, title, text }) {
+        return `<img src="${attr(href)}" alt="${attr(text)}"${title ? ` title="${attr(title)}"` : ''} loading="lazy" decoding="async">`;
       },
     },
   });

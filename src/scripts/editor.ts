@@ -4,10 +4,12 @@ import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import { Placeholder } from '@tiptap/extensions';
+import Image from '@tiptap/extension-image';
 
 type Dep = { id: number; slug: string; name: string; code: string };
+type Media = { id: string; url: string; alt: string | null; caption?: string | null; width: number | null; height: number | null; kind?: string };
 const data = JSON.parse(document.getElementById('editorData')!.textContent!) as {
-  id: string | null; draft: Record<string, any>; updatedAt: string | null; login: string; departments: Dep[]; site: string;
+  id: string | null; draft: Record<string, any>; updatedAt: string | null; login: string; departments: Dep[]; site: string; cover: Media | null;
 };
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
@@ -30,6 +32,7 @@ const editor = new Editor({
   extensions: [
     StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true } }),
     Markdown,
+    Image.configure({ inline: false, allowBase64: false }),
     Placeholder.configure({ placeholder: 'Escreva aqui. Use a barra acima para títulos de seção, listas e links.' }),
   ],
   content: data.draft.body ?? '',
@@ -48,6 +51,7 @@ const commands: Record<string, () => void> = {
   quote: () => editor.chain().focus().toggleBlockquote().run(),
   code: () => editor.chain().focus().toggleCodeBlock().run(),
   hr: () => editor.chain().focus().setHorizontalRule().run(),
+  image: () => openMedia('inline'),
   undo: () => editor.chain().focus().undo().run(),
   redo: () => editor.chain().focus().redo().run(),
   link: () => {
@@ -177,6 +181,7 @@ function collect() {
     format: dep().slug === 'field-notes' ? nullable('format') : null,
     code: f('code').value.trim().toUpperCase() || null,
     slug: f('slug').value.trim(),
+    coverMediaId: cover?.id ?? null,
     areaIds: [...form.querySelectorAll<HTMLInputElement>('input[name="areaIds"]:checked')].map((i) => Number(i.value)),
     tags: f('tags').value.split(',').map((t) => t.trim()).filter(Boolean),
     relatedProject: nullable('relatedProject'),
@@ -299,6 +304,145 @@ revList.addEventListener('click', async (e) => {
   b.disabled = false;
 });
 
+// ---------- imagens: capa e imagens no texto ----------
+let cover: Media | null = data.cover;
+const coverBox = $('#coverBox');
+function renderCover() {
+  coverBox.replaceChildren();
+  if (cover) {
+    const fig = document.createElement('figure');
+    fig.className = 'relative m-0 border-y border-line';
+    const img = document.createElement('img');
+    img.src = cover.url; img.alt = cover.alt ?? '';
+    if (cover.width && cover.height) { img.width = cover.width; img.height = cover.height; }
+    img.className = 'block max-h-[560px] w-full object-cover';
+    const bar = document.createElement('div');
+    bar.className = 'absolute top-3 right-3 flex gap-2';
+    bar.append(coverButton('Trocar capa', () => openMedia('cover')), coverButton('Remover capa', () => { cover = null; renderCover(); markDirty(); }));
+    fig.append(img, bar);
+    coverBox.append(fig);
+  } else {
+    const add = coverButton('+ Adicionar imagem de capa', () => openMedia('cover'));
+    add.className = 'flex min-h-[120px] w-full cursor-pointer items-center justify-center border-y border-dashed border-line text-sm text-muted hover:text-ink';
+    coverBox.append(add);
+  }
+}
+function coverButton(label: string, fn: () => void) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = label;
+  b.className = 'min-h-9 cursor-pointer rounded-[6px] bg-black/80 px-3 text-[13px] text-ink hover:bg-black';
+  b.addEventListener('click', fn);
+  return b;
+}
+
+const dialog = $<HTMLDialogElement>('#mediaDialog');
+const fileInput = $<HTMLInputElement>('#mediaFile'), preview = $<HTMLImageElement>('#mediaPreview');
+const altInput = $<HTMLTextAreaElement>('#mediaAlt'), captionInput = $<HTMLInputElement>('#mediaCaption');
+const mediaError = $('#mediaError'), mediaOk = $<HTMLButtonElement>('#mediaOk'), lib = $('#mediaLib');
+let mode: 'cover' | 'inline' = 'inline';
+let picked: Media | null = null;
+let prepared: { blob: Blob; name: string; width: number; height: number } | null = null;
+
+function mediaFail(msg: string) { mediaError.textContent = msg; mediaError.hidden = false; }
+async function openMedia(m: 'cover' | 'inline') {
+  mode = m; picked = null; prepared = null;
+  fileInput.value = ''; altInput.value = ''; captionInput.value = '';
+  altInput.removeAttribute('aria-invalid'); mediaError.hidden = true;
+  preview.hidden = true; $('#mediaPick').hidden = false;
+  $('#mediaTitle').textContent = m === 'cover' ? 'Imagem de capa' : 'Inserir imagem no texto';
+  dialog.showModal();
+  try {
+    const res = await fetch('/api/media');
+    const { media } = await res.json() as { media: Media[] };
+    const images = media.filter((x) => x.kind === 'image');
+    $('#mediaLibWrap').hidden = images.length === 0;
+    lib.replaceChildren(...images.map((x) => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'media-lib-item block aspect-square w-full cursor-pointer overflow-hidden rounded-[4px] border border-line';
+      b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', x.alt ?? 'Imagem sem descrição');
+      const img = document.createElement('img'); img.src = x.url; img.alt = ''; img.loading = 'lazy'; img.className = 'size-full object-cover';
+      b.append(img);
+      b.addEventListener('click', () => {
+        lib.querySelectorAll('[aria-pressed]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        picked = x; prepared = null; fileInput.value = '';
+        preview.src = x.url; preview.hidden = false; $('#mediaPick').hidden = true;
+        altInput.value = x.alt ?? ''; captionInput.value = x.caption ?? '';
+      });
+      li.append(b);
+      return li;
+    }));
+  } catch { $('#mediaLibWrap').hidden = true; }
+}
+
+// Reduz para no máximo 2000 px de largura e converte para WebP; GIF fica como está (pode ser animado)
+async function optimize(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 2000 / bitmap.width);
+  const width = Math.round(bitmap.width * scale), height = Math.round(bitmap.height * scale);
+  if (file.type === 'image/gif') return { blob: file as Blob, name: file.name, width, height };
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height);
+  const webp = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/webp', 0.82));
+  const blob = webp && webp.type === 'image/webp' && (webp.size < file.size || scale < 1) ? webp : file;
+  return { blob, name: blob === file ? file.name : file.name.replace(/\.[a-z0-9]+$/i, '') + '.webp', width, height };
+}
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files?.[0];
+  if (!file) return;
+  mediaError.hidden = true; picked = null;
+  lib.querySelectorAll('[aria-pressed]').forEach((o) => o.setAttribute('aria-pressed', 'false'));
+  try {
+    prepared = await optimize(file);
+    preview.src = URL.createObjectURL(prepared.blob); preview.hidden = false; $('#mediaPick').hidden = true;
+    if (prepared.blob.size > 4 * 1024 * 1024) mediaFail('Mesmo reduzida, a imagem passou de 4 MB. Tente outra.');
+    altInput.focus();
+  } catch { prepared = null; mediaFail('Não consegui abrir essa imagem. Tente outro arquivo.'); }
+});
+
+$('#mediaForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  mediaError.hidden = true;
+  const alt = altInput.value.trim(), caption = captionInput.value.trim();
+  if (!picked && !prepared) return mediaFail('Escolha uma imagem do computador ou uma já enviada.');
+  if (alt.length < 3) { altInput.setAttribute('aria-invalid', 'true'); altInput.focus(); return mediaFail('Escreva o texto alternativo.'); }
+  altInput.removeAttribute('aria-invalid');
+  mediaOk.disabled = true; mediaOk.textContent = 'Enviando…';
+  try {
+    let media: Media;
+    if (prepared) {
+      const body = new FormData();
+      body.append('file', prepared.blob, prepared.name);
+      body.append('alt', alt); body.append('caption', caption);
+      body.append('width', String(prepared.width)); body.append('height', String(prepared.height));
+      const res = await fetch('/api/media', { method: 'POST', body });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) return mediaFail(out.error ?? 'Não deu para enviar a imagem.');
+      media = out.media;
+    } else {
+      media = picked!;
+      if ((media.alt ?? '') !== alt || (media.caption ?? '') !== caption) {
+        const res = await fetch(`/api/media/${media.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ alt, caption }) });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) return mediaFail(out.error ?? 'Não deu para atualizar o texto alternativo.');
+        media = out.media;
+      }
+    }
+    if (mode === 'cover') { cover = media; renderCover(); }
+    else editor.chain().focus().setImage({ src: media.url, alt: media.alt ?? '' }).run();
+    markDirty();
+    dialog.close();
+  } catch {
+    mediaFail('Sem conexão. Tente de novo.');
+  } finally {
+    mediaOk.disabled = false; mediaOk.textContent = 'Usar imagem';
+  }
+});
+for (const id of ['#mediaClose', '#mediaCancel']) $(id).addEventListener('click', () => dialog.close());
+
+renderCover();
 refreshDerived();
 syncToolbar();
 if (!postId) titleEl.focus();
