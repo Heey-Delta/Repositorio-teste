@@ -92,7 +92,10 @@ admin (`/admin/`); as páginas do Lab são geradas no build a partir delas. As c
   publicado ou agendado com a data já passada; rascunhos, ideias, revisões e arquivados nunca aparecem.
 - **Agendados:** uma tarefa diária do Vercel (`vercel.json`, `/api/cron/agendados`, protegida por `CRON_SECRET`) publica o que venceu.
 - **Departamentos:** `experiments` (EXP), `field-notes` (FN), `research` (RES), `visual-archive` (VA), `open-lab` (LAB), `observatory` (OBS).
-- **Google:** cada página tem título, descrição, URL canônica, Open Graph e dados estruturados (Article/TechArticle e trilha).
+- **Endereço mudou:** se uma publicação no ar troca de endereço ou departamento, o antigo responde 301 para o novo (tabela `redirects`,
+  sem cadeias nem ciclos). Endereços do Lab que não existem caem em `src/pages/lab/[...path].astro`: redirecionamento ou 404.
+- **Feed:** `/lab/rss.xml`, com o que está no ar e liberado para o Google.
+- **Google:** cada página tem título, descrição, URL canônica, Open Graph (com a capa ou a imagem do laboratório), metadados de artigo e dados estruturados: Article/TechArticle com autor, imagem e tempo de leitura, a identidade do autor (Person, ligada por `@id`) e a trilha. O sitemap traz a data da última mudança e a capa de cada publicação.
   Publicações marcadas "Não mostrar no Google" saem com `noindex` e ficam fora do `sitemap.xml`.
 - Dados fixos (departamentos, áreas, status) em `src/lab/data.ts`; layout em `src/layouts/Lab.astro`.
 

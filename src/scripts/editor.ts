@@ -236,7 +236,7 @@ async function save() {
       failed: [' · não deu para atualizar o site; salve de novo em instantes', 'error'],
     };
     const [extra, tone] = site[out.site] ?? ['', 'ok'];
-    setState(at + extra, tone);
+    setState(at + extra + (out.redirected ? ` · ${out.redirected} agora leva para o novo endereço` : ''), tone);
     const view = $<HTMLAnchorElement>('#viewLink');
     view.href = `/lab/${dep().slug}/${f('slug').value}/`;
     view.hidden = f('status').value !== 'published';

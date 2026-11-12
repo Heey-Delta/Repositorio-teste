@@ -4,15 +4,18 @@
 import Base from './Base.astro';
 import LabIcon from '../components/lab/LabIcon.astro';
 import { getLabEntries } from '../lib/lab-public';
-import { departments, departmentBySlug, up, LAB_NAME } from '../lab/data';
+import { departments, departmentBySlug, up, author, LAB_NAME } from '../lab/data';
 
 interface Crumb { name: string; path: string; }
 interface Props {
   title: string; description: string; depth: number;
   noindex?: boolean; current?: string; crumbs?: Crumb[];
   jsonld?: Record<string, unknown>[]; ogType?: string; canonical?: string; ogImage?: { url: string; alt: string } | null;
+  article?: { published: Date; modified: Date; section: string; tags: string[] };
 }
-const { title, description, depth, noindex = false, current = 'overview', crumbs = [], jsonld = [], ogType = 'website', canonical: canonicalOverride, ogImage } = Astro.props;
+const { title, description, depth, noindex = false, current = 'overview', crumbs = [], jsonld = [], ogType = 'website', canonical: canonicalOverride, ogImage: ogOverride, article } = Astro.props;
+// sem capa, a imagem de compartilhamento é a do laboratório na página inicial
+const ogImage = ogOverride ?? { url: new URL('/img/laboratorio.webp', Astro.site).href, alt: 'Cúpula escura sobre uma cidade em ruínas, em meio-tom preto e branco' };
 const root = up(depth);
 const canonical = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site).href;
 const fullTitle = `${title} · ${LAB_NAME} · Hallan`;
@@ -21,6 +24,7 @@ const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petc
 // trilha de navegação também como dado estruturado (o Google mostra no resultado)
 const allCrumbs = [{ name: 'Hallan', path: '/' }, { name: LAB_NAME, path: '/lab/' }, ...crumbs];
 const ld = [
+  { '@context': 'https://schema.org', ...author(Astro.site) },
   { '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: allCrumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.path, Astro.site).href })) },
   ...jsonld,
@@ -45,7 +49,15 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
     <meta property="og:url" content={canonical}>
     <meta property="og:locale" content="pt_BR">
     <meta name="twitter:card" content="summary_large_image">
-    {ogImage && <><meta property="og:image" content={ogImage.url}><meta property="og:image:alt" content={ogImage.alt}><meta name="twitter:image" content={ogImage.url}></>}
+    <meta property="og:image" content={ogImage.url}><meta property="og:image:alt" content={ogImage.alt}><meta name="twitter:image" content={ogImage.url}>
+    {article && <>
+      <meta property="article:published_time" content={article.published.toISOString()}>
+      <meta property="article:modified_time" content={article.modified.toISOString()}>
+      <meta property="article:author" content="Hallan">
+      <meta property="article:section" content={article.section}>
+      {article.tags.map((t) => <meta property="article:tag" content={t}>)}
+    </>}
+    <link rel="alternate" type="application/rss+xml" title={`${LAB_NAME} · Hallan`} href={new URL('/lab/rss.xml', Astro.site).href}>
     {ld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
   </Fragment>
 

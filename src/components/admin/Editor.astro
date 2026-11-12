@@ -116,6 +116,7 @@ const tools = [
         </div>
         <label class={label}>Endereço
           <input name="slug" value={draft.slug} autocomplete="off" spellcheck="false" class={`${field} h-11 font-mono text-[13px]`}>
+          <span class="text-xs">Se já estiver no ar, o endereço antigo continua funcionando e leva para o novo.</span>
           <span class="text-xs break-all"><span id="slugPrefix">/lab/{dep.slug}/</span><span id="slugEcho" class="text-ink">{draft.slug}</span>/</span>
         </label>
       </fieldset>

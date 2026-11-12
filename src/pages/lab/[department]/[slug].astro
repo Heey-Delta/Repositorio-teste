@@ -5,7 +5,7 @@ import Lab from '../../../layouts/Lab.astro';
 import PubCard from '../../../components/lab/PubCard.astro';
 import Cover from '../../../components/lab/Cover.astro';
 import { getLabEntries, renderMarkdown } from '../../../lib/lab-public';
-import { departmentBySlug, statuses, fmtDate, up } from '../../../lab/data';
+import { departmentBySlug, statuses, fmtDate, up, author } from '../../../lab/data';
 
 export async function getStaticPaths() {
   const all = await getLabEntries();
@@ -21,8 +21,11 @@ const jsonld = [{
   '@context': 'https://schema.org', '@type': d.seo.schemaType ?? (d.department === 'research' ? 'TechArticle' : 'Article'),
   headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
   datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
-  author: { '@type': 'Person', name: d.author }, publisher: { '@type': 'Person', name: 'Hallan' },
-  ...(d.cover ? { image: d.cover.url } : {}),
+  author: { '@id': author(Astro.site)['@id'] }, publisher: { '@id': author(Astro.site)['@id'] },
+  ...(d.cover ? { image: { '@type': 'ImageObject', url: d.cover.url, caption: d.cover.alt, ...(d.cover.width ? { width: d.cover.width, height: d.cover.height } : {}) } } : {}),
+  ...(d.readingMinutes ? { timeRequired: `PT${d.readingMinutes}M` } : {}),
+  wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
+  about: d.areas.map((name) => ({ '@type': 'Thing', name })),
   articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
 }];
 const meta = [
@@ -30,7 +33,8 @@ const meta = [
   ['Assuntos', d.areas.join(' / ')], ['Nível', d.level],
 ];
 ---
-<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} ogImage={d.cover} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
+<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} ogImage={d.cover}
+  article={{ published: d.date, modified: d.updated ?? d.date, section: dep.name, tags: [...d.areas, ...d.tags] }} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
   crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code ?? d.title, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
   <article>
     <header class="border-b border-line">

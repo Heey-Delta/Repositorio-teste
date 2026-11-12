@@ -4,6 +4,7 @@ import { z } from 'astro/zod';
 import { and, asc, desc, eq, like, ne, inArray } from 'drizzle-orm';
 import { db, schema as s } from '../db/client';
 import { isLive, triggerRebuild } from './rebuild';
+import { addRedirect, postPath } from './redirects';
 
 const CODE = /^(EXP|FN|RES|VA|LAB|OBS)-\d{3}$/;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -129,14 +130,16 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   let id = opts.id;
   let publishedAt: Date | null = null;
   let wasLive = false;
+  let oldPath: string | null = null;
   if (id) {
-    const [cur] = await db().select({ updatedAt: s.posts.updatedAt, publishedAt: s.posts.publishedAt, status: s.posts.status, scheduledAt: s.posts.scheduledAt }).from(s.posts).where(eq(s.posts.id, id));
+    const [cur] = await db().select({ updatedAt: s.posts.updatedAt, publishedAt: s.posts.publishedAt, status: s.posts.status, scheduledAt: s.posts.scheduledAt, slug: s.posts.slug, departmentId: s.posts.departmentId }).from(s.posts).where(eq(s.posts.id, id));
     if (!cur) throw new SaveError('Publicação não encontrada.', undefined, 404);
     if (opts.baseUpdatedAt && +new Date(opts.baseUpdatedAt) !== +cur.updatedAt) {
       throw new SaveError('Esta publicação foi alterada em outra aba. Recarregue a página antes de salvar.', undefined, 409);
     }
     publishedAt = cur.publishedAt;
     wasLive = isLive(cur.status, cur.scheduledAt);
+    if (wasLive) oldPath = await postPath(cur.departmentId, cur.slug);
   }
   await checkUnique(input, id);
   const tags = await tagIds(input.tags);
@@ -164,9 +167,13 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
     db().insert(s.revisions).values({ postId: id, snapshot, login, note: opts.note ?? null }).returning({ id: s.revisions.id }),
     db().insert(s.adminLog).values({ login, action: isNew ? 'post.create' : 'post.save', target: id }),
   ]);
+  // estava no ar e mudou de endereço: o antigo passa a redirecionar (301) para o novo
+  const newPath = await postPath(values.departmentId, values.slug);
+  const redirected = oldPath && newPath && oldPath !== newPath ? oldPath : null;
+  if (redirected) await addRedirect(redirected, newPath!);
   // só gera o site de novo se a publicação estava ou passou a estar no ar
   const site = wasLive || isLive(values.status, values.scheduledAt, now) ? await triggerRebuild(login, id) : null;
-  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site };
+  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site, redirected };
 }
 
 export async function revisionSnapshot(postId: string, revisionId: number) {
