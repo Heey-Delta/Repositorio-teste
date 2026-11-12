@@ -3,6 +3,7 @@
 import { z } from 'astro/zod';
 import { and, asc, desc, eq, like, ne, inArray } from 'drizzle-orm';
 import { db, schema as s } from '../db/client';
+import { isLive, triggerRebuild } from './rebuild';
 
 const CODE = /^(EXP|FN|RES|VA|LAB|OBS)-\d{3}$/;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -121,13 +122,15 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   const { input, login } = opts;
   let id = opts.id;
   let publishedAt: Date | null = null;
+  let wasLive = false;
   if (id) {
-    const [cur] = await db().select({ updatedAt: s.posts.updatedAt, publishedAt: s.posts.publishedAt }).from(s.posts).where(eq(s.posts.id, id));
+    const [cur] = await db().select({ updatedAt: s.posts.updatedAt, publishedAt: s.posts.publishedAt, status: s.posts.status, scheduledAt: s.posts.scheduledAt }).from(s.posts).where(eq(s.posts.id, id));
     if (!cur) throw new SaveError('Publicação não encontrada.', undefined, 404);
     if (opts.baseUpdatedAt && +new Date(opts.baseUpdatedAt) !== +cur.updatedAt) {
       throw new SaveError('Esta publicação foi alterada em outra aba. Recarregue a página antes de salvar.', undefined, 409);
     }
     publishedAt = cur.publishedAt;
+    wasLive = isLive(cur.status, cur.scheduledAt);
   }
   await checkUnique(input, id);
   const tags = await tagIds(input.tags);
@@ -155,7 +158,9 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
     db().insert(s.revisions).values({ postId: id, snapshot, login, note: opts.note ?? null }).returning({ id: s.revisions.id }),
     db().insert(s.adminLog).values({ login, action: isNew ? 'post.create' : 'post.save', target: id }),
   ]);
-  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id };
+  // só gera o site de novo se a publicação estava ou passou a estar no ar
+  const site = wasLive || isLive(values.status, values.scheduledAt, now) ? await triggerRebuild(login, id) : null;
+  return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site };
 }
 
 export async function revisionSnapshot(postId: string, revisionId: number) {

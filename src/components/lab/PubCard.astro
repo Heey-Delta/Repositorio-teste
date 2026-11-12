@@ -1,14 +1,14 @@
 ---
 // Card de publicação: código, departamento, título, resumo, status e data
-import type { CollectionEntry } from 'astro:content';
+import type { LabEntry } from '../../lib/lab-public';
 import { departmentBySlug, statuses, fmtDate } from '../../lab/data';
-interface Props { entry: CollectionEntry<'lab'>; root: string; compact?: boolean; }
+interface Props { entry: LabEntry; root: string; compact?: boolean; }
 const { entry, root, compact = false } = Astro.props;
 const d = entry.data, dep = departmentBySlug(d.department);
 const slug = entry.id.split('/').pop();
 ---
 <a href={`${root}lab/${d.department}/${slug}/`} class="group flex h-full flex-col gap-3 border border-line p-5 transition-colors hover:border-lime">
-  <span class="font-mono text-[11px] text-muted uppercase tabular-nums">{d.code} · {d.format ?? dep.name}</span>
+  <span class="font-mono text-[11px] text-muted uppercase tabular-nums">{[d.code, d.format ?? dep.name].filter(Boolean).join(' · ')}</span>
   <span class:list={['leading-[1.2] font-bold group-hover:text-lime', compact ? 'text-lg' : 'text-xl lg:text-[22px]']}>{d.title}</span>
   {!compact && <span class="text-[13px] text-muted">{d.description}</span>}
   <span class="mt-auto flex items-center justify-between gap-3 pt-1 font-mono text-[11px] text-muted uppercase tabular-nums">

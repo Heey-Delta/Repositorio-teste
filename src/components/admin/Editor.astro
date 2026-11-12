@@ -45,6 +45,7 @@ const tools = [
     <div class="flex h-14 items-center gap-3 px-4 lg:px-6">
       <a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">← Publicações</a>
       <p id="saveState" class="m-0 min-w-0 flex-1 truncate text-[13px] text-muted" role="status" aria-live="polite">{id ? 'Tudo salvo' : 'Ainda não salva'}</p>
+      <a id="viewLink" href={`/lab/${dep.slug}/${draft.slug}/`} target="_blank" rel="noopener" hidden={!id || draft.status !== 'published'} class="hidden text-sm text-muted hover:text-ink sm:inline">Ver no site ↗</a>
       <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
       <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-lime px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
     </div>
@@ -213,8 +214,6 @@ const tools = [
   #body .ProseMirror { outline: none; min-height: 50vh; }
   .lab-prose :where(.ProseMirror > * + *) { margin-top: 1.1em; }
   #body .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #5c5c58; float: left; height: 0; pointer-events: none; }
-  #body .ProseMirror pre { background: #111; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-family: ui-monospace, monospace; font-size: 14px; }
-  #body .ProseMirror hr { border-top: 1px solid var(--line); }
   .tool[aria-pressed="true"] { background: #1c1c1c; color: var(--lime); }
   .details { transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility 0s .2s; }
   .details[data-open="true"] { transform: none; visibility: visible; transition: transform .2s ease; }

@@ -21,8 +21,9 @@
     "@tiptap/starter-kit": "^3.33.1",
     "astro": "^7.4.7",
     "drizzle-orm": "^0.45.4",
-    "tailwindcss": "^4.3.5",
-    "yaml": "^2.9.1"
+    "github-slugger": "^2.0.0",
+    "marked": "^18.2.0",
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.11",

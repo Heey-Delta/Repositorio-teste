@@ -1,16 +1,17 @@
 ---
 // Experimental Lab: página de abertura (wireframe). Hierarquia da seção 6.1 do documento de conceito.
-// Caixas hachuradas ([ ... ]) são espaços de imagem do wireframe. As publicações vêm de src/content/lab.
+// Caixas hachuradas ([ ... ]) são espaços de imagem do wireframe. As publicações vêm do banco (src/lib/lab-public.ts):
+// seções sem publicação não aparecem.
 // Estilo: títulos em Anton, rótulos em Chakra, texto em Arial; fonte mono só em códigos e datas; verde só no destaque e nos botões.
 import Lab from '../../layouts/Lab.astro';
 import LabIcon from '../../components/lab/LabIcon.astro';
 import Wire from '../../components/lab/Wire.astro';
 import PubCard from '../../components/lab/PubCard.astro';
-import { getCollection } from 'astro:content';
+import { getLabEntries } from '../../lib/lab-public';
 import { departments, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 const root = up(1);
-const all = (await getCollection('lab')).sort((a, b) => +b.data.date - +a.data.date);
+const all = await getLabEntries();
 const of = (slug: string) => all.filter((e) => e.data.department === slug);
 const href = (e: (typeof all)[number]) => `${root}lab/${e.data.department}/${e.id.split('/').pop()}/`;
 const featured = of('experiments').find((e) => e.data.status === 'in-progress') ?? of('experiments')[0];
@@ -19,7 +20,7 @@ const notes = of('field-notes').slice(0, 3);
 const archive = of('visual-archive');
 const open = of('open-lab');
 const observatory = of('observatory')[0];
-const noindex = all.every((e) => e.data.draft);   // enquanto só houver exemplos, a página não entra no Google
+const noindex = all.every((e) => e.data.draft);   // sem nada publicado (ou tudo marcado para não indexar), a página fica fora do Google
 
 const jsonld = [{
   '@context': 'https://schema.org', '@type': 'CollectionPage', name: LAB_NAME, description: LAB_DESCRIPTION,
@@ -43,7 +44,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         <p class="m-0 max-w-[480px] text-sm text-muted">Nem tudo aqui dá certo, e está tudo documentado do mesmo jeito.</p>
         <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
           {featured && <a href="#andamento" class="label-ui inline-flex min-h-12 items-center bg-lime px-6 text-xs font-bold text-black hover:brightness-110">Ver o que está em andamento</a>}
-          <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Ler as notas</a>
+          {notes.length > 0 && <a href={`${root}lab/field-notes/`} class="link-ui text-xs">Ler as notas</a>}
         </div>
       </div>
       <Wire label="Imagem de abertura: estátua com glitch" class="min-h-[300px] lg:min-h-[480px]" />
@@ -71,6 +72,16 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
     </ul>
   </nav>
 
+  {all.length === 0 && (
+    <section class="border-b border-line" aria-labelledby="empty-title">
+      <div class="wrap flex flex-col items-start gap-3 py-14 lg:py-20">
+        <h2 id="empty-title" class="m-0 font-display text-[40px] leading-[0.95] uppercase lg:text-[64px]">As primeiras publicações estão a caminho</h2>
+        <p class="m-0 max-w-[480px] text-[15px] text-muted">Estou escrevendo os primeiros experimentos e notas. Enquanto isso, veja os trabalhos no portfólio.</p>
+        <a href={`${root}#works`} class="link-ui text-xs">Ver os trabalhos</a>
+      </div>
+    </section>
+  )}
+
   <!-- EM ANDAMENTO (experimento em destaque) -->
   {featured && (
     <section id="andamento" class="scroll-mt-16 border-b border-line" aria-labelledby="featured-title">
@@ -80,7 +91,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
           <p class={eyebrow}>Em andamento</p>
           <h2 id="featured-title" class={h2}><a href={href(featured)} class="hover:text-lime">{featured.data.title}</a></h2>
           <p class={lead}>{featured.data.description}</p>
-          <p class={`${mono} m-0 text-muted`}>{featured.data.code} · {statuses[featured.data.status].label} · {fmtDate(featured.data.date)}</p>
+          <p class={`${mono} m-0 text-muted`}>{[featured.data.code, statuses[featured.data.status].label, fmtDate(featured.data.date)].filter(Boolean).join(' · ')}</p>
           <a href={href(featured)} class="label-ui inline-flex min-h-11 items-center gap-2 self-start border border-ink px-5 text-xs hover:border-lime hover:text-lime">Ver o experimento →</a>
         </div>
       </div>
@@ -88,7 +99,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
   )}
 
   <!-- PESQUISAS -->
-  <section class="border-b border-line" aria-labelledby="research-title">
+  {research.length > 0 && <section class="border-b border-line" aria-labelledby="research-title">
     <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-3">
@@ -103,7 +114,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
             <a href={href(e)} class="group grid gap-5 py-6 md:grid-cols-[280px_1fr] md:items-center lg:grid-cols-[360px_1fr] lg:gap-10">
               <Wire label="Imagem da pesquisa" class="min-h-[180px] lg:min-h-[220px]" />
               <span class="flex flex-col gap-3">
-                <span class={`${mono} text-muted`}>{e.data.code} · {e.data.areas.join(' / ')}</span>
+                <span class={`${mono} text-muted`}>{[e.data.code, e.data.areas.join(' / ')].filter(Boolean).join(' · ')}</span>
                 <span class="text-[26px] leading-[1.15] font-bold group-hover:text-lime lg:text-[34px]">{e.data.title}</span>
                 <span class="max-w-[560px] text-[15px] text-muted">{e.data.description}</span>
               </span>
@@ -112,10 +123,10 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         ))}
       </ul>
     </div>
-  </section>
+  </section>}
 
   <!-- FIELD NOTES -->
-  <section class="border-b border-line" aria-labelledby="notes-title">
+  {notes.length > 0 && <section class="border-b border-line" aria-labelledby="notes-title">
     <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-3">
@@ -126,10 +137,10 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
       </div>
       <ul class="m-0 grid list-none gap-4 p-0 md:grid-cols-2 lg:grid-cols-3">{notes.map((e) => <li><PubCard entry={e} root={root} /></li>)}</ul>
     </div>
-  </section>
+  </section>}
 
   <!-- ARQUIVO VISUAL -->
-  <section class="border-b border-line" aria-labelledby="archive-title">
+  {archive.length > 0 && <section class="border-b border-line" aria-labelledby="archive-title">
     <div class="wrap grid gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:py-16">
       <div class="flex flex-col gap-4">
         <h2 id="archive-title" class={h2}>Arquivo de referências</h2>
@@ -145,10 +156,9 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
             </a>
           </li>
         ))}
-        {Array.from({ length: Math.max(0, 6 - archive.length) }).map(() => <li aria-hidden="true"><Wire label="Referência" class="aspect-square opacity-60" /></li>)}
       </ul>
     </div>
-  </section>
+  </section>}
 
   <!-- OPEN LAB -->
   {open.length > 0 && (
@@ -173,7 +183,7 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
   )}
 
   <!-- POR ASSUNTO: áreas de conhecimento + observatório -->
-  <section class="border-b border-line" aria-labelledby="areas-title">
+  {all.length > 0 && <section class="border-b border-line" aria-labelledby="areas-title">
     <div class="wrap flex flex-col gap-8 py-12 lg:py-16">
       <div class="flex flex-col gap-3">
         <h2 id="areas-title" class={h2}>Por assunto</h2>
@@ -198,23 +208,6 @@ const mono = 'font-mono text-[11px] uppercase tabular-nums';
         </a>
       )}
     </div>
-  </section>
+  </section>}
 
-  <!-- POR E-MAIL (wireframe: o envio ainda não está ligado) -->
-  <section aria-labelledby="mail-title">
-    <div class="wrap grid gap-6 py-12 lg:grid-cols-2 lg:items-end lg:py-20">
-      <div class="flex flex-col gap-3">
-        <h2 id="mail-title" class={h2}>Novas publicações por e-mail</h2>
-        <p class={lead}>Mando um e-mail quando sai coisa nova. Sem frequência fixa e sem spam.</p>
-      </div>
-      <form class="flex flex-col gap-2" aria-describedby="mail-note" onsubmit="return false">
-        <label for="mail" class="text-xs text-muted">Seu e-mail</label>
-        <div class="flex flex-col gap-2 sm:flex-row">
-          <input id="mail" type="email" disabled placeholder="voce@exemplo.com" class="h-12 flex-1 border border-line bg-bg px-4 text-[15px]">
-          <button type="submit" disabled class="label-ui min-h-12 bg-lime px-6 text-xs font-bold text-black disabled:opacity-50">Quero receber</button>
-        </div>
-        <p id="mail-note" class={`${mono} m-0 text-muted`}>[ Wireframe: falta escolher o serviço de e-mail ]</p>
-      </form>
-    </div>
-  </section>
 </Lab>

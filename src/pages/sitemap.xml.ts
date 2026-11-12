@@ -1,10 +1,10 @@
 // Sitemap para o Google: página principal e o que do laboratório já está publicado (rascunhos ficam de fora)
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getLabEntries } from '../lib/lab-public';
 import { departments } from '../lab/data';
 
 export const GET: APIRoute = async ({ site }) => {
-  const live = (await getCollection('lab')).filter((e) => !e.data.draft);
+  const live = (await getLabEntries()).filter((e) => !e.data.draft);
   const at = (p: string) => new URL(p, site).href;
   const urls: { loc: string; lastmod?: string }[] = [{ loc: at('/') }];
   if (live.length) {

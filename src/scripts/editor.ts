@@ -224,7 +224,17 @@ async function save() {
     postId = out.id;
     baseUpdatedAt = out.updatedAt;
     dirty = false;
-    setState(`Salvo às ${new Date(out.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+    const at = `Salvo às ${new Date(out.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    const site: Record<string, [string, 'ok' | 'error']> = {
+      started: [' · o site atualiza em cerca de 1 minuto', 'ok'],
+      unconfigured: [' · o site ainda não está ligado ao admin (falta o Deploy Hook)', 'error'],
+      failed: [' · não deu para atualizar o site; salve de novo em instantes', 'error'],
+    };
+    const [extra, tone] = site[out.site] ?? ['', 'ok'];
+    setState(at + extra, tone);
+    const view = $<HTMLAnchorElement>('#viewLink');
+    view.href = `/lab/${dep().slug}/${f('slug').value}/`;
+    view.hidden = f('status').value !== 'published';
     addRevision(out.revisionId, created ? 'Criada' : null);
     if (created) history.replaceState(null, '', `/admin/publicacoes/${postId}/`);
     document.title = `${plain(titleEl) || 'Sem título'} · Editor · Admin`;

@@ -84,14 +84,16 @@ O cabeçalho publica a própria altura em `--header-h`, usada como `scroll-paddi
 
 ## Experimental Lab (`/lab/`)
 
-Área de pesquisa, experimentos e artigos, feita para ranquear no Google. Hoje é um **wireframe**: as caixas hachuradas `[ ... ]`
-são espaços de imagem e as publicações de `src/content/lab/` são exemplos (`draft: true`).
+Área de pesquisa, experimentos e artigos, feita para ranquear no Google. As publicações ficam no banco e são escritas no
+admin (`/admin/`); as páginas do Lab são geradas no build a partir delas. As caixas hachuradas `[ ... ]` ainda são espaços de imagem.
 
-- **Publicar:** crie `src/content/lab/<departamento>/<slug>.md` (o nome do arquivo vira a URL: palavras em português, sem acento,
-  separadas por hífen). Os campos (código, status, áreas, tags, relacionados, referências...) estão em `src/content.config.ts`.
+- **Publicar:** no admin, mude o status para **Publicado** (ou **Agendado**, com data) e salve. O admin dispara um novo deploy
+  pelo Deploy Hook do Vercel (`VERCEL_DEPLOY_HOOK_URL`) e o site atualiza em cerca de 1 minuto. Só entra no site o que está
+  publicado ou agendado com a data já passada; rascunhos, ideias, revisões e arquivados nunca aparecem.
+- **Agendados:** uma tarefa diária do Vercel (`vercel.json`, `/api/cron/agendados`, protegida por `CRON_SECRET`) publica o que venceu.
 - **Departamentos:** `experiments` (EXP), `field-notes` (FN), `research` (RES), `visual-archive` (VA), `open-lab` (LAB), `observatory` (OBS).
 - **Google:** cada página tem título, descrição, URL canônica, Open Graph e dados estruturados (Article/TechArticle e trilha).
-  Rascunhos (`draft: true`) saem com `noindex` e ficam fora do `sitemap.xml`; com `draft: false` a página entra no sitemap.
+  Publicações marcadas "Não mostrar no Google" saem com `noindex` e ficam fora do `sitemap.xml`.
 - Dados fixos (departamentos, áreas, status) em `src/lab/data.ts`; layout em `src/layouts/Lab.astro`.
 
 ## Admin (/admin/)
@@ -100,6 +102,6 @@ são espaços de imagem e as publicações de `src/content/lab/` são exemplos (
 
 - **Login:** só a conta do GitHub cujo id está em `ADMIN_GITHUB_ID` entra. A sessão dura 30 dias (cookie `__Host-`, HttpOnly, Secure); o banco guarda só o hash do token. Tentativas são limitadas a 20 a cada 15 minutos por IP.
 - **Banco:** Postgres na Neon (integração do Vercel). O schema fica em `src/db/schema.ts`; depois de mudar, rode `npm run db:generate` para criar a migração em `drizzle/`.
-- **Build:** `scripts/db-migrate.ts` roda antes do `astro build` e, só no build de produção, aplica as migrações e faz a carga inicial (catálogos e, se o banco estiver vazio, as publicações de `src/content/lab`).
+- **Build:** `scripts/db-migrate.ts` roda antes do `astro build` e, só no build de produção, aplica as migrações e confere os catálogos (departamentos, assuntos, tipos de conteúdo e autor).
 - **Editor:** `/admin/publicacoes/nova/` e `/admin/publicacoes/<id>/`. Título, resumo e corpo são editados na própria página (o corpo com Tiptap, guardado em Markdown); os metadados ficam em "Detalhes". Cada salvamento grava uma versão; restaurar uma versão cria uma versão nova. Ctrl/Cmd+S salva.
 - **Variáveis no Vercel:** `DATABASE_URL` (criada pela Neon), `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_GITHUB_ID`. O OAuth App do GitHub usa o retorno `https://hallan-dante.vercel.app/api/auth/callback`.

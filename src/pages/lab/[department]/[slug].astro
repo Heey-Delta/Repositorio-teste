@@ -4,37 +4,37 @@
 import Lab from '../../../layouts/Lab.astro';
 import PubCard from '../../../components/lab/PubCard.astro';
 import Wire from '../../../components/lab/Wire.astro';
-import { getCollection, render } from 'astro:content';
+import { getLabEntries, renderMarkdown } from '../../../lib/lab-public';
 import { departmentBySlug, statuses, fmtDate, up } from '../../../lab/data';
 
 export async function getStaticPaths() {
-  const all = await getCollection('lab');
+  const all = await getLabEntries();
   return all.map((entry) => ({ params: { department: entry.data.department, slug: entry.id.split('/').pop() }, props: { entry, all } }));
 }
 const { entry, all } = Astro.props;
 const d = entry.data, dep = departmentBySlug(d.department), root = up(3);
-const { Content, headings } = await render(entry);
+const { html, headings } = renderMarkdown(entry.body);
 const toc = headings.filter((h) => h.depth === 2);
-const related = all.filter((e) => d.related.includes(e.data.code) || e.data.related.includes(d.code)).filter((e) => e.id !== entry.id);
+const related = all.filter((e) => (e.data.code && d.related.includes(e.data.code)) || (d.code && e.data.related.includes(d.code))).filter((e) => e.id !== entry.id);
 const url = new URL(`/lab/${d.department}/${entry.id.split('/').pop()}/`, Astro.site).href;
 const jsonld = [{
-  '@context': 'https://schema.org', '@type': d.department === 'research' ? 'TechArticle' : 'Article',
+  '@context': 'https://schema.org', '@type': d.seo.schemaType ?? (d.department === 'research' ? 'TechArticle' : 'Article'),
   headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
   datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
   author: { '@type': 'Person', name: d.author }, publisher: { '@type': 'Person', name: 'Hallan' },
-  articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), identifier: d.code,
+  articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
 }];
 const meta = [
-  ['Código', d.code], ['Status', `${statuses[d.status].label} · ${statuses[d.status].about}`],
+  ...(d.code ? [['Código', d.code]] : []), ['Status', `${statuses[d.status].label} · ${statuses[d.status].about}`],
   ['Assuntos', d.areas.join(' / ')], ['Nível', d.level],
 ];
 ---
-<Lab title={d.title} description={d.description} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
-  crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
+<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} depth={3} current={d.department} noindex={d.draft} jsonld={jsonld} ogType="article"
+  crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code ?? d.title, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
   <article>
     <header class="border-b border-line">
       <div class="wrap flex flex-col gap-5 py-8 lg:py-12">
-        <p class="label-ui m-0 text-[11px] text-muted">{dep.name}{d.format ? ` · ${d.format}` : ''} · {d.code}</p>
+        <p class="label-ui m-0 text-[11px] text-muted">{[dep.name, d.format, d.code].filter(Boolean).join(' · ')}</p>
         <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
         <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
@@ -57,7 +57,16 @@ const meta = [
           </nav>
         )}
       </aside>
-      <div class="lab-prose max-w-[720px]"><Content /></div>
+      <div class="flex max-w-[720px] flex-col gap-10">
+        <div class="lab-prose" set:html={html} />
+        {(d.methodology || d.aiAssistance) && (
+          <section class="flex flex-col gap-4 border-t border-line pt-6 text-[15px]" aria-labelledby="como-feito">
+            <h2 id="como-feito" class="label-ui m-0 text-[11px] text-muted">Como foi feito</h2>
+            {d.methodology && <p class="m-0 whitespace-pre-line">{d.methodology}</p>}
+            {d.aiAssistance && <p class="m-0 whitespace-pre-line text-muted"><strong class="font-bold text-ink">Uso de IA:</strong> {d.aiAssistance}</p>}
+          </section>
+        )}
+      </div>
     </div>
     {d.references.length > 0 && (
       <section class="wrap border-t border-line py-8" aria-labelledby="refs">
