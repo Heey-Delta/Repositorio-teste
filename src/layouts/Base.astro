@@ -7,6 +7,9 @@ interface Props { title: string; description?: string; preloadFont?: boolean; la
 const { title, description, preloadFont = false, lang = 'pt-BR', icon, bodyClass, analytics = false } = Astro.props;
 // Vercel Web Analytics (só nas páginas públicas e só no build do Vercel: fora dele o script não existe)
 const withAnalytics = analytics && import.meta.env.PROD && Boolean(process.env.VERCEL);
+// Verificação de propriedade no Google Search Console e no Bing Webmaster Tools: o código de cada um vai numa
+// variável de ambiente da Vercel (GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION) e entra no próximo deploy.
+const googleVerify = process.env.GOOGLE_SITE_VERIFICATION, bingVerify = process.env.BING_SITE_VERIFICATION;
 ---
 <html lang={lang}>
 <head>
@@ -17,6 +20,8 @@ const withAnalytics = analytics && import.meta.env.PROD && Boolean(process.env.V
   {icon
     ? <link rel="icon" href={icon} type="image/svg+xml">
     : <><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"></>}
+  {googleVerify && <meta name="google-site-verification" content={googleVerify}>}
+  {bingVerify && <meta name="msvalidate.01" content={bingVerify}>}
   <slot name="head" />
   {withAnalytics && <script defer src="/_vercel/insights/script.js" is:inline></script>}
   {preloadFont && <>

@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/db-migrate.ts && astro build",
+    "build": "node scripts/db-migrate.ts && astro build && node scripts/vercel-routes.mjs",
     "db:generate": "drizzle-kit generate",
     "preview": "astro preview",
     "check:widgets": "scripts/check-widgets.sh"

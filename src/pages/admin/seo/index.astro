@@ -72,8 +72,29 @@ const issues = (checks: Check[]) => checks.filter((c) => !c.ok).sort((a, b) => (
         <li>Mapa do site para o Google: <a href={`${site}/sitemap.xml`} target="_blank" rel="noopener" class="underline hover:text-ink">sitemap.xml</a> (só o que está no ar e liberado)</li>
         <li>Regras para robôs: <a href={`${site}/robots.txt`} target="_blank" rel="noopener" class="underline hover:text-ink">robots.txt</a> (admin e API bloqueados)</li>
         <li>Feed: <a href={`${site}/lab/rss.xml`} target="_blank" rel="noopener" class="underline hover:text-ink">rss.xml</a></li>
+        <li>Resumo para buscadores com IA: <a href={`${site}/llms.txt`} target="_blank" rel="noopener" class="underline hover:text-ink">llms.txt</a> (quem é você, serviços e publicações)</li>
         <li>Endereço canônico, Open Graph, dados estruturados (artigo, autor, citações, anexos e trilha), redirecionamentos 301 e página 404</li>
+        <li>Todo dia, avisa o Bing e outros buscadores (IndexNow) do que entrou ou mudou nos últimos 2 dias</li>
       </ul>
     </section>
+
+    <section aria-labelledby="pingTitle" class="flex flex-col gap-3">
+      <h2 id="pingTitle" class="m-0 text-base font-bold">Avisar buscadores agora</h2>
+      <p class="m-0 max-w-[720px] text-sm text-muted">Manda todos os endereços públicos para o IndexNow (Bing, que alimenta o ChatGPT, o Copilot e o DuckDuckGo, além de Yandex e outros). O Google não usa IndexNow: para ele, envie o sitemap e use "Solicitar indexação" no Search Console.</p>
+      <div class="flex items-center gap-4">
+        <button type="button" id="pingBtn" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink disabled:cursor-wait disabled:opacity-60">Avisar buscadores</button>
+        <p id="pingState" class="m-0 text-[13px] text-muted" role="status"></p>
+      </div>
+    </section>
   </div>
+  <script>
+    const btn = document.getElementById('pingBtn') as HTMLButtonElement, state = document.getElementById('pingState')!;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; state.textContent = 'Enviando…';
+      const res = await fetch('/api/seo/indexnow', { method: 'POST' }).catch(() => null);
+      const out = res ? await res.json().catch(() => ({})) : {};
+      state.textContent = res?.ok ? `Pronto: ${out.sent} endereços enviados.` : `Não deu certo (${out.status ?? 'sem resposta'}). Tente de novo mais tarde.`;
+      btn.disabled = false;
+    });
+  </script>
 </Admin>
