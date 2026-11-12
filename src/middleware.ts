@@ -6,8 +6,8 @@ import { readSession } from './lib/auth';
 // /api/cron/* se autentica sozinho, com o CRON_SECRET que o Vercel envia
 const OPEN = new Set(['/admin/login', '/api/auth/github', '/api/auth/callback', '/api/auth/logout', '/api/cron/agendados']);
 const CSP = [
-  "default-src 'self'", "script-src 'self' 'unsafe-inline'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src https://fonts.gstatic.com", "img-src 'self' data: blob: https:", "connect-src 'self'",
+  "default-src 'self'", "script-src 'self' 'unsafe-inline'", "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'", "img-src 'self' data: blob: https:", "connect-src 'self'",
   "frame-ancestors 'self'", "base-uri 'self'", "form-action 'self' https://github.com",
 ].join('; ');
 

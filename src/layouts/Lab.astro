@@ -19,7 +19,6 @@ const ogImage = ogOverride ?? { url: new URL('/img/laboratorio.webp', Astro.site
 const root = up(depth);
 const canonical = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site).href;
 const fullTitle = `${title} · ${LAB_NAME} · Hallan`;
-const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
 
 // trilha de navegação também como dado estruturado (o Google mostra no resultado)
 const allCrumbs = [{ name: 'Hallan', path: '/' }, { name: LAB_NAME, path: '/lab/' }, ...crumbs];
@@ -38,7 +37,7 @@ const index = (await getLabEntries()).map((e) => ({
 }));
 const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...departments.map((d) => ({ slug: d.slug, name: d.slug === 'visual-archive' ? 'Archive' : d.name, href: `${root}lab/${d.slug}/` }))];
 ---
-<Base title={fullTitle} description={description} fonts={fonts} lang="pt-BR" bodyClass="lab-body" analytics={!noindex}>
+<Base title={fullTitle} description={description} lang="pt-BR" bodyClass="lab-body" analytics={!noindex} preloadFont>
   <Fragment slot="head">
     <link rel="canonical" href={canonical}>
     {noindex && <meta name="robots" content="noindex, follow">}

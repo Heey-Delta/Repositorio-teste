@@ -1,8 +1,9 @@
 ---
-// Estrutura comum das páginas: <head>, fontes do Google e o slot do conteúdo.
+// Estrutura comum das páginas: <head> e o slot do conteúdo. As fontes (Anton e Chakra Petch) ficam no próprio site,
+// em public/fonts (declaradas em global.css); `preloadFont` adianta a Anton, que é a dos títulos grandes.
 import '../styles/global.css';
-interface Props { title: string; description?: string; fonts?: string; lang?: string; icon?: string; bodyClass?: string; analytics?: boolean; }
-const { title, description, fonts, lang = 'pt-BR', icon, bodyClass, analytics = false } = Astro.props;
+interface Props { title: string; description?: string; preloadFont?: boolean; lang?: string; icon?: string; bodyClass?: string; analytics?: boolean; }
+const { title, description, preloadFont = false, lang = 'pt-BR', icon, bodyClass, analytics = false } = Astro.props;
 // Vercel Web Analytics (só nas páginas públicas e só no build do Vercel: fora dele o script não existe)
 const withAnalytics = analytics && import.meta.env.PROD && Boolean(process.env.VERCEL);
 ---
@@ -15,11 +16,7 @@ const withAnalytics = analytics && import.meta.env.PROD && Boolean(process.env.V
   {icon && <link rel="icon" href={icon} type="image/svg+xml">}
   <slot name="head" />
   {withAnalytics && <script defer src="/_vercel/insights/script.js" is:inline></script>}
-  {fonts && <>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href={fonts}>
-  </>}
+  {preloadFont && <link rel="preload" href="/fonts/anton-400.woff2" as="font" type="font/woff2" crossorigin>}
 </head>
 <body class={bodyClass}>
   <slot />

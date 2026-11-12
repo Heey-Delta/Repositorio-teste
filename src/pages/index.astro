@@ -16,7 +16,6 @@ import Visibility from '../components/Visibility.astro';
 import { getAuthor, authorLd } from '../lib/lab-public';
 import { services } from '../lib/site';
 
-const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
 
 // SEO da página inicial: título e descrição que dizem o que você faz, endereço canônico, imagem de compartilhamento
 // e dados estruturados (o site, a pessoa, que é a mesma identidade de autor do Lab, e o serviço profissional)
@@ -38,7 +37,7 @@ const jsonld = [
   },
 ];
 ---
-<Base title={title} description={description} fonts={fonts} lang="pt-BR" analytics>
+<Base title={title} description={description} lang="pt-BR" analytics preloadFont>
   <Fragment slot="head">
     <link rel="canonical" href={home}>
     <meta property="og:type" content="website">

@@ -1,4 +1,11 @@
 @import "tailwindcss" source(none);
+
+/* Fontes hospedadas no próprio site (public/fonts, só o alfabeto latino, que cobre o português).
+   Vêm do Google Fonts via Fontsource; `swap` mostra o texto na hora com a fonte reserva. */
+@font-face { font-family: Anton; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/anton-400.woff2) format('woff2'); }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/chakra-petch-400.woff2) format('woff2'); }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/chakra-petch-500.woff2) format('woff2'); }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/chakra-petch-600.woff2) format('woff2'); }
 /* Só as páginas e componentes do site principal (as demos têm o próprio CSS) */
 @source "../pages/index.astro";
 @source "../pages/lab";

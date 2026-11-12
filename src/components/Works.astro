@@ -78,18 +78,29 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
   @media (prefers-reduced-motion: reduce) { .site-card { transition: none; } }
 </style>
 <script is:inline>
-  // A cidade 3D (iframe + Three.js, centenas de KB) só começa a carregar depois que a página terminou de carregar,
-  // para não disputar a conexão com a primeira imagem (o "lazy" do navegador carregava cedo demais).
-  // Se a pessoa rolar até a seção antes disso, carrega na hora.
+  // A cidade 3D (iframe + Three.js) é o trecho mais pesado do site: montar a cena custa ~2 s de processamento num
+  // celular comum. Por isso ela só começa quando a pessoa mostra que vai navegar (primeira rolagem, toque, clique ou
+  // tecla) ou quando a seção entra de verdade na tela (no celular ela já aparece na borda de baixo da primeira tela,
+  // por isso a margem negativa). Quem só abre o site e lê o topo não paga esse custo.
   (function () {
     var f = document.getElementById('cityFrame'); if (!f || !f.dataset.src) return;
-    var go = function () { if (!f.src) f.src = f.dataset.src; };
-    var later = function () { (window.requestIdleCallback || setTimeout)(go, { timeout: 1500 }); };
-    if (document.readyState === 'complete') later(); else addEventListener('load', later);
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); go(); } });
-      io.observe(f);
+    var evs = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'wheel'], io;
+    function go() {
+      if (f.src) return;
+      f.src = f.dataset.src;
+      evs.forEach(function (e) { removeEventListener(e, soon, true); });
+      if (io) io.disconnect();
     }
+    // só a rolagem da própria página conta (carrosséis e outras áreas roláveis também disparam "scroll" no carregamento)
+    function soon(e) {
+      if (e && e.type === 'scroll' && e.target !== document && e.target !== window) return;
+      (window.requestIdleCallback || setTimeout)(go, { timeout: 800 });
+    }
+    evs.forEach(function (e) { addEventListener(e, soon, { capture: true, passive: true }); });
+    if ('IntersectionObserver' in window) {
+      io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) go(); }, { rootMargin: '0px 0px -35% 0px' });
+      io.observe(f);
+    } else soon();
   })();
 </script>
 <script is:inline define:vars={{ sites }}>

@@ -4,7 +4,6 @@ import Base from './Base.astro';
 interface Props { title: string; current: string; }
 const { title, current } = Astro.props;
 const admin = Astro.locals.admin;
-const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
 const modules = [
   { slug: 'dashboard', name: 'Visão geral', href: '/admin/' },
   { slug: 'publicacoes', name: 'Publicações', href: '/admin/publicacoes/' },
@@ -16,7 +15,7 @@ const modules = [
   { slug: 'config', name: 'Configurações', href: '/admin/configuracoes/' },
 ];
 ---
-<Base title={`${title} · Admin · Hallan`} fonts={fonts} bodyClass="admin-body">
+<Base title={`${title} · Admin · Hallan`} bodyClass="admin-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
   <div class="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
     <aside class="border-b border-line lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">

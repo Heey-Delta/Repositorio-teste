@@ -18,7 +18,6 @@ interface Props {
 }
 const { id, draft, updatedAt, login, options, revisions, cover, attachments } = Astro.props;
 const dep = options.departments.find((d) => d.id === draft.departmentId) ?? options.departments[0];
-const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@400;500;600&display=swap';
 const data = JSON.stringify({ id, draft, updatedAt, login, cover, attachments, areas: options.areas, contentTypes: options.contentTypes, departments: options.departments, posts: options.posts, site: Astro.site?.origin })
   .replace(/</g, '\\u003c');
 const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
@@ -39,7 +38,7 @@ const tools = [
   ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 ---
-<Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} fonts={fonts} bodyClass="editor-body">
+<Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
   <script type="application/json" id="editorData" set:html={data} />
 
