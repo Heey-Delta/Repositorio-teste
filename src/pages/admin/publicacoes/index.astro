@@ -1,15 +1,24 @@
 ---
-// Lista de publicações (Content Manager, spec 5.2), com filtro por status. Cada título abre o editor.
+// Lista de publicações (Content Manager, spec 5.2), com busca e filtro por status. Cada título abre o editor.
 import Admin from '../../../layouts/Admin.astro';
 import { countsByStatus, listPosts, statusLabel, statusOrder, fmtDateTime, type EditorialStatus } from '../../../lib/admin';
 export const prerender = false;
-const q = Astro.url.searchParams.get('status');
-const status = statusOrder.includes(q as EditorialStatus) ? (q as EditorialStatus) : undefined;
-const [counts, posts] = await Promise.all([countsByStatus(), listPosts({ status })]);
+const rawStatus = Astro.url.searchParams.get('status');
+const status = statusOrder.includes(rawStatus as EditorialStatus) ? (rawStatus as EditorialStatus) : undefined;
+const q = (Astro.url.searchParams.get('q') ?? '').slice(0, 100);
+const [counts, posts] = await Promise.all([countsByStatus(), listPosts({ status, q })]);
+const withQ = (base: string) => (q ? `${base}${base.includes('=') ? '&' : ''}q=${encodeURIComponent(q)}` : base);
 const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' }, ...statusOrder.map((k) => ({ key: k, label: statusLabel[k] }))];
 ---
 <Admin title="Publicações" current="publicacoes">
   <div class="flex flex-col gap-6">
+    <form method="get" role="search" class="flex max-w-[520px] gap-2">
+      {status && <input type="hidden" name="status" value={status}>}
+      <label for="q" class="sr-only">Buscar publicações</label>
+      <input id="q" name="q" type="search" value={q} placeholder="Buscar por título, código ou endereço" autocomplete="off"
+        class="h-11 min-w-0 flex-1 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime">
+      <button type="submit" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Buscar</button>
+    </form>
     <div class="flex flex-wrap items-center justify-between gap-4">
     <nav aria-label="Filtrar por status">
       <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
@@ -17,7 +26,7 @@ const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' },
           const active = f.key === status;
           return (
             <li>
-              <a href={f.key ? `?status=${f.key}` : '?'} aria-current={active ? 'true' : undefined}
+              <a href={withQ(f.key ? `?status=${f.key}` : '?')} aria-current={active ? 'true' : undefined}
                 class:list={['inline-flex min-h-9 items-center gap-2 rounded-full border px-4 text-sm', active ? 'border-lime text-lime' : 'border-line hover:border-ink']}>
                 {f.label}{f.key && <span class="text-muted tabular-nums">{counts[f.key]}</span>}
               </a>
@@ -30,7 +39,7 @@ const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' },
     </div>
 
     {posts.length === 0
-      ? <p class="m-0 text-sm text-muted">Nada com esse status.</p>
+      ? <p class="m-0 text-sm text-muted">{q ? <>Nada encontrado para “{q}”{status ? ' com esse status' : ''}. <a href={status ? `?status=${status}` : '?'} class="underline hover:text-ink">Limpar a busca</a></> : 'Nada com esse status.'}</p>
       : (
         <div class="overflow-x-auto rounded-[8px] border border-line">
           <table class="w-full min-w-[720px] border-collapse text-left text-sm">

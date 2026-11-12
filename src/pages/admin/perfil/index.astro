@@ -1,0 +1,62 @@
+---
+// Perfil do autor: quem escreve o Lab. Esses dados dizem ao Google e às IAs quem está por trás das publicações.
+import Admin from '../../../layouts/Admin.astro';
+import { getAuthorProfile } from '../../../lib/author';
+export const prerender = false;
+const a = await getAuthorProfile();
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-lime aria-[invalid=true]:border-[#ff5a5a]';
+const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
+---
+<Admin title="Perfil do autor" current="perfil">
+  <form id="authorForm" class="flex max-w-[640px] flex-col gap-6" novalidate>
+    <p class="m-0 text-sm text-muted">Aparece como autor de todas as publicações. O Google e as ferramentas de IA usam esses dados para entender quem escreve e ligar o Lab ao seu portfólio e aos seus perfis.</p>
+    <label class={label}>Nome
+      <input name="name" value={a.name} required maxlength="80" class={`${field} h-11`}>
+    </label>
+    <label class={label}>Título profissional <span class="text-xs">Como você se apresenta. Ex.: Designer e desenvolvedor de sites</span>
+      <input name="jobTitle" value={a.jobTitle ?? ''} maxlength="120" class={`${field} h-11`}>
+    </label>
+    <label class={label}>Bio <span class="text-xs">Em primeira ou terceira pessoa. O primeiro parágrafo vira o resumo para buscadores.</span>
+      <textarea name="bio" rows="6" maxlength="2000" class={`${field} py-2`}>{a.bio ?? ''}</textarea>
+    </label>
+    <label class={label}>Especialidades <span class="text-xs">Separadas por vírgula, até 12.</span>
+      <input name="specialties" value={a.specialties.join(', ')} class={`${field} h-11`}>
+    </label>
+    <label class={label}>Perfis e sites <span class="text-xs">Um link por linha: LinkedIn, GitHub, Behance, portfólio… Sempre com https://</span>
+      <textarea name="sameAs" rows="5" spellcheck="false" class={`${field} py-2 font-mono text-[13px]`}>{a.sameAs.join('\n')}</textarea>
+    </label>
+    <div class="flex items-center gap-4">
+      <button type="submit" class="min-h-11 cursor-pointer rounded-[6px] bg-lime px-6 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar perfil</button>
+      <p id="authorState" class="m-0 text-[13px] text-muted" role="status"></p>
+    </div>
+  </form>
+  <script>
+    const form = document.getElementById('authorForm') as HTMLFormElement;
+    const state = document.getElementById('authorState')!;
+    const el = (n: string) => form.elements.namedItem(n) as HTMLInputElement;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      form.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid'));
+      const btn = form.querySelector('button')!;
+      btn.disabled = true; state.style.color = ''; state.textContent = 'Salvando…';
+      const body = {
+        name: el('name').value, jobTitle: el('jobTitle').value, bio: el('bio').value,
+        specialties: el('specialties').value.split(',').map((x) => x.trim()).filter(Boolean),
+        sameAs: el('sameAs').value.split('\n').map((x) => x.trim()).filter(Boolean),
+      };
+      try {
+        const res = await fetch('/api/author', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          state.style.color = '#ff8a8a'; state.textContent = out.error ?? 'Não deu para salvar.';
+          const name = String(out.field ?? '').split('.')[0];
+          if (name && el(name)) { el(name).setAttribute('aria-invalid', 'true'); el(name).focus(); }
+          return;
+        }
+        const site = { started: ' · o site atualiza em cerca de 1 minuto', unconfigured: ' · falta ligar o Deploy Hook', failed: ' · não deu para atualizar o site agora' } as Record<string, string>;
+        state.textContent = `Salvo${site[out.site] ?? ''}`;
+      } catch { state.style.color = '#ff8a8a'; state.textContent = 'Sem conexão. Tente de novo.'; }
+      finally { btn.disabled = false; }
+    });
+  </script>
+</Admin>

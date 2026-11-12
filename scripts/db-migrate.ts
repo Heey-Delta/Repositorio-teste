@@ -27,5 +27,8 @@ await db.insert(s.areas).values(areas.map((a) => ({ slug: slugify(a.name), name:
 const types = ['Artigo', 'Apresentação', 'Documento técnico', 'Relatório', 'Estudo de caso', 'Pesquisa', 'Experimento', 'Ensaio visual', 'Nota', 'Projeto documentado'];
 await db.insert(s.contentTypes).values(types.map((name) => ({ slug: slugify(name), name }))).onConflictDoNothing();
 const githubId = Number(process.env.ADMIN_GITHUB_ID) || null;
-await db.insert(s.authors).values({ slug: 'hallan', name: 'Hallan', githubId, sameAs: ['https://hallan-dante.vercel.app/'] }).onConflictDoNothing();
+await db.insert(s.authors).values({
+  slug: 'hallan', name: 'Hallan', githubId, sameAs: ['https://hallan-dante.vercel.app/'], jobTitle: 'Designer e desenvolvedor de sites',
+  specialties: ['Design de interfaces', 'Desenvolvimento web', 'Experiências 3D na web', 'Percepção visual'],
+}).onConflictDoNothing();
 console.log('[db] catálogos conferidos');

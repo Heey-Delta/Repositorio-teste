@@ -1,0 +1,120 @@
+---
+// Página de uma publicação do Lab: ficha, sumário, corpo em Markdown, "como foi feito", referências e relacionadas.
+// Usada pela página pública (src/pages/lab/[department]/[slug].astro) e pela pré-visualização do admin,
+// para que a prévia seja exatamente o que vai ao ar. Dados estruturados: Article (ou TechArticle em Research).
+import Lab from '../../layouts/Lab.astro';
+import PubCard from './PubCard.astro';
+import Cover from './Cover.astro';
+import { renderMarkdown, type LabEntry } from '../../lib/lab-public';
+import { departmentBySlug, statuses, fmtDate, up } from '../../lab/data';
+
+interface Props { entry: LabEntry; all: LabEntry[]; depth?: number; preview?: { status: string; editHref: string } }
+const { entry, all, depth = 3, preview } = Astro.props;
+const d = entry.data, dep = departmentBySlug(d.department), root = up(depth);
+const personId = new URL('/#hallan', Astro.site).href;
+const { html, headings } = renderMarkdown(entry.body);
+const toc = headings.filter((h) => h.depth === 2);
+const related = all.filter((e) => (e.data.code && d.related.includes(e.data.code)) || (d.code && e.data.related.includes(d.code))).filter((e) => e.id !== entry.id);
+const url = new URL(`/lab/${d.department}/${entry.id.split('/').pop()}/`, Astro.site).href;
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': d.seo.schemaType ?? (d.department === 'research' ? 'TechArticle' : 'Article'),
+  headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
+  datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
+  author: { '@id': personId }, publisher: { '@id': personId },
+  ...(d.cover ? { image: { '@type': 'ImageObject', url: d.cover.url, caption: d.cover.alt, ...(d.cover.width ? { width: d.cover.width, height: d.cover.height } : {}) } } : {}),
+  ...(d.readingMinutes ? { timeRequired: `PT${d.readingMinutes}M` } : {}),
+  wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
+  about: d.areas.map((name) => ({ '@type': 'Thing', name })),
+  ...(d.references.length ? { citation: d.references.map((r) => ({ '@type': 'CreativeWork', name: r.title, ...(r.url ? { url: r.url } : {}), ...(r.author ? { author: r.author } : {}), ...(r.publisher ? { publisher: r.publisher } : {}) })) } : {}),
+  articleSection: dep.name, keywords: [...d.tags, ...d.areas].join(', '), ...(d.code ? { identifier: d.code } : {}),
+}];
+const meta = [
+  ...(d.code ? [['Código', d.code]] : []), ['Status', `${statuses[d.status].label} · ${statuses[d.status].about}`],
+  ['Assuntos', d.areas.join(' / ')], ['Nível', d.level],
+];
+---
+<Lab title={d.seo.metaTitle ?? d.title} description={d.seo.metaDescription ?? d.description} canonical={d.seo.canonicalUrl ?? undefined} ogImage={d.cover}
+  article={{ published: d.date, modified: d.updated ?? d.date, section: dep.name, tags: [...d.areas, ...d.tags] }} depth={depth} current={d.department} noindex={d.draft || !!preview} jsonld={jsonld} ogType="article"
+  crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.code ?? d.title, path: `/lab/${d.department}/${entry.id.split('/').pop()}/` }]}>
+  {preview && (
+    <div class="border-b border-[#5c4a00] bg-[#1a1500]" role="note">
+      <div class="wrap flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+        <span><strong class="font-bold text-[#ffd34d]">Pré-visualização</strong> · {preview.status}. É assim que a página vai aparecer no site; ninguém mais vê este endereço.</span>
+        <a href={preview.editHref} target="_top" class="underline hover:text-lime">Voltar ao editor</a>
+      </div>
+    </div>
+  )}
+  <article>
+    <header class="border-b border-line">
+      <div class="wrap flex flex-col gap-5 py-8 lg:py-12">
+        <p class="label-ui m-0 text-[11px] text-muted">{[dep.name, d.format, d.code].filter(Boolean).join(' · ')}</p>
+        <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
+        <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
+          <span>Por <strong>{d.author}</strong> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
+          <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-lime hover:text-lime">Copiar link</button>
+        </div>
+      </div>
+      {d.cover && <div class="mx-auto max-w-[1440px] border-t border-line"><Cover cover={d.cover} eager class="max-h-[640px]" /></div>}
+    </header>
+    <div class="wrap grid gap-10 py-10 lg:grid-cols-[260px_1fr] lg:gap-16 lg:py-14">
+      <aside class="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start" aria-label="Ficha da publicação">
+        <dl class="m-0 grid grid-cols-[96px_1fr] gap-x-3 gap-y-2 border-t border-line pt-4 text-[13px]">
+          {meta.map(([k, v]) => <><dt class="label-ui text-[11px] text-muted">{k}</dt><dd class="m-0 tabular-nums">{v}</dd></>)}
+        </dl>
+        {d.tags.length > 0 && <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0" aria-label="Tags">{d.tags.map((t) => <li class="border border-line px-2 py-1 text-xs text-muted">{t}</li>)}</ul>}
+        {toc.length > 1 && (
+          <nav class="border-t border-line pt-4" aria-label="Nesta publicação">
+            <p class="label-ui m-0 mb-2 text-[11px] text-muted">Nesta publicação</p>
+            <ol class="m-0 flex list-none flex-col gap-1.5 p-0 text-[13px]">{toc.map((h, i) => <li><a href={`#${h.slug}`} class="hover:text-lime"><span class="mr-2 font-mono text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>)}</ol>
+          </nav>
+        )}
+      </aside>
+      <div class="flex max-w-[720px] flex-col gap-10">
+        <div class="lab-prose" set:html={html} />
+        {(d.methodology || d.aiAssistance) && (
+          <section class="flex flex-col gap-4 border-t border-line pt-6 text-[15px]" aria-labelledby="como-feito">
+            <h2 id="como-feito" class="label-ui m-0 text-[11px] text-muted">Como foi feito</h2>
+            {d.methodology && <p class="m-0 whitespace-pre-line">{d.methodology}</p>}
+            {d.aiAssistance && <p class="m-0 whitespace-pre-line text-muted"><strong class="font-bold text-ink">Uso de IA:</strong> {d.aiAssistance}</p>}
+          </section>
+        )}
+      </div>
+    </div>
+    {d.references.length > 0 && (
+      <section class="wrap border-t border-line py-8" aria-labelledby="refs">
+        <h2 id="refs" class="label-ui m-0 mb-4 text-[11px] text-muted">Referências</h2>
+        <ol class="m-0 flex flex-col gap-2 pl-5 text-sm">{d.references.map((r) => (
+          <li>
+            {r.author && <>{r.author}. </>}
+            {r.url ? <a href={r.url} rel="noopener" class="underline hover:text-lime">{r.title}</a> : <cite class="not-italic">{r.title}</cite>}.
+            {(r.publisher || r.publishedOn) && <> {[r.publisher, r.publishedOn].filter(Boolean).join(', ')}.</>}
+            {r.accessedOn && <span class="text-muted"> Acesso em {r.accessedOn}.</span>}
+          </li>
+        ))}</ol>
+      </section>
+    )}
+  </article>
+  {related.length > 0 && (
+    <section class="border-t border-line" aria-labelledby="related-title">
+      <div class="wrap flex flex-col gap-5 py-10">
+        <h2 id="related-title" class="m-0 font-display text-[32px] leading-none uppercase lg:text-[44px]">Continua em</h2>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{related.map((e) => <PubCard entry={e} root={root} compact />)}</div>
+      </div>
+    </section>
+  )}
+  <script is:inline>
+    (function () {
+      var b = document.getElementById('copyLink'); if (!b || !navigator.clipboard) { if (b) b.remove(); return; }
+      b.addEventListener('click', function () {
+        navigator.clipboard.writeText(b.dataset.url).then(function () { flash('Link copiado ✓'); }, function () { flash('Não deu para copiar'); });
+      });
+      function flash(t) { b.textContent = t; b.classList.add('copied'); setTimeout(function () { b.textContent = 'Copiar link'; b.classList.remove('copied'); }, 1600); }
+    })();
+  </script>
+</Lab>
+<style is:global>
+  #copyLink.copied { border-color: var(--lime); color: var(--lime); animation: copied .25s ease-out; }
+  @keyframes copied { 40% { transform: scale(1.05); } }
+  @media (prefers-reduced-motion: reduce) { #copyLink.copied { animation: none; } }
+</style>

@@ -1,0 +1,38 @@
+---
+// Pré-visualização (spec 6.1): a página como vai ao ar, no tamanho de computador ou de celular, sem publicar.
+import Base from '../../../../layouts/Base.astro';
+import { loadPost } from '../../../../lib/posts';
+export const prerender = false;
+const post = await loadPost(Astro.params.id!);
+if (!post) return new Response('Publicação não encontrada', { status: 404 });
+const src = `/admin/publicacoes/${post.id}/pagina/`;
+---
+<Base title={`Prévia · ${post.draft.title || 'Sem título'} · Admin`}>
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
+  <div class="flex h-dvh flex-col">
+    <header class="flex min-h-14 shrink-0 flex-wrap items-center gap-3 border-b border-line px-4 py-2 lg:px-6">
+      <a href={`/admin/publicacoes/${post.id}/`} class="text-sm text-muted hover:text-ink">← Editor</a>
+      <p class="m-0 min-w-0 flex-1 truncate text-[13px] text-muted">Prévia de <span class="text-ink">{post.draft.title || 'Sem título'}</span></p>
+      <div role="group" aria-label="Tamanho da tela" class="flex rounded-[6px] border border-line p-0.5">
+        <button type="button" data-size="desktop" aria-pressed="true" class="size-btn min-h-9 cursor-pointer rounded-[4px] px-3 text-[13px]">Computador</button>
+        <button type="button" data-size="mobile" aria-pressed="false" class="size-btn min-h-9 cursor-pointer rounded-[4px] px-3 text-[13px]">Celular</button>
+      </div>
+      <a href={src} target="_blank" rel="noopener" class="text-[13px] text-muted hover:text-ink">Abrir sozinha ↗</a>
+    </header>
+    <div class="flex flex-1 justify-center overflow-auto bg-[#0a0a0a]">
+      <iframe id="frame" src={src} title="Pré-visualização da publicação" class="preview-frame h-full w-full border-0 bg-bg"></iframe>
+    </div>
+  </div>
+  <script>
+    const frame = document.getElementById('frame') as HTMLIFrameElement;
+    const btns = document.querySelectorAll<HTMLButtonElement>('.size-btn');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      frame.dataset.size = b.dataset.size;
+    }));
+  </script>
+  <style is:global>
+    .size-btn[aria-pressed="true"] { background: #1c1c1c; color: var(--lime); }
+    .preview-frame[data-size="mobile"] { width: 390px; max-width: 100%; border-inline: 1px solid var(--line); }
+  </style>
+</Base>

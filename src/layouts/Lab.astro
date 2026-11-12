@@ -3,8 +3,8 @@
 // cabeçalho com o menu compacto do laboratório, busca global (título, código, tag, área) e rodapé.
 import Base from './Base.astro';
 import LabIcon from '../components/lab/LabIcon.astro';
-import { getLabEntries } from '../lib/lab-public';
-import { departments, departmentBySlug, up, author, LAB_NAME } from '../lab/data';
+import { getLabEntries, getAuthor, authorLd } from '../lib/lab-public';
+import { departments, departmentBySlug, up, LAB_NAME } from '../lab/data';
 
 interface Crumb { name: string; path: string; }
 interface Props {
@@ -24,7 +24,7 @@ const fonts = 'https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petc
 // trilha de navegação também como dado estruturado (o Google mostra no resultado)
 const allCrumbs = [{ name: 'Hallan', path: '/' }, { name: LAB_NAME, path: '/lab/' }, ...crumbs];
 const ld = [
-  { '@context': 'https://schema.org', ...author(Astro.site) },
+  { '@context': 'https://schema.org', ...authorLd(Astro.site, await getAuthor()) },
   { '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: allCrumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.path, Astro.site).href })) },
   ...jsonld,

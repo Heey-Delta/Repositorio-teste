@@ -8,7 +8,7 @@ const OPEN = new Set(['/admin/login', '/api/auth/github', '/api/auth/callback', 
 const CSP = [
   "default-src 'self'", "script-src 'self' 'unsafe-inline'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src https://fonts.gstatic.com", "img-src 'self' data: blob: https:", "connect-src 'self'",
-  "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self' https://github.com",
+  "frame-ancestors 'self'", "base-uri 'self'", "form-action 'self' https://github.com",
 ].join('; ');
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
@@ -34,7 +34,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const out = new Response(res.body, res);
   out.headers.set('Cache-Control', 'no-store');
   out.headers.set('X-Robots-Tag', 'noindex, nofollow');
-  out.headers.set('X-Frame-Options', 'DENY');
+  out.headers.set('X-Frame-Options', 'SAMEORIGIN');   // a pré-visualização abre a página dentro do próprio admin
   out.headers.set('X-Content-Type-Options', 'nosniff');
   out.headers.set('Referrer-Policy', 'same-origin');
   if (isAdmin) out.headers.set('Content-Security-Policy', CSP);

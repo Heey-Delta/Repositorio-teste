@@ -57,16 +57,6 @@ export type Status = keyof typeof statuses;
 // Formatos do Field Notes
 export const formats = ['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion'] as const;
 
-// Quem escreve o Lab, nos dados estruturados (schema.org). O @id liga autor, editor e site numa só identidade para o Google.
-export const author = (site: URL | undefined) => ({
-  '@type': 'Person',
-  '@id': new URL('/#hallan', site).href,
-  name: 'Hallan',
-  url: new URL('/', site).href,
-  jobTitle: 'Designer e desenvolvedor de sites',
-  knowsAbout: ['Design de interfaces', 'Desenvolvimento web', 'Experiências 3D na web', 'Percepção visual'],
-});
-
 // Caminho relativo até a raiz do site, a partir da profundidade da página (os links precisam ser relativos, ver astro.config)
 export const up = (depth: number) => (depth === 0 ? './' : '../'.repeat(depth));
 

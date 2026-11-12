@@ -1,5 +1,5 @@
 // Textos e consultas compartilhados pelas telas do admin
-import { desc, eq, count } from 'drizzle-orm';
+import { and, desc, eq, count, ilike, or } from 'drizzle-orm';
 import { db, schema as s } from '../db/client';
 
 export const statusLabel = {
@@ -17,12 +17,15 @@ export async function countsByStatus() {
   return map;
 }
 
-export async function listPosts(opts: { status?: EditorialStatus; limit?: number } = {}) {
+export async function listPosts(opts: { status?: EditorialStatus; q?: string; limit?: number } = {}) {
+  // busca por trecho do título, do código, do endereço ou do resumo (sem diferenciar maiúsculas)
+  const term = opts.q?.trim() ? `%${opts.q.trim().replace(/[%_\\]/g, (c) => `\\${c}`)}%` : null;
+  const search = term ? or(ilike(s.posts.title, term), ilike(s.posts.code, term), ilike(s.posts.slug, term), ilike(s.posts.summary, term)) : undefined;
   const q = db().select({
     id: s.posts.id, code: s.posts.code, slug: s.posts.slug, title: s.posts.title, status: s.posts.status, stage: s.posts.stage,
     updatedAt: s.posts.updatedAt, department: s.departments.name, departmentSlug: s.departments.slug,
   }).from(s.posts).innerJoin(s.departments, eq(s.posts.departmentId, s.departments.id))
-    .where(opts.status ? eq(s.posts.status, opts.status) : undefined)
+    .where(and(opts.status ? eq(s.posts.status, opts.status) : undefined, search))
     .orderBy(desc(s.posts.updatedAt));
   return opts.limit ? q.limit(opts.limit) : q;
 }

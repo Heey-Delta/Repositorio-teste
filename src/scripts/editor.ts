@@ -559,6 +559,16 @@ document.getElementById('deletePost')?.addEventListener('click', async () => {
   location.href = '/admin/publicacoes/';
 });
 
+// ---------- pré-visualização ----------
+// A prévia mostra o que está salvo: com alterações pendentes, salva antes. A aba abre já no clique (senão o navegador bloqueia).
+$('#previewBtn').addEventListener('click', async () => {
+  const tab = window.open('', '_blank');
+  if (dirty || !postId) await save();
+  if (!postId || dirty) { tab?.close(); return; }
+  const url = `/admin/publicacoes/${postId}/previa/`;
+  if (tab) tab.location.href = url; else location.href = url;
+});
+
 renderCover();
 refreshDerived();
 syncToolbar();

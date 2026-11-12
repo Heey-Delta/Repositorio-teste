@@ -1,0 +1,19 @@
+---
+// Conteúdo da pré-visualização: a publicação renderizada com o mesmo componente do site, em qualquer status.
+// Abre dentro da moldura de previa.astro (computador ou celular); nunca é indexada.
+import Article from '../../../../components/lab/Article.astro';
+import { getLabEntriesFresh, getPreviewEntry } from '../../../../lib/lab-public';
+import { statusLabel } from '../../../../lib/admin';
+import { db, schema as s } from '../../../../db/client';
+import { eq } from 'drizzle-orm';
+export const prerender = false;
+
+const id = Astro.params.id!;
+const entry = /^[0-9a-f-]{36}$/.test(id) ? await getPreviewEntry(id) : null;
+if (!entry) return new Response('Publicação não encontrada', { status: 404 });
+const [post] = await db().select({ status: s.posts.status }).from(s.posts).where(eq(s.posts.id, id));
+const all = (await getLabEntriesFresh()).filter((e) => e.postId !== id);
+const label = statusLabel[post.status];
+const status = post.status === 'published' ? 'Publicado (o site mostra a versão do último deploy)' : `${label}: ainda não está no site`;
+---
+<Article entry={entry} all={[entry, ...all]} depth={4} preview={{ status, editHref: `/admin/publicacoes/${id}/` }} />

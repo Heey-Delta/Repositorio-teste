@@ -9,7 +9,8 @@ import Wire from '../../components/lab/Wire.astro';
 import Cover from '../../components/lab/Cover.astro';
 import PubCard from '../../components/lab/PubCard.astro';
 import { getLabEntries } from '../../lib/lab-public';
-import { departments, areas, statuses, fmtDate, up, author, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
+const personId = new URL('/#hallan', Astro.site).href;
+import { departments, areas, statuses, fmtDate, up, LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 const root = up(1);
 const all = await getLabEntries();
@@ -26,8 +27,8 @@ const noindex = all.every((e) => e.data.draft);   // sem nada publicado (ou tudo
 const jsonld = [{
   '@context': 'https://schema.org', '@type': 'CollectionPage', name: LAB_NAME, description: LAB_DESCRIPTION,
   url: new URL('/lab/', Astro.site).href, inLanguage: 'pt-BR',
-  isPartOf: { '@type': 'WebSite', name: 'Hallan', url: new URL('/', Astro.site).href, publisher: { '@id': author(Astro.site)['@id'] } },
-  author: { '@id': author(Astro.site)['@id'] },
+  isPartOf: { '@type': 'WebSite', name: 'Hallan', url: new URL('/', Astro.site).href, publisher: { '@id': personId } },
+  author: { '@id': personId },
   ...(all.length ? { mainEntity: { '@type': 'ItemList', itemListElement: all.filter((e) => !e.data.draft).slice(0, 20).map((e, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(`/lab/${e.id}/`, Astro.site).href, name: e.data.title })) } } : {}),
 }];
 // escala única do laboratório

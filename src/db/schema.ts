@@ -44,6 +44,7 @@ export const authors = pgTable('authors', {
   id: serial('id').primaryKey(),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
+  jobTitle: text('job_title'),
   bio: text('bio'),
   specialties: jsonb('specialties').$type<string[]>().notNull().default([]),
   sameAs: jsonb('same_as').$type<string[]>().notNull().default([]),   // portfólio e perfis (dados estruturados Person)

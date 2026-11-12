@@ -1,6 +1,6 @@
 // Lab público: lê do banco, na hora do build, só o que está publicado (ou agendado com a data já passada).
 // O formato imita o das antigas coleções de conteúdo (entry.id e entry.data), para as páginas mudarem pouco.
-import { and, eq, inArray, lte, or } from 'drizzle-orm';
+import { and, eq, inArray, lte, or, type SQL } from 'drizzle-orm';
 import { Marked } from 'marked';
 import GithubSlugger from 'github-slugger';
 import { db, schema as s } from '../db/client';
@@ -23,21 +23,30 @@ export interface LabEntry {
 
 let cache: Promise<LabEntry[]> | undefined;
 // no build, uma consulta serve todas as páginas; em desenvolvimento, cada página lê de novo
-export const getLabEntries = () => (import.meta.env.DEV ? load() : (cache ??= load()));
+const live = () => or(eq(s.posts.status, 'published'), and(eq(s.posts.status, 'scheduled'), lte(s.posts.scheduledAt, new Date())));
+export const getLabEntries = () => (import.meta.env.DEV ? load(live()) : (cache ??= load(live())));
+// no servidor (pré-visualização), sempre do banco: o cache acima é para o build
 
-async function load(): Promise<LabEntry[]> {
+export const getLabEntriesFresh = () => load(live());
+
+// Pré-visualização no admin: monta uma publicação em qualquer status, do jeito que ela vai aparecer no site
+export async function getPreviewEntry(id: string) {
+  const [entry] = await load(eq(s.posts.id, id));
+  return entry ?? null;
+}
+
+async function load(filter: SQL | undefined): Promise<LabEntry[]> {
   if (!process.env.DATABASE_URL) {
     console.warn('[lab] DATABASE_URL ausente: o Lab público sai sem publicações neste build.');
     return [];
   }
-  const now = new Date();
   const rows = await db().select({ p: s.posts, dep: s.departments.slug, author: s.authors.name, seo: s.seoMetadata, cover: s.media })
     .from(s.posts)
     .innerJoin(s.departments, eq(s.departments.id, s.posts.departmentId))
     .innerJoin(s.authors, eq(s.authors.id, s.posts.authorId))
     .leftJoin(s.seoMetadata, eq(s.seoMetadata.postId, s.posts.id))
     .leftJoin(s.media, eq(s.media.id, s.posts.coverMediaId))
-    .where(or(eq(s.posts.status, 'published'), and(eq(s.posts.status, 'scheduled'), lte(s.posts.scheduledAt, now))));
+    .where(filter);
   if (!rows.length) return [];
 
   const ids = rows.map((r) => r.p.id);
@@ -54,7 +63,9 @@ async function load(): Promise<LabEntry[]> {
     return m;
   };
   const areasBy = group(areaRows), tagsBy = group(tagRows), refsBy = group(refRows);
-  const codeOf = new Map(rows.map((r) => [r.p.id, r.p.code]));
+  const targets = [...new Set(relRows.flatMap((r) => [r.fromPostId, r.toPostId]))];
+  const codeRows = targets.length ? await db().select({ id: s.posts.id, code: s.posts.code }).from(s.posts).where(inArray(s.posts.id, targets)) : [];
+  const codeOf = new Map([...codeRows.map((r) => [r.id, r.code] as const), ...rows.map((r) => [r.p.id, r.p.code] as const)]);
   const day = (d: Date) => d.toISOString().slice(0, 10);
 
   return rows.map(({ p, dep, author, seo, cover }) => {
@@ -103,4 +114,29 @@ export function renderMarkdown(md: string) {
   });
   const html = marked.parse(md, { async: false }) as string;
   return { html, headings };
+}
+
+// Perfil do autor (editável em /admin/perfil/): alimenta os dados estruturados de autoria do Lab
+export interface AuthorProfile { name: string; jobTitle: string | null; bio: string | null; specialties: string[]; sameAs: string[] }
+const fallbackAuthor: AuthorProfile = { name: 'Hallan', jobTitle: 'Designer e desenvolvedor de sites', bio: null, specialties: [], sameAs: [] };
+let authorCache: Promise<AuthorProfile> | undefined;
+export const getAuthor = () => (import.meta.env.DEV ? loadAuthor() : (authorCache ??= loadAuthor()));
+async function loadAuthor(): Promise<AuthorProfile> {
+  if (!process.env.DATABASE_URL) return fallbackAuthor;
+  const [a] = await db().select().from(s.authors).where(eq(s.authors.slug, 'hallan'));
+  return a ? { name: a.name, jobTitle: a.jobTitle, bio: a.bio, specialties: a.specialties, sameAs: a.sameAs } : fallbackAuthor;
+}
+
+// Person do schema.org; o @id liga autor, editor e site numa só identidade para o Google
+export function authorLd(site: URL | undefined, a: AuthorProfile) {
+  return {
+    '@type': 'Person',
+    '@id': new URL('/#hallan', site).href,
+    name: a.name,
+    url: new URL('/', site).href,
+    ...(a.jobTitle ? { jobTitle: a.jobTitle } : {}),
+    ...(a.bio ? { description: a.bio.split(/\n\s*\n/)[0].slice(0, 300) } : {}),
+    ...(a.specialties.length ? { knowsAbout: a.specialties } : {}),
+    ...(a.sameAs.length ? { sameAs: a.sameAs } : {}),
+  };
 }
