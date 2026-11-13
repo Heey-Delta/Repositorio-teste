@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "check:widgets": "scripts/check-widgets.sh",
     "test:editor": "node --test 'tests/editor-core/*.test.ts'",
-    "check:editor": "tsc -p tsconfig.editor.json"
+    "check:editor": "tsc -p tsconfig.editor.json",
+    "catalog:editor": "node scripts/editor-catalog.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "^11.0.21",
