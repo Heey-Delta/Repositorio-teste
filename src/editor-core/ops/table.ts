@@ -19,7 +19,7 @@ import { clone, fail, merge } from '../util.ts';
 
 export interface TableCell { id: string; value: Scalar; formula?: string | null; calculatedValue?: Scalar; error?: { code: string; message: string } | null; span?: { rows: number; columns: number }; mergedInto?: string; styleOverrides?: Record<string, unknown>; validation?: ValidationRule | null }
 export interface TableData { columns: { id: string; width: number }[]; rows: { id: string; height?: number; cells: TableCell[] }[]; header: boolean; filter?: FilterSpec | null }
-interface FilterSpec { column: number; rule: FilterRule; range?: string }
+interface FilterSpec { column?: number; rule?: FilterRule; conditions?: { column: number; rule: FilterRule }[]; join?: 'AND' | 'OR'; range?: string }
 type FilterRule = { type: 'EQUALS' | 'NOT_EQUALS' | 'CONTAINS' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'EMPTY' | 'NOT_EMPTY'; value?: Scalar } | { type: 'VALUES'; values: Scalar[] };
 
 const newCell = (e: Engine, value: Scalar = null): TableCell => ({ id: e.newId('CELL'), value });
@@ -333,18 +333,25 @@ function passes(rule: FilterRule, v: Scalar) {
   }
 }
 
+/** A linha atende ao filtro? Vários critérios combinados com E (todos) ou OU (qualquer um). */
+function rowPasses(e: Engine, n: EditorNode, f: FilterSpec, row: number) {
+  const conds = f.conditions ?? (f.rule && f.column ? [{ column: f.column, rule: f.rule }] : []);
+  const results = conds.map((c) => passes(c.rule, readCell(e, n, row, c.column).display as Scalar));
+  return f.join === 'OR' ? results.some(Boolean) : results.every(Boolean);
+}
+
 /** Linhas que o filtro deixa visíveis (a linha de cabeçalho sempre aparece). */
 export function visibleRows(e: Engine, n: EditorNode): number[] {
   const f: FilterSpec | null | undefined = n.data.filter;
   if (n.type === 'TABLE') {
     const d = n.data as TableData;
-    return d.rows.map((_, i) => i + 1).filter((r) => !f || (d.header && r === 1) || passes(f.rule, readCell(e, n, r, f.column).display as Scalar));
+    return d.rows.map((_, i) => i + 1).filter((r) => !f || (d.header && r === 1) || rowPasses(e, n, f, r));
   }
   const used = formulas(e).usedBounds(n);
   const all = Array.from({ length: used.rows }, (_, i) => i + 1);
   if (!f) return all;
   const r = parseRange(f.range ?? `A1:${indexToCol(Math.max(1, used.cols))}${Math.max(1, used.rows)}`);
-  return all.filter((row) => row < r.r1 || row > r.r2 || row === r.r1 || passes(f.rule, readCell(e, n, row, f.column).display as Scalar));
+  return all.filter((row) => row < r.r1 || row > r.r2 || row === r.r1 || rowPasses(e, n, f, row));
 }
 
 // ---------------------------------------------------------------- operações
@@ -536,13 +543,24 @@ export const tableHandlers: Record<string, Handler> = {
     return rows.length;
   },
 
-  /** FILTER { column, rule: { type, value | values }, range? } — não apaga nada, só define o que fica visível. */
+  /**
+   * FILTER { column, rule } ou { conditions: [{ column, rule }, …], join: AND|OR }, range? — não apaga nada,
+   * só define o que fica visível. rule: { type: EQUALS|NOT_EQUALS|CONTAINS|GT|GTE|LT|LTE|EMPTY|NOT_EMPTY|VALUES, value | values }.
+   */
   FILTER: (e, op) => {
     const n = target(e, op.targetId);
     const p = op.payload ?? {};
-    const col = typeof p.column === 'string' ? colToIndex(p.column) : Number(p.column);
-    if (!col || !p.rule?.type) fail('INVALID_PAYLOAD', 'Informe column e rule { type, value }.');
-    n.data.filter = { column: col, rule: p.rule, ...(p.range ? { range: p.range } : {}) };
+    const colOf = (c: unknown) => (typeof c === 'string' ? colToIndex(c) : Number(c));
+    const raw = p.conditions ?? (p.column !== undefined ? [{ column: p.column, rule: p.rule }] : []);
+    if (!raw.length) fail('INVALID_PAYLOAD', 'Informe column e rule, ou conditions.');
+    const conditions = raw.map((c: any) => {
+      const column = colOf(c.column);
+      if (!column || !c.rule?.type) fail('INVALID_PAYLOAD', 'Cada critério precisa de column e rule { type, value }.');
+      if (!['EQUALS', 'NOT_EQUALS', 'CONTAINS', 'GT', 'GTE', 'LT', 'LTE', 'EMPTY', 'NOT_EMPTY', 'VALUES'].includes(c.rule.type)) fail('VALIDATION', `Critério desconhecido: ${c.rule.type}.`);
+      return { column, rule: c.rule };
+    });
+    if (p.join && !['AND', 'OR'].includes(p.join)) fail('VALIDATION', 'Combinação: AND ou OR.');
+    n.data.filter = { conditions, join: p.join ?? 'AND', ...(p.range ? { range: p.range } : {}) };
     return visibleRows(e, n);
   },
   CLEAR_FILTER: (e, op) => { const n = target(e, op.targetId); n.data.filter = null; return true; },

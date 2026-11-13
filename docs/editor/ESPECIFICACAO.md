@@ -63,10 +63,10 @@ Cada item de cada categoria está no catálogo com identificador `Fcc.ii` (ex.: 
 | | RANGE · REF | endereços `A1:B5`, `Planilha2!A1` (parser de fórmulas) |
 | | FORMULA · FUNCTION | `cell.formula` + `formula/` (registro de funções) |
 | | SOURCE · SERIES | `chart.data.source` + `chart.data.series` |
-| | RULE | `cell.validation` (validação); formatação condicional na Etapa 05 |
+| | RULE | `cell.validation` (validação); `data.conditionalFormats` (formatação condicional, `ops/conditional.ts`) |
 | Formatação | FORMAT | `styleOverrides` (e `runs[].format` no texto) |
 | | STYLE · THEME | `doc.styles`, `doc.themes` |
-| | TEMPLATE | Etapa 05 |
+| | TEMPLATE | biblioteca `e.services.templates` (`ops/template.ts`); layouts em `settings.layouts` |
 | Posicionamento | LAYOUT · TRANSFORM · CONSTRAINT | `node.layout` (`mode`, `x`, `y`, `width`, `rotation`, `scaleX`, `flipH`, `constraints`) |
 | | GRID · GUIDE | `settings.grid`, `settings.guides` |
 | | LAYER | `layout.zIndex` (ordem visual entre irmãos) |
@@ -130,7 +130,7 @@ Cada passo usa o anterior. ✅ concluído · 🔨 em andamento · ⬜ a fazer.
 | ✅ 02 | Edição: colar especial (valores, transposto, vínculo), arrastar e soltar | F01.07–08 |
 | ✅ 03 | Layout de páginas: tamanho, orientação, margens, colunas, fundo, paginação, cabeçalho/rodapé por página, impressão | F09.01–10, F04.14 |
 | ✅ 04 | Referências: campos calculados, indicadores, referências cruzadas, numeração de notas e legendas, sumário, índice, citações e bibliografia | F15, F04.15–16 |
-| ⬜ 05 | Formatação condicional e regras visuais, bordas/sombras/efeitos estruturados, filtros combinados, modelos | F02.25–27, F06.10, F06.13, F08.14–15, F10.08–10 |
+| ✅ 05 | Formatação condicional e regras visuais, bordas/sombras/efeitos estruturados, filtros combinados, modelos | F02.25–27, F06.10, F06.13, F08.14–15, F10.08–10 |
 | ⬜ 06 | Motor de diagramas (fluxograma, organograma, layout automático, conectores) | F04.07, F08.10–12 |
 | ⬜ 07 | Animações e transições (linha do tempo e reprodução) | F11 |
 | ⬜ 08 | Revisão: ortografia, gramática, sugestões, tradução, consistência, acessibilidade, estatísticas | F12 |

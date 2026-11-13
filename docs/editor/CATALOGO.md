@@ -2,22 +2,22 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 170 prontas · 🟡 12 parciais · ⬜ 78 a fazer
+**260 funcionalidades** · ✅ 180 prontas · 🟡 7 parciais · ⬜ 73 a fazer
 
 ## Resumo por categoria
 
 | ID | Categoria | Responsabilidade | ✅ | 🟡 | ⬜ |
 | --- | --- | --- | --- | --- | --- |
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
-| 02 | Formatação | Definir aparência | 27 | 3 | 0 |
+| 02 | Formatação | Definir aparência | 30 | 0 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 14 | 2 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
-| 06 | Tabelas e dados | Organizar informações | 15 | 2 | 0 |
+| 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 15 | 1 | 0 |
-| 08 | Visualização de dados | Representar informações | 10 | 0 | 5 |
+| 08 | Visualização de dados | Representar informações | 12 | 0 | 3 |
 | 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
-| 10 | Temas e estilos | Padronizar aparência | 9 | 0 | 3 |
+| 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 0 | 0 | 13 |
 | 12 | Revisão e validação | Verificar conteúdo | 4 | 1 | 8 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 0 | 0 | 11 |
@@ -105,9 +105,9 @@
 | ✅ | F02.22 | Cor de contorno | FORMAT | `FORMAT` | stroke | Cor da linha de contorno. |
 | ✅ | F02.23 | Espessura do contorno | FORMAT | `FORMAT` | strokeWidth | Largura do contorno. |
 | ✅ | F02.24 | Transparência | FORMAT | `FORMAT` | opacity | Opacidade de 0 a 1. |
-| 🟡 | F02.25 | Bordas | FORMAT | `FORMAT` `FORMAT_CELLS` | border: { top, right, bottom, left } | Bordas por lado (cor, espessura, estilo). Validação por lado na Etapa 05. |
-| 🟡 | F02.26 | Sombras | FORMAT | `FORMAT` | shadow: { x, y, blur, color } | Sombra (deslocamento, desfoque, cor). Validação estruturada na Etapa 05. |
-| 🟡 | F02.27 | Efeitos visuais | FORMAT | `FORMAT` | effects: { glow, reflection, blur, softEdges, grayscale } | Brilho, reflexo, desfoque, bordas suaves, filtros. Etapa 05. |
+| ✅ | F02.25 | Bordas | FORMAT | `FORMAT` `FORMAT_CELLS` | border: { top, right, bottom, left } | Bordas por lado (cor, espessura, estilo). Lados top/right/bottom/left/all/insideH/insideV validados (Etapa 05). |
+| ✅ | F02.26 | Sombras | FORMAT | `FORMAT` | shadow: { x, y, blur, color } | Sombra (deslocamento, desfoque, cor). x, y, blur, spread, color, inset validados (Etapa 05). |
+| ✅ | F02.27 | Efeitos visuais | FORMAT | `FORMAT` | effects: { glow, reflection, blur, softEdges, grayscale } | Brilho, reflexo, desfoque, bordas suaves, filtros. Também sépia, brilho, contraste, saturação, matiz e inversão (Etapa 05). |
 | ✅ | F02.28 | Estilos predefinidos | FORMAT | `APPLY_STYLE` | styleId | Aplicar um estilo do documento. |
 | ✅ | F02.29 | Copiar formatação | FORMAT | `COPY_FORMAT` `PASTE_FORMAT` |  | Pincel de formatação. |
 | ✅ | F02.30 | Remover formatação | FORMAT | `CLEAR_FORMAT` |  | Remove ajustes individuais (mantém o estilo). |
@@ -186,10 +186,10 @@
 | ✅ | F06.07 | Redimensionar células | TABLE | `RESIZE_ROW` `RESIZE_COLUMN` | index, height\|width | Altura de linha e largura de coluna. |
 | ✅ | F06.08 | Distribuir linhas e colunas | TABLE | `DISTRIBUTE_ROWS` `DISTRIBUTE_COLUMNS` |  | Tamanhos iguais. |
 | ✅ | F06.09 | Formatar células | TABLE | `FORMAT_CELLS` | range, properties | Fonte, cores, alinhamento por célula. |
-| 🟡 | F06.10 | Aplicar bordas | TABLE | `FORMAT_CELLS` | border | Bordas por célula e por lado. Depende de F02.25. Etapa 05. |
+| ✅ | F06.10 | Aplicar bordas | TABLE | `FORMAT_CELLS` | border | Bordas por célula e por lado. Depende de F02.25. Etapa 05. |
 | ✅ | F06.11 | Aplicar preenchimentos | TABLE | `FORMAT_CELLS` | fill | Cor de fundo das células. |
 | ✅ | F06.12 | Ordenar dados | TABLE | `SORT` | column, direction, header, range | Crescente/decrescente, com cabeçalho, vazios no fim. |
-| 🟡 | F06.13 | Filtrar dados | TABLE | `FILTER` `CLEAR_FILTER` `FILTERED_ROWS` | column, rule \| rules[] (E/OU) | Mostra só as linhas que atendem aos critérios. Vários critérios combinados na Etapa 05. |
+| ✅ | F06.13 | Filtrar dados | TABLE | `FILTER` `CLEAR_FILTER` `FILTERED_ROWS` | column, rule \| conditions[], join: AND\|OR | Mostra só as linhas que atendem aos critérios. Vários critérios combinados na Etapa 05. |
 | ✅ | F06.14 | Validar entradas | TABLE | `SET_VALIDATION` | range, rule | Números, datas, tamanho do texto. |
 | ✅ | F06.15 | Criar listas suspensas | TABLE | `SET_VALIDATION` | rule: { type: 'LIST', values } | Regra LIST. |
 | ✅ | F06.16 | Converter texto em tabela | TABLE | `TEXT_TO_TABLE` | separator | Parágrafos → linhas. |
@@ -233,8 +233,8 @@
 | ⬜ | F08.11 | Criar fluxogramas | DIAGRAM | `DIAGRAM_LAYOUT` | diagramType: FLOWCHART | Processo, decisão, início/fim, em camadas. Depende de F08.10. Etapa 06. |
 | ⬜ | F08.12 | Criar organogramas | DIAGRAM | `DIAGRAM_LAYOUT` | diagramType: ORGCHART | Árvore hierárquica. Depende de F08.10. Etapa 06. |
 | ✅ | F08.13 | Criar visualizações comparativas | CHART | `CREATE_CHART` | series[].axis, chartType: COMBO | Várias séries, eixo secundário e gráfico combinado. |
-| ⬜ | F08.14 | Aplicar formatação condicional | TABLE | `ADD_CONDITIONAL_FORMAT` `CONDITIONAL_STYLES` | range, rule, style | Formatação conforme o valor (maior que, entre, texto, duplicados). Etapa 05. |
-| ⬜ | F08.15 | Criar regras visuais | TABLE | `ADD_CONDITIONAL_FORMAT` | rule: COLOR_SCALE\|DATA_BAR\|ICON_SET | Escalas de cor, barras de dados e ícones. Depende de F08.14. Etapa 05. |
+| ✅ | F08.14 | Aplicar formatação condicional | TABLE | `ADD_CONDITIONAL_FORMAT` `CONDITIONAL_STYLES` | range, rule, style | Formatação conforme o valor (maior que, entre, texto, duplicados). Também maiores/menores, média, erros, vazios, por fórmula; prioridade e parar se verdadeiro (Etapa 05). |
+| ✅ | F08.15 | Criar regras visuais | TABLE | `ADD_CONDITIONAL_FORMAT` | rule: COLOR_SCALE\|DATA_BAR\|ICON_SET | Escalas de cor, barras de dados e ícones. Depende de F08.14. Etapa 05. |
 
 ## 09. Layout e composição
 
@@ -270,9 +270,9 @@
 | ✅ | F10.05 | Criar estilos | FORMAT | `CREATE_STYLE` |  | Conjunto reutilizável de propriedades. |
 | ✅ | F10.06 | Aplicar estilos | FORMAT | `APPLY_STYLE` |  | Vincula estilo aos elementos. |
 | ✅ | F10.07 | Editar estilos | FORMAT | `UPDATE_STYLE` `DELETE_STYLE` |  | Muda todos os vinculados. |
-| ⬜ | F10.08 | Criar modelos | FORMAT | `CREATE_TEMPLATE` | name | Modelo a partir do documento atual (estrutura, tema, estilos). Etapa 05. |
-| ⬜ | F10.09 | Salvar modelos | FORMAT | `CREATE_TEMPLATE` `LIST_TEMPLATES` |  | Biblioteca de modelos. Depende de F10.08. Etapa 05 (+ banco na Etapa 14). |
-| ⬜ | F10.10 | Reutilizar layouts | FORMAT | `APPLY_TEMPLATE` `APPLY_LAYOUT` | templateId \| layoutId | Novo slide/página a partir de um layout salvo. Depende de F10.08. Etapa 05. |
+| ✅ | F10.08 | Criar modelos | FORMAT | `CREATE_TEMPLATE` | name | Modelo a partir do documento atual (estrutura, tema, estilos). keepContent: false guarda só a identidade (Etapa 05). |
+| ✅ | F10.09 | Salvar modelos | FORMAT | `CREATE_TEMPLATE` `LIST_TEMPLATES` |  | Biblioteca de modelos. Depende de F10.08. Biblioteca em memória; banco na Etapa 14. |
+| ✅ | F10.10 | Reutilizar layouts | FORMAT | `APPLY_TEMPLATE` `SAVE_LAYOUT` `APPLY_LAYOUT` | templateId \| layoutId | Novo slide/página a partir de um layout salvo. Depende de F10.08. Também SAVE_LAYOUT, LIST_LAYOUTS, DELETE_LAYOUT (Etapa 05). |
 | ✅ | F10.11 | Definir padrões visuais | FORMAT | `UPDATE_THEME` | defaults | Padrões por tipo no tema. |
 | ✅ | F10.12 | Aplicar alterações globalmente | FORMAT | `UPDATE_THEME` `UPDATE_STYLE` |  | Mudar tema/estilo muda todos os vinculados. |
 

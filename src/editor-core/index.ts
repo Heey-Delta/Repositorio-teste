@@ -17,6 +17,8 @@ import { tableHandlers } from './ops/table.ts';
 import { chartHandlers, watchCharts } from './charts/chart.ts';
 import { pageHandlers } from './ops/page.ts';
 import { referenceHandlers } from './ops/reference.ts';
+import { conditionalHandlers } from './ops/conditional.ts';
+import { templateHandlers } from './ops/template.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -24,6 +26,8 @@ export * from './types.ts';
 export { Engine } from './engine.ts';
 export { createDocument, DEFAULT_THEME } from './document.ts';
 export { EditorError } from './util.ts';
+export { documentFromTemplate, MemoryTemplateLibrary } from './ops/template.ts';
+export type { Template, TemplateLibrary } from './ops/template.ts';
 
 export const MODULES: Record<string, Record<string, Handler>> = {
   basic: basicHandlers,
@@ -38,6 +42,8 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   chart: chartHandlers,
   page: pageHandlers,
   reference: referenceHandlers,
+  conditional: conditionalHandlers,
+  template: templateHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {

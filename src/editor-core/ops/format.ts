@@ -14,7 +14,7 @@ const TEXT_PROPS = [
   'baseline', 'letterSpacing', 'align', 'lineHeight', 'spaceBefore', 'spaceAfter', 'indentLeft', 'indentRight',
   'indentFirstLine', 'direction', 'verticalAlign',
 ];
-const BOX_PROPS = ['fill', 'stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'radius', 'shadow', 'blur', 'border'];
+const BOX_PROPS = ['fill', 'stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'radius', 'shadow', 'blur', 'border', 'effects'];
 const LINE_PROPS = ['stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'arrowStart', 'arrowEnd', 'shadow'];
 const TABLE_PROPS = ['cellPadding', 'headerFill', 'bandedRows'];
 
@@ -27,6 +27,56 @@ export function allowedProps(type: NodeType): Set<string> {
 }
 
 const COLOR = /^(#[0-9a-f]{3,8}|rgba?\(.+\)|transparent|theme:[\w.]+)$/i;
+export const isColor = (v: unknown) => typeof v === 'string' && COLOR.test(v);
+
+const LINE_STYLES = ['SOLID', 'DASHED', 'DOTTED', 'DOUBLE', 'NONE'];
+const num = (v: unknown, what: string, min = 0, max = Infinity) => { if (typeof v !== 'number' || v < min || v > max) fail('VALIDATION', `${what}: número de ${min} a ${max === Infinity ? '…' : max}.`); };
+
+/** Borda: { color, width, style } para todos os lados, ou { top, right, bottom, left, all } com um desses em cada. */
+function validateBorder(b: any) {
+  if (b === false) return;
+  const side = (x: any, where: string) => {
+    if (x === null || x === false) return;
+    if (typeof x !== 'object') fail('VALIDATION', `Borda ${where}: { color, width, style }.`);
+    if (x.color !== undefined && !isColor(x.color)) fail('VALIDATION', `Cor inválida na borda ${where}.`);
+    if (x.width !== undefined) num(x.width, `Espessura da borda ${where}`, 0, 100);
+    if (x.style !== undefined && !LINE_STYLES.includes(x.style)) fail('VALIDATION', `Estilo da borda: ${LINE_STYLES.join(', ')}.`);
+  };
+  if (typeof b !== 'object') fail('VALIDATION', 'Borda: objeto { color, width, style } ou por lado { top, right, bottom, left }.');
+  const sides = ['top', 'right', 'bottom', 'left', 'all', 'insideH', 'insideV'].filter((k) => k in b);
+  if (sides.length) { for (const k of Object.keys(b)) if (!sides.includes(k)) fail('VALIDATION', `Borda: lado desconhecido "${k}".`); sides.forEach((k) => side(b[k], k)); }
+  else {
+    const extra = Object.keys(b).filter((k) => !['color', 'width', 'style'].includes(k));
+    if (extra.length) fail('VALIDATION', `Borda: lado desconhecido "${extra[0]}".`);
+    side(b, '');
+  }
+}
+
+/** Sombra: { x, y, blur, spread?, color, inset? } (false remove). */
+function validateShadow(v: any) {
+  if (v === false) return;
+  if (typeof v !== 'object') fail('VALIDATION', 'Sombra: { x, y, blur, color }.');
+  for (const k of ['x', 'y']) if (v[k] !== undefined) num(v[k], `Sombra ${k}`, -500, 500);
+  if (v.blur !== undefined) num(v.blur, 'Desfoque da sombra', 0, 500);
+  if (v.spread !== undefined) num(v.spread, 'Espalhamento da sombra', -500, 500);
+  if (v.color !== undefined && !isColor(v.color)) fail('VALIDATION', 'Cor da sombra inválida.');
+}
+
+const EFFECTS = ['glow', 'reflection', 'blur', 'softEdges', 'grayscale', 'sepia', 'brightness', 'contrast', 'saturation', 'hueRotate', 'invert'];
+/** Efeitos visuais: brilho externo, reflexo, desfoque, bordas suaves e filtros de cor. */
+function validateEffects(v: any) {
+  if (typeof v !== 'object' || v === null) fail('VALIDATION', 'Efeitos: objeto, ex.: { glow: { color, size }, blur: 4 }.');
+  for (const [k, x] of Object.entries<any>(v)) {
+    if (!EFFECTS.includes(k)) fail('VALIDATION', `Efeito desconhecido: ${k}. Use ${EFFECTS.join(', ')}.`);
+    if (x === null || x === false) continue;
+    if (k === 'glow') { if (!isColor(x.color)) fail('VALIDATION', 'Brilho: color.'); num(x.size, 'Tamanho do brilho', 0, 200); }
+    else if (k === 'reflection') { num(x.size ?? 50, 'Tamanho do reflexo (%)', 0, 100); num(x.distance ?? 0, 'Distância do reflexo', 0, 500); num(x.opacity ?? 0.5, 'Opacidade do reflexo', 0, 1); }
+    else if (k === 'grayscale' || k === 'sepia' || k === 'invert') { if (typeof x !== 'boolean' && (typeof x !== 'number' || x < 0 || x > 1)) fail('VALIDATION', `${k}: true/false ou de 0 a 1.`); }
+    else if (k === 'hueRotate') num(x, 'Matiz', -360, 360);
+    else if (k === 'blur' || k === 'softEdges') num(x, k === 'blur' ? 'Desfoque' : 'Bordas suaves', 0, 200);
+    else num(x, k, 0, 3);
+  }
+}
 
 /** Valida nome e valor. Lança erro com a lista do que não serve. */
 export function validateProps(type: NodeType | null, props: Record<string, unknown>) {
@@ -44,6 +94,10 @@ export function validateProps(type: NodeType | null, props: Record<string, unkno
     if (k === 'baseline' && !['NORMAL', 'SUPERSCRIPT', 'SUBSCRIPT'].includes(v as string)) fail('VALIDATION', 'Sobrescrito/subscrito: NORMAL, SUPERSCRIPT ou SUBSCRIPT.');
     if (k === 'direction' && !['LTR', 'RTL', 'VERTICAL'].includes(v as string)) fail('VALIDATION', 'Direção do texto: LTR, RTL ou VERTICAL.');
     if (k === 'verticalAlign' && !['TOP', 'MIDDLE', 'BOTTOM'].includes(v as string)) fail('VALIDATION', 'Alinhamento vertical: TOP, MIDDLE ou BOTTOM.');
+    if (k === 'border') validateBorder(v);
+    if (k === 'shadow') validateShadow(v);
+    if (k === 'effects') validateEffects(v);
+    if (k === 'strokeStyle' && !LINE_STYLES.includes(v as string)) fail('VALIDATION', `Estilo do contorno: ${LINE_STYLES.join(', ')}.`);
   }
 }
 
