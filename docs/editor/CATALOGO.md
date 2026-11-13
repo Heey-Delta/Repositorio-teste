@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 257 prontas · 🟡 3 parciais · ⬜ 0 a fazer
+**260 funcionalidades** · ✅ 260 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -10,8 +10,8 @@
 | --- | --- | --- | --- | --- | --- |
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 30 | 0 | 0 |
-| 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
-| 04 | Inserção de elementos | Adicionar componentes | 15 | 1 | 0 |
+| 03 | Estrutura e organização | Organizar hierarquias | 13 | 0 | 0 |
+| 04 | Inserção de elementos | Adicionar componentes | 16 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
@@ -23,7 +23,7 @@
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 11 | 0 | 0 |
 | 14 | Histórico e recuperação | Preservar alterações | 9 | 0 | 0 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
-| 16 | Importação e exportação | Gerenciar formatos | 11 | 1 | 0 |
+| 16 | Importação e exportação | Gerenciar formatos | 12 | 0 | 0 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 9 | 0 | 0 |
 | 18 | Visualização e navegação | Controlar a experiência | 14 | 0 | 0 |
 
@@ -128,7 +128,7 @@
 | ✅ | F03.10 | Agrupar elementos | ORGANIZE | `GROUP` | targetIds | Cria um GROUP com os selecionados. |
 | ✅ | F03.11 | Desagrupar elementos | ORGANIZE | `UNGROUP` | targetIds | Desfaz o grupo preservando os filhos. |
 | ✅ | F03.12 | Ocultar elementos | ORGANIZE | `HIDE` `SHOW` |  | Marca como invisível (o renderizador não desenha). |
-| 🟡 | F03.13 | Expandir e recolher estruturas | ORGANIZE | `COLLAPSE` `EXPAND` |  | Recolhe seções/listas no painel e na tela. Depende de F18.08. Efeito visual depende da interface (Etapa 15). |
+| ✅ | F03.13 | Expandir e recolher estruturas | ORGANIZE | `COLLAPSE` `EXPAND` |  | Recolhe seções/listas no painel e na tela. Depende de F18.08. Na tela: título recolhido esconde o conteúdo até o próximo título do mesmo nível (Etapa 15). |
 
 ## 04. Inserção de elementos
 
@@ -143,7 +143,7 @@
 | ✅ | F04.07 | Diagramas | DIAGRAM | `INSERT_CONTENT` | diagramType, items, connections \| outline | Fluxograma, organograma, processo, mapa mental, ciclo, Venn. Layout automático ao inserir (Etapa 06). |
 | ✅ | F04.08 | Hiperlinks | CONTENT | `INSERT_CONTENT` | url \| targetId, text | Link externo ou para um elemento do documento. |
 | ✅ | F04.09 | Símbolos | CONTENT | `INSERT_CONTENT` | char | Caractere especial. |
-| 🟡 | F04.10 | Equações | CONTENT | `INSERT_CONTENT` | latex, display | Equação em LaTeX. Desenho da equação na interface (Etapa 15). |
+| ✅ | F04.10 | Equações | CONTENT | `INSERT_CONTENT` | latex, display | Equação em LaTeX. Desenhada com KaTeX no documento e nos slides (Etapa 15). |
 | ✅ | F04.11 | Áudio | CONTENT | `INSERT_CONTENT` | assetId \| url, autoplay, loop | Arquivo ou endereço de áudio. |
 | ✅ | F04.12 | Vídeo | CONTENT | `INSERT_CONTENT` | assetId \| url, poster, captions | Arquivo ou endereço de vídeo. |
 | ✅ | F04.13 | Caixas de texto | CONTENT | `INSERT_CONTENT` |  | Texto com posicionamento livre (TEXT em layout ABSOLUTE). |
@@ -366,7 +366,7 @@
 | ✅ | F16.02 | Exportar arquivos | IO | `EXPORT` | format, targetId?, options? | Exporta no formato escolhido. TXT, MD, HTML, CSV, JSON, XLSX, DOCX, PPTX, PDF, SVG (Etapa 11). |
 | ✅ | F16.03 | Converter formatos | IO | `IMPORT` `EXPORT` |  | Importar de um formato e exportar em outro. Depende de F16.01, F16.02. Etapa 11. |
 | ✅ | F16.04 | Exportar PDF | IO | `EXPORT` | format: PDF | Páginas/slides em PDF. Depende de F09.07. PDF próprio: Helvetica/WinAnsi (acentos), tabelas, listas, quebras, slides, JPEG embutido, número da página (Etapa 11). |
-| 🟡 | F16.05 | Exportar imagens | IO | `EXPORT` | format: SVG\|PNG | Slides e gráficos em SVG/PNG. SVG pronto (slide, gráfico, diagrama); PNG é rasterizado pela interface a partir do SVG (Etapa 15). |
+| ✅ | F16.05 | Exportar imagens | IO | `EXPORT` | format: SVG\|PNG | Slides e gráficos em SVG/PNG. SVG no motor; PNG em 2× pelo canvas na interface (Etapa 15). |
 | ✅ | F16.06 | Exportar texto | IO | `EXPORT` | format: TXT\|MD\|HTML | Texto puro, Markdown e HTML. Etapa 11. |
 | ✅ | F16.07 | Exportar dados estruturados | IO | `EXPORT` | format: JSON\|CSV | JSON do documento e CSV de tabelas/planilhas. Etapa 11. |
 | ✅ | F16.08 | Exportar planilhas | IO | `EXPORT` | format: XLSX | XLSX com valores e fórmulas. Fórmulas convertidas para nomes em inglês e separador "," (Etapa 11). |

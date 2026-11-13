@@ -185,6 +185,13 @@ export const basicHandlers: Record<string, Handler> = {
   CREATE: (e, op) => clone(createNode(e, op.payload as CreateInput)),
 
   GET: (e, op) => clone(e.get(op.targetId)),
+  /** Nome do documento (vai para o título das exportações e da lista). */
+  RENAME_DOCUMENT: (e, op) => {
+    const name = String(op.payload?.name ?? '').trim();
+    if (!name || name.length > 200) fail('VALIDATION', 'Nome: de 1 a 200 caracteres.');
+    (e.touch('document', 'info') as any).name = name;
+    return name;
+  },
 
   /** Altera dados, layout, formatação individual, estilo ou metadados. `null` remove uma propriedade. */
   UPDATE: (e, op) => {

@@ -62,6 +62,7 @@ Planilha      SECTION → SURFACE (SHEET, células esparsas: data.cells['A1'])
 | Automação e extensões | `ops/automation.ts` | `DEFINE_FUNCTION` · macros (`START/STOP_RECORDING`, `RUN_MACRO`) · `RUN_SCRIPT` (op, set, repeat, forEach, if) · automações por evento (na mesma transação) · atalhos · extensões declarativas · webhooks e `CALL_SERVICE` — nada executa código vindo do documento |
 | Visualização e navegação | `ops/view.ts` | `SET_VIEW` (modos, zoom, ajuste, auxiliares, tela cheia) · apresentação passo a passo · `GO_TO` · `NAVIGATE` · `NAVIGATION_TREE` · `SELECTION_PANEL` · janelas · `READING_ORDER` · `RULER` — estado da tela, fora do histórico |
 | Persistência | `storage.ts` + `src/lib/editor-docs.ts` + `/api/editor/documents` | `DocumentStore` (memória, HTTP), `AutoSaver` (espera, tempo máximo, conflito com mesclagem, sem rede), versões no banco, `SyncClient` (relé da colaboração); tabelas `editor_documents`, `editor_versions`, `editor_actions` |
+| Interface | `src/editor-ui/` + `/admin/editor/` | lista de documentos (criar, abrir arquivo, excluir) e editor em tela cheia: documento (digitação vira operação: `TEXT_SPLICE`, `TEXT_SPLIT`, `TEXT_MERGE_PREV`), slides (arrastar, redimensionar, texto no lugar, apresentação com animações), planilha (barra de fórmulas, teclado, abas); painéis de navegação, comentários, revisão, animações, versões e arquivo; atalhos; salvamento automático |
 | Colaboração | `ops/collab.ts` | comentários e menções, permissões por efeito, presença, controle de alterações, `APPLY_REMOTE` + `SyncSession` |
 
 ## Como usar

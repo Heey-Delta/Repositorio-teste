@@ -1,0 +1,62 @@
+---
+// Documentos do editor unificado: criar (documento, apresentação, planilha), abrir arquivo do computador,
+// abrir e excluir. O conteúdo fica no Neon (editor_documents); o motor roda no navegador.
+import Admin from '../../../layouts/Admin.astro';
+import { listDocuments } from '../../../lib/editor-docs';
+export const prerender = false;
+let docs: Awaited<ReturnType<typeof listDocuments>> = [];
+let error = '';
+try { docs = await listDocuments(); } catch (e) { error = (e as Error).message; }
+const KIND: Record<string, string> = { DOCUMENT_EDITOR: 'Documento', PRESENTATION_EDITOR: 'Apresentação', SPREADSHEET_EDITOR: 'Planilha' };
+---
+<Admin title="Documentos" current="editor">
+  <div class="flex flex-wrap items-center gap-3">
+    <button type="button" data-new="DOCUMENT_EDITOR" class="min-h-11 cursor-pointer rounded-[6px] bg-accent px-4 font-bold text-black">+ Documento</button>
+    <button type="button" data-new="PRESENTATION_EDITOR" class="min-h-11 cursor-pointer rounded-[6px] border border-line px-4 hover:border-ink">+ Apresentação</button>
+    <button type="button" data-new="SPREADSHEET_EDITOR" class="min-h-11 cursor-pointer rounded-[6px] border border-line px-4 hover:border-ink">+ Planilha</button>
+    <label class="flex min-h-11 cursor-pointer items-center rounded-[6px] border border-line px-4 hover:border-ink">
+      Abrir arquivo… <input id="openFile" type="file" class="sr-only" accept=".docx,.xlsx,.pptx,.md,.html,.htm,.txt,.csv,.json">
+    </label>
+    <span id="listState" class="text-sm text-muted" role="status"></span>
+  </div>
+  {error && <p class="mt-6 text-sm text-[#ff8a80]">Não foi possível listar: {error}</p>}
+  <ul class="mt-8 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
+    {docs.map((d) => (
+      <li class="rounded-[8px] border border-line p-4">
+        <a href={`/admin/editor/${d.id}`} class="block text-base font-bold hover:text-accent">{d.name}</a>
+        <p class="mt-1 text-sm text-muted">{KIND[d.application] ?? d.application} · versão {d.version} · {new Date(d.updatedAt).toLocaleString('pt-BR')}</p>
+        <button type="button" data-delete={d.id} data-name={d.name} class="mt-3 min-h-9 cursor-pointer rounded-[6px] border border-line px-3 text-sm hover:border-ink">Excluir</button>
+      </li>
+    ))}
+  </ul>
+  {!docs.length && !error && <p class="mt-8 text-muted">Nenhum documento ainda. Crie um ou abra um arquivo do computador (Word, Excel, PowerPoint, Markdown, HTML, CSV).</p>}
+
+  <script>
+    import { createEngine, createDocument, openFile } from '../../../editor-core/index.ts';
+    const state = document.getElementById('listState')!;
+    const post = async (body: unknown) => {
+      const r = await fetch('/api/editor/documents', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error ?? `Erro ${r.status}`);
+      location.href = `/admin/editor/${data.id}`;
+    };
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-new]')) b.addEventListener('click', async () => {
+      b.disabled = true; state.textContent = 'Criando…';
+      try { await post({ application: b.dataset.new, name: 'Sem título' }); } catch (x) { state.textContent = (x as Error).message; b.disabled = false; }
+    });
+    document.getElementById('openFile')!.addEventListener('change', async (ev) => {
+      const f = (ev.target as HTMLInputElement).files?.[0];
+      if (!f) return;
+      state.textContent = `Lendo “${f.name}”…`;
+      try {
+        const doc = await openFile((app) => createEngine(createDocument(app)), { name: f.name, data: new Uint8Array(await f.arrayBuffer()) });
+        await post({ doc });
+      } catch (x) { state.textContent = `Não foi possível abrir: ${(x as Error).message}`; }
+    });
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-delete]')) b.addEventListener('click', async () => {
+      if (!confirm(`Excluir “${b.dataset.name}”?`)) return;
+      const r = await fetch(`/api/editor/documents/${b.dataset.delete}`, { method: 'DELETE' });
+      if (r.ok) b.closest('li')!.remove(); else state.textContent = 'Não foi possível excluir.';
+    });
+  </script>
+</Admin>

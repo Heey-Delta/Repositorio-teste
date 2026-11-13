@@ -41,7 +41,18 @@ function shapePath(it: SlideItemM) {
     case 'ROUNDED_RECTANGLE': return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) * 0.15}" fill="${fill}"${stroke}/>`;
     case 'DIAMOND': return `<polygon points="${x + w / 2},${y} ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}" fill="${fill}"${stroke}/>`;
     case 'TRIANGLE': return `<polygon points="${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}" fill="${fill}"${stroke}/>`;
-    default: return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${stroke}/>`;
+    default: {
+      // mesmas proporções do editor (em % da caixa)
+      const POLY: Record<string, number[][]> = {
+        STAR: [[50, 0], [61, 35], [98, 35], [68, 57], [79, 91], [50, 70], [21, 91], [32, 57], [2, 35], [39, 35]],
+        ARROW: [[0, 30], [65, 30], [65, 0], [100, 50], [65, 100], [65, 70], [0, 70]],
+        PENTAGON: [[50, 0], [100, 38], [82, 100], [18, 100], [0, 38]],
+        HEXAGON: [[25, 0], [75, 0], [100, 50], [75, 100], [25, 100], [0, 50]],
+      };
+      const poly = POLY[it.shapeType ?? ''];
+      if (poly) return `<polygon points="${poly.map(([px, py]) => `${x + (w * px) / 100},${y + (h * py) / 100}`).join(' ')}" fill="${fill}"${stroke}/>`;
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${stroke}/>`;
+    }
   }
 }
 const cell = (v: Scalar) => (v === null || v === undefined ? '' : String(v));

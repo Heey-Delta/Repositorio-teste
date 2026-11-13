@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.editor.json",
+  "compilerOptions": { "lib": ["ES2023", "DOM", "DOM.Iterable"], "types": [] },
+  "include": ["src/editor-ui/**/*.ts", "src/editor-core/**/*.ts"]
+}

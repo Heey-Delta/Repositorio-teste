@@ -7,6 +7,7 @@ import type { Engine, Handler } from '../engine.ts';
 import { validateProps } from './format.ts';
 import { clone, equal, fail, merge } from '../util.ts';
 import { shiftAnchors } from '../anchors.ts';
+import { createNode, removeSubtree } from './basic.ts';
 
 export interface Run { id: string; text: string; format: Record<string, unknown> }
 
@@ -116,6 +117,59 @@ export const textHandlers: Record<string, Handler> = {
   },
   TEXT_INSERT: (e, op) => { const n = textNode(e, op.targetId); insertText(e, n, op.payload?.offset ?? textOf(n).length, String(op.payload?.text ?? ''), op.payload?.format); return textOf(n); },
   TEXT_DELETE: (e, op) => { const n = textNode(e, op.targetId); deleteText(e, n, op.payload?.start, op.payload?.end); return textOf(n); },
+  /** Troca um trecho numa ação só (digitação na interface): TEXT_SPLICE { start, end, text, format? }. */
+  TEXT_SPLICE: (e, op) => {
+    const n = textNode(e, op.targetId);
+    const p = op.payload ?? {};
+    const [s, en] = range(n, p.start, p.end);
+    if (en > s) deleteText(e, n, s, en);
+    if (p.text) insertText(e, n, s, String(p.text), p.format);
+    return textOf(n);
+  },
+  /**
+   * Enter: divide o parágrafo em `offset`; o resto vira um parágrafo novo logo depois (em lista, um item novo no
+   * mesmo nível). Título dividido no fim continua com parágrafo comum. Devolve o id do novo.
+   */
+  TEXT_SPLIT: (e, op) => {
+    const n = textNode(e, op.targetId);
+    const len = textOf(n).length;
+    const [at] = range(n, op.payload?.offset ?? len, op.payload?.offset ?? len);
+    const runs = clone(n.data.runs as Run[]);
+    const k = splitAt(e, runs, at);
+    const tail = runs.slice(k).map((r) => ({ ...r, id: e.newId('RUN') }));
+    const lastFmt = { ...((runs[k - 1] ?? runs[0])?.format ?? {}) };
+    if (at < len) deleteText(e, n, at, len);
+    const textType = at >= len && /^(TITLE|SUBTITLE|HEADING_\d)$/.test(n.data.textType ?? '') ? 'PARAGRAPH' : n.data.textType;
+    const data = { ...clone(n.data), textType, runs: tail.length ? normalize(e, tail) : [{ id: e.newId('RUN'), text: '', format: textType === n.data.textType ? lastFmt : {} }] };
+    const parent = e.get(n.parentId);
+    if (parent.type === 'LIST_ITEM') {
+      const item = createNode(e, { parentId: parent.parentId!, nodeType: 'LIST_ITEM', data: { level: parent.data.level ?? 0 }, layout: { mode: 'FLOW' }, index: parent.order + 1 } as any);
+      return createNode(e, { parentId: item.id, nodeType: 'TEXT', data, layout: { mode: 'FLOW' } } as any).id;
+    }
+    return createNode(e, { parentId: parent.id, nodeType: 'TEXT', data, layout: clone(n.layout), styleId: n.styleId, styleOverrides: clone(n.styleOverrides), index: n.order + 1 } as any).id;
+  },
+  /** Backspace no começo: junta com o parágrafo anterior (no mesmo bloco ou item de lista anterior). */
+  TEXT_MERGE_PREV: (e, op) => {
+    const n = textNode(e, op.targetId);
+    const parent = e.get(n.parentId);
+    let prev: EditorNode | undefined;
+    if (parent.type === 'LIST_ITEM') {
+      const list = e.get(parent.parentId);
+      const pi = list.children[parent.order - 1];
+      prev = pi ? e.get(pi).children.map((c) => e.get(c)).find((c) => Array.isArray(c.data.runs)) : undefined;
+    } else {
+      const sib = parent.children[n.order - 1];
+      prev = sib ? e.get(sib) : undefined;
+    }
+    if (!prev || !Array.isArray(prev.data.runs) || prev.type !== 'TEXT') return null;
+    const p = textNode(e, prev.id);
+    const offset = textOf(p).length;
+    const moved = (n.data.runs as Run[]).filter((r) => r.text).map((r) => ({ ...clone(r), id: e.newId('RUN') }));
+    p.data.runs = normalize(e, [...(offset ? (p.data.runs as Run[]) : []), ...moved, ...(offset || moved.length ? [] : (p.data.runs as Run[]))]);
+    removeSubtree(e, parent.type === 'LIST_ITEM' && parent.children.length === 1 ? parent.id : n.id);
+    if (parent.type === 'LIST_ITEM') { const list = e.find(parent.parentId); if (list && !list.children.length) removeSubtree(e, list.id); }
+    return { id: p.id, offset };
+  },
 
   /** Formata só um pedaço: TEXT_FORMAT { start, end, format: { bold: true } } (null remove a propriedade). */
   TEXT_FORMAT: (e, op) => {

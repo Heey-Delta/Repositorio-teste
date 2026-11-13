@@ -1,0 +1,19 @@
+---
+// Editor unificado em tela cheia: o motor (src/editor-core) roda no navegador; a página só entrega a casca.
+import '../../../styles/global.css';
+import 'katex/dist/katex.min.css';
+import '../../../styles/editor.css';
+import Base from '../../../layouts/Base.astro';
+export const prerender = false;
+const { id } = Astro.params;
+const login = Astro.locals.admin?.login ?? 'admin';
+---
+<Base title="Editor · Admin · Hallan" bodyClass="admin-body ed-body-root">
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
+  <div id="editorRoot" class="ed-root" data-id={id} data-login={login}><p class="ed-loading">Abrindo o documento…</p></div>
+  <script>
+    import { boot } from '../../../editor-ui/app.ts';
+    const root = document.getElementById('editorRoot')!;
+    boot(root, root.dataset.id!, root.dataset.login!);
+  </script>
+</Base>

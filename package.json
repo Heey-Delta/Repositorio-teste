@@ -10,7 +10,7 @@
     "preview": "astro preview",
     "check:widgets": "scripts/check-widgets.sh",
     "test:editor": "node --test 'tests/editor-core/*.test.ts'",
-    "check:editor": "tsc -p tsconfig.editor.json",
+    "check:editor": "tsc -p tsconfig.editor.json && tsc -p tsconfig.ui.json",
     "catalog:editor": "node scripts/editor-catalog.ts"
   },
   "dependencies": {
@@ -27,11 +27,14 @@
     "astro": "^7.4.7",
     "drizzle-orm": "^0.45.4",
     "github-slugger": "^2.0.0",
+    "katex": "^0.16.22",
     "marked": "^18.2.0",
     "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "drizzle-kit": "^0.31.11",
-    "simple-icons": "^13.21.0"
+    "simple-icons": "^13.21.0",
+    "typescript": "^5.9.3"
   }
 }
