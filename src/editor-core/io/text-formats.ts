@@ -27,6 +27,7 @@ export function toTxt(m: ImportModel): string {
       else if (b.kind === 'list') { const n: number[] = []; out.push(b.items.map((it) => { n.length = it.level + 1; n[it.level] = (n[it.level] ?? 0) + 1; return `${'  '.repeat(it.level)}${b.listType === 'NUMBERED' ? `${n[it.level]}.` : '-'} ${plain(it.runs)}`; }).join('\n')); }
       else if (b.kind === 'table') out.push(b.rows.map((r) => r.map(show).join('\t')).join('\n'));
       else if (b.kind === 'image') out.push(`[Imagem${b.alt ? `: ${b.alt}` : ''}]`);
+      else if (b.kind === 'shape') { if (b.runs?.length) out.push(plain(b.runs)); }
       else out.push('\f');
     }
   };
@@ -79,6 +80,7 @@ export function toMarkdown(m: ImportModel): string {
         const [head, ...rest] = b.header ? b.rows : [Array(w).fill(''), ...b.rows];
         out.push([row(head), `| ${Array(w).fill('---').join(' | ')} |`, ...rest.map(row)].join('\n'));
       } else if (b.kind === 'image') out.push(`![${b.alt.replace(/[[\]]/g, '')}](${b.source ?? ''})`);
+      else if (b.kind === 'shape') out.push(shapeHtml(b));   // Markdown aceita HTML: a forma aparece onde o HTML é exibido
       else out.push('---');
     }
   };
@@ -164,6 +166,14 @@ export function fromMarkdown(src: string): ImportModel {
 
 // ---------------------------------------------------------------- HTML
 
+const CLIP: Record<string, string> = { TRIANGLE: 'polygon(50% 0,100% 100%,0 100%)', DIAMOND: 'polygon(50% 0,100% 50%,50% 100%,0 50%)', STAR: 'polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)', ARROW: 'polygon(0 30%,65% 30%,65% 0,100% 50%,65% 100%,65% 70%,0 70%)', PENTAGON: 'polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)', HEXAGON: 'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)' };
+/** Forma no fluxo do texto (círculo, retângulo…) como HTML com estilo próprio. */
+function shapeHtml(b: Extract<BlockM, { kind: 'shape' }>) {
+  const round = b.shapeType === 'CIRCLE' || b.shapeType === 'ELLIPSE' ? 'border-radius:50%;' : b.shapeType === 'ROUNDED_RECTANGLE' ? 'border-radius:14px;' : '';
+  const clip = CLIP[b.shapeType] ? `clip-path:${CLIP[b.shapeType]};` : '';
+  return `<div class="shape" role="img" aria-label="${esc(b.runs?.length ? plain(b.runs) : b.shapeType.toLowerCase())}" style="width:${b.width}px;height:${b.height}px;max-width:100%;margin:1rem auto;display:flex;align-items:center;justify-content:center;text-align:center;background:${esc(b.fill ?? '#4472C4')};color:${esc(b.color ?? '#FFFFFF')};${b.bold ? 'font-weight:700;' : ''}${b.fontSize ? `font-size:${b.fontSize}pt;` : ''}${round}${clip}">${b.runs?.length ? htmlInline(b.runs) : ''}</div>`;
+}
+
 function htmlInline(runs: RunM[]): string {
   return runs.map((r) => {
     const f = r.format ?? {};
@@ -205,6 +215,7 @@ export function toHtml(m: ImportModel): string {
       } else if (b.kind === 'list') body.push(htmlList(b));
       else if (b.kind === 'table') body.push(htmlTable(b.rows, b.header));
       else if (b.kind === 'image') body.push(`<figure><img src="${esc(b.source ?? '')}" alt="${esc(b.alt)}"></figure>`);
+      else if (b.kind === 'shape') body.push(shapeHtml(b));
       else body.push('<hr class="page-break">');
     }
   };
@@ -230,6 +241,7 @@ export function toHtml(m: ImportModel): string {
 <style>
 body{font-family:system-ui,sans-serif;line-height:1.5;max-width:52rem;margin:2rem auto;padding:0 1rem;color:#1e293b}
 table{border-collapse:collapse;margin:1rem 0}td,th{border:1px solid #cbd5e1;padding:.25rem .5rem}th{background:#f1f5f9}
+h1.title{text-align:center}.subtitle{text-align:center;color:#475569}
 img{max-width:100%}.page-break{break-after:page;border:0}
 .slide{position:relative;width:100%;border:1px solid #cbd5e1;margin:1rem 0;overflow:hidden;background:#fff}.slide .item{position:absolute;box-sizing:border-box;overflow:hidden}.slide p,.slide h1,.slide h2{margin:0}
 </style>

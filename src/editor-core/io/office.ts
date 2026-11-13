@@ -189,7 +189,8 @@ export function toDocx(m: ImportModel, page: { width: number; height: number; ma
         const w0 = b.width ?? 320, h0 = b.height ?? 240, k = Math.min(1, maxW / w0);
         const cx = Math.round(w0 * k * 9525), cy = Math.round(h0 * k * 9525), n = ++drawing;
         body.push(`<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${n}" name="Imagem ${n}" descr="${esc(b.alt)}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${n}" name="Imagem ${n}" descr="${esc(b.alt)}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`);
-      } else body.push('<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
+      } else if (b.kind === 'shape') { if (b.runs?.length) body.push(para(runs(b.runs), undefined, '<w:jc w:val="center"/>')); }
+      else body.push('<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
     }
   };
   if (m.blocks) blocks(m.blocks);

@@ -56,6 +56,11 @@ class Writer {
     if (stroke) this.cur.push(`${stroke.map(n2).join(' ')} RG 0.5 w`);
     this.cur.push(`${ops[0]} ${fill && stroke ? 'B' : fill ? 'f' : 'S'}`);
   }
+  /** Elipse inscrita na caixa (4 curvas de Bézier). */
+  ellipse(x: number, y: number, w: number, h: number, fill: [number, number, number]) {
+    const k = 0.5523, rx = w / 2, ry = h / 2, cx = x + rx, cy = this.H - (y + ry);
+    this.cur.push(`${fill.map(n2).join(' ')} rg ${n2(cx + rx)} ${n2(cy)} m ${n2(cx + rx)} ${n2(cy + k * ry)} ${n2(cx + k * rx)} ${n2(cy + ry)} ${n2(cx)} ${n2(cy + ry)} c ${n2(cx - k * rx)} ${n2(cy + ry)} ${n2(cx - rx)} ${n2(cy + k * ry)} ${n2(cx - rx)} ${n2(cy)} c ${n2(cx - rx)} ${n2(cy - k * ry)} ${n2(cx - k * rx)} ${n2(cy - ry)} ${n2(cx)} ${n2(cy - ry)} c ${n2(cx + k * rx)} ${n2(cy - ry)} ${n2(cx + rx)} ${n2(cy - k * ry)} ${n2(cx + rx)} ${n2(cy)} c f`);
+  }
   line(x1: number, y1: number, x2: number, y2: number, c: [number, number, number] = [0.6, 0.6, 0.6], w = 0.5) { this.cur.push(`${c.map(n2).join(' ')} RG ${n2(w)} w ${n2(x1)} ${n2(this.H - y1)} m ${n2(x2)} ${n2(this.H - y2)} l S`); }
   image(img: { bytes: Uint8Array; w: number; h: number; gray: boolean }, x: number, y: number, w: number, h: number) {
     const name = `Im${this.images.length + 1}`;
@@ -192,6 +197,18 @@ export function toPdf(m: ImportModel, page: { width: number; height: number; mar
         }
         y += 6;
       } else if (b.kind === 'table') table(b.rows, Boolean(b.header));
+      else if (b.kind === 'shape') {
+        const w = Math.min(content, pt(b.width)), hh = pt(b.height) * (w / pt(b.width));
+        room(hh + 12);
+        const x = M.left + (content - w) / 2, fill = rgb(b.fill ?? '#4472C4');
+        if (b.shapeType === 'CIRCLE' || b.shapeType === 'ELLIPSE') out.ellipse(x, y, w, hh, fill); else out.rect(x, y, w, hh, fill);
+        if (b.runs?.length) {
+          const ls = wrap(b.runs.map((r) => ({ ...r, format: { color: b.color ?? '#FFFFFF', bold: b.bold, ...(r.format ?? {}) } })), w - 16, b.fontSize ?? 14, Boolean(b.bold));
+          let ty = y + (hh - ls.reduce((t, l) => t + l.height, 0)) / 2;
+          for (const l of ls) { let cx = x + (w - l.pieces.reduce((t, p) => t + p.w, 0)) / 2; for (const p of l.pieces) { out.text(cx, ty + l.height * 0.78, p.text, p.font); cx += p.w; } ty += l.height; }
+        }
+        y += hh + 12;
+      }
       else if (b.kind === 'image') {
         const jpg = jpegFrom(b.source);
         const w0 = pt(b.width ?? 320), h0 = pt(b.height ?? 240), k = Math.min(1, content / w0);

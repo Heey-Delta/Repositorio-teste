@@ -151,3 +151,18 @@ test('conversão em lote (inclusive pacotes ZIP pela versão assíncrona)', asyn
   const all = await convertFiles(make, [{ name: 'r.docx', data: docx }, { name: 'q.md', data: '**oi**' }], 'PDF');
   assert.deepEqual(all.map((r) => [r.ok, r.fileName]), [[true, 'r.pdf'], [true, 'q.pdf']]);
 });
+
+test('formas no documento saem no HTML e no PDF e voltam na importação', async () => {
+  const e = make('DOCUMENT_EDITOR');
+  const c = e.run({ type: 'INSERT_CONTENT', payload: { contentType: 'SHAPE', parentId: e.state.activeSurface, data: { shapeType: 'CIRCLE', text: '112%' }, layout: { width: 180, height: 180 } } }).id;
+  e.run({ type: 'FORMAT', targetId: c, payload: { fill: '#FBBF00', color: '#000000', bold: true } });
+  const html = exportDocument(e, 'HTML').data as string;
+  assert.match(html, /<div class="shape" role="img" aria-label="112%" style="width:180px;height:180px;[^"]*background:#FBBF00;color:#000000;font-weight:700;border-radius:50%;/);
+  const pdf = Array.from(exportDocument(e, 'PDF').data as Uint8Array, (x) => String.fromCharCode(x)).join('');
+  assert.match(pdf, / c f/, 'círculo desenhado com curvas');
+  assert.match(pdf, /\(112%\) Tj/);
+  const back = await reopen(exportDocument(e, 'JSON').data, 'x.json');
+  const shape = readDocument(back).blocks!.find((b: any) => b.kind === 'shape') as any;
+  assert.deepEqual([shape.shapeType, shape.fill, shape.bold, shape.runs[0].text], ['CIRCLE', '#FBBF00', true, '112%']);
+  assert.equal(exportDocument(e, 'TXT').data, '112%\n', 'forma não vira quebra de página no texto');
+});

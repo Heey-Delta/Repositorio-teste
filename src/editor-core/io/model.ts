@@ -16,6 +16,7 @@ export type BlockM =
   | { kind: 'list'; listType: 'BULLET' | 'NUMBERED'; items: { level: number; runs: RunM[] }[] }
   | { kind: 'table'; header?: boolean; rows: Scalar[][] }
   | { kind: 'image'; alt: string; source?: string; width?: number; height?: number }
+  | { kind: 'shape'; shapeType: string; width: number; height: number; fill?: string; color?: string; bold?: boolean; fontSize?: number; runs?: RunM[] }
   | { kind: 'break' };
 export interface SlideItemM {
   kind: 'text' | 'shape' | 'image' | 'line' | 'table';
@@ -42,6 +43,7 @@ function blockOf(e: Engine, n: EditorNode): BlockM | null {
     case 'TABLE': return { kind: 'table', header: Boolean(n.data.header), rows: tableRows(e, n) };
     case 'IMAGE': { const a = e.doc.assets[n.data.assetId]; return { kind: 'image', alt: n.data.alt ?? '', source: a?.source, width: n.layout.width as number, height: n.layout.height as number }; }
     case 'BREAK': return { kind: 'break' };
+    case 'SHAPE': return { kind: 'shape', shapeType: n.data.shapeType ?? 'RECTANGLE', width: Number(n.layout.width ?? 160), height: Number(n.layout.height ?? 120), ...(n.styleOverrides.fill ? { fill: String(n.styleOverrides.fill) } : {}), ...(n.styleOverrides.color ? { color: String(n.styleOverrides.color) } : {}), ...(n.styleOverrides.bold ? { bold: true } : {}), ...(typeof n.styleOverrides.fontSize === 'number' ? { fontSize: n.styleOverrides.fontSize } : {}), ...(n.data.runs ? { runs: runsOf(n) } : {}) };
     case 'FIELD': return Array.isArray(n.data.entries)
       ? { kind: 'list', listType: 'BULLET', items: n.data.entries.map((x: any) => ({ level: Math.max(0, (x.level ?? 1) - 1), runs: [{ text: [x.text ?? x.term ?? x.label, x.page ?? x.pages?.join(', ')].filter((v) => v !== undefined && v !== '').join(' — ') }] })) }
       : { kind: 'text', textType: 'PARAGRAPH', runs: [{ text: String(n.data.value ?? '') }] };
@@ -150,6 +152,12 @@ function insertBlock(e: Engine, b: BlockM, parentId: string): string | null {
       return ins('IMAGE', { assetId: asset, alt: b.alt ?? '' });
     }
     case 'break': return e.run({ type: 'INSERT_STRUCTURE', payload: { structureType: 'BREAK', parentId, breakType: 'PAGE' } }) as string;
+    case 'shape': {
+      const id = e.run({ type: 'INSERT_CONTENT', payload: { contentType: 'SHAPE', parentId, data: { shapeType: b.shapeType, ...(b.runs ? { runs: textRuns(e, b.runs) } : {}) }, layout: { width: b.width, height: b.height } } }).id as string;
+      const look = { ...(b.fill ? { fill: b.fill } : {}), ...(b.color ? { color: b.color } : {}), ...(b.bold ? { bold: true } : {}), ...(b.fontSize ? { fontSize: b.fontSize } : {}) };
+      if (Object.keys(look).length) e.run({ type: 'FORMAT', targetId: id, payload: look });
+      return id;
+    }
   }
 }
 
@@ -168,6 +176,7 @@ function blocksToSlides(blocks: BlockM[], size: { width: number; height: number 
     else if (b.kind === 'list') { for (const it of b.items) { s.items.push({ kind: 'text', x: pad + it.level * 32, y, width: w - it.level * 32, height: 36, textType: 'PARAGRAPH', runs: [{ text: (b.listType === 'NUMBERED' ? '' : '• ') }, ...it.runs] }); y += 40; } }
     else if (b.kind === 'table') { const h = b.rows.length * 32; s.items.push({ kind: 'table', x: pad, y, width: w, height: h, rows: b.rows }); y += h + 16; }
     else if (b.kind === 'image') { s.items.push({ kind: 'image', x: pad, y, width: 320, height: 240, alt: b.alt, source: b.source }); y += 256; }
+    else if (b.kind === 'shape') { s.items.push({ kind: 'shape', x: pad, y, width: b.width, height: b.height, shapeType: b.shapeType, fill: b.fill, runs: b.runs }); y += b.height + 16; }
   }
   return slides;
 }
