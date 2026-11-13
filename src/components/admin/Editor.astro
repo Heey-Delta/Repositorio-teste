@@ -64,6 +64,7 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
       <a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">← Publicações</a>
       <p id="saveState" class="m-0 min-w-0 flex-1 truncate text-[13px] text-muted" role="status" aria-live="polite">{id ? 'Tudo salvo' : 'Ainda não salva'}</p>
       <a id="viewLink" href={`/lab/${dep.slug}/${draft.slug}/`} target="_blank" rel="noopener" hidden={!id || draft.status !== 'published'} class="hidden text-sm text-muted hover:text-ink sm:inline">Ver no site ↗</a>
+      <button type="button" id="pseudoBtn" title="Ver, baixar e importar o pseudocódigo; gerar e ler PDF" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Pseudocódigo</button>
       <button type="button" id="previewBtn" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Prévia</button>
       <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
       <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
@@ -154,6 +155,10 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
         </label>
         <label class={label} id="scheduledWrap" hidden={draft.status !== 'scheduled'}>Publicar em
           <input type="datetime-local" name="scheduledAt" value={localInput(draft.scheduledAt)} class={`${field} h-11`}>
+        </label>
+        <label class={label}>Responsável
+          <input name="responsible" value={draft.responsible ?? login} autocomplete="off" class={`${field} h-11`}>
+          <span class="text-xs">Quem cuida desta publicação na fila de produção.</span>
         </label>
         <label class={label}>Departamento
           <select name="departmentId" class={`${field} h-11`}>
@@ -334,6 +339,27 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
         <button type="submit" id="mediaOk" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Usar imagem</button>
       </div>
     </form>
+  </dialog>
+  <dialog id="pseudoDialog" aria-labelledby="pseudoTitle" class="media-dialog m-auto w-[min(1040px,calc(100%-24px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
+    <div class="flex max-h-[min(92dvh,900px)] flex-col">
+      <div class="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-2">
+        <h2 id="pseudoTitle" class="m-0 font-display text-2xl leading-none font-normal uppercase">Pseudocódigo</h2>
+        <button type="button" id="pseudoClose" class="grid size-10 cursor-pointer place-items-center rounded-[6px] hover:bg-[#141414]" aria-label="Fechar">✕</button>
+      </div>
+      <div class="flex flex-1 flex-col gap-3 overflow-hidden px-5 py-4">
+        <p class="m-0 text-[13px] text-muted">O pseudocódigo descreve a página inteira e é a base das conversões. Edite aqui ou cole o que a sua ferramenta gerou e clique em <strong class="text-ink">Aplicar na página</strong>.</p>
+        <textarea id="pseudoText" spellcheck="false" aria-label="Pseudocódigo da página" class="min-h-[50vh] flex-1 resize-none rounded-[6px] border border-line bg-bg p-3 font-mono text-[13px] leading-relaxed text-ink focus-visible:border-accent"></textarea>
+        <p id="pseudoMsg" role="status" aria-live="polite" class="m-0 min-h-5 text-[13px] text-muted"></p>
+      </div>
+      <div class="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-5 py-3">
+        <button type="button" id="pseudoReload" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Ler da página</button>
+        <button type="button" id="pseudoTxt" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Baixar .txt</button>
+        <button type="button" id="pseudoPdf" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Transformar em PDF</button>
+        <label class="inline-flex min-h-10 cursor-pointer items-center rounded-[6px] border border-line px-4 text-sm hover:border-ink">Ler PDF…<input id="pseudoPdfIn" type="file" accept="application/pdf" class="sr-only"></label>
+        <label class="inline-flex min-h-10 cursor-pointer items-center rounded-[6px] border border-line px-4 text-sm hover:border-ink">Abrir .txt…<input id="pseudoTxtIn" type="file" accept=".txt,text/plain" class="sr-only"></label>
+        <button type="button" id="pseudoApply" class="ml-auto min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110">Aplicar na página</button>
+      </div>
+    </div>
   </dialog>
   <dialog id="diffDialog" aria-labelledby="diffTitle" class="media-dialog m-auto w-[min(920px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink">
     <div class="flex max-h-[min(88dvh,820px)] flex-col">

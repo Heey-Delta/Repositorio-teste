@@ -1,13 +1,24 @@
 // Janela para criar/editar forma, gráfico, diagrama, equação, imagem ou círculo, com pré-visualização ao vivo.
 // Usada pelo editor de Publicações (Tiptap) e pelo editor de Documentos.
-import { ALIGNS, blockHtml, CHART_DEFAULT, CHART_KINDS, DIAGRAM_DEFAULT, DIAGRAM_KINDS, SHAPE_DEFAULT, SHAPE_KINDS, type BlockName } from '../lib/rich-blocks.ts';
+import { ALIGNS, blockHtml, CHART_DEFAULT, CHART_KINDS, DIAGRAM_DEFAULT, DIAGRAM_KINDS, SHAPE_DEFAULT, SHAPE_KINDS, SHEET_DEFAULT, parseCells, type BlockName } from '../lib/rich-blocks.ts';
 
-type Field = { key: string; label: string; kind: 'text' | 'textarea' | 'select' | 'color' | 'number'; options?: [string, string][]; hint?: string; rows?: number };
+type Field = { key: string; label: string; kind: 'text' | 'textarea' | 'select' | 'color' | 'number' | 'cells'; options?: [string, string][]; hint?: string; rows?: number };
 const SIZE: Field[] = [
   { key: 'width', label: 'Largura (px)', kind: 'number', hint: 'Vazio = largura do texto. Também dá para arrastar as alças no editor.' },
   { key: 'align', label: 'Alinhamento', kind: 'select', options: ALIGNS },
 ];
+const NAME: Field = { key: 'name', label: 'Nome dos dados', kind: 'text', hint: 'Vira a página própria em /dados/<publicação>/<nome>. Vazio: usa o tipo e a ordem (ex.: grafico-1).' };
 const FIELDS: Record<Exclude<BlockName, 'slides'>, { title: string; fields: Field[]; defaults: Record<string, string> }> = {
+  sheet: {
+    title: 'Planilha',
+    defaults: { ...SHEET_DEFAULT },
+    fields: [
+      { ...NAME, label: 'Nome da planilha' },
+      { key: 'cells', label: 'Células', kind: 'cells', rows: 10, hint: 'Uma célula por linha, no formato "A1: valor". Letra = coluna, número = linha. Fórmulas começam com "=" (ex.: B4: =SOMA(B2:B3)).' },
+      { key: 'header', label: 'Primeira linha', kind: 'select', options: [['true', 'É o cabeçalho'], ['false', 'É dado comum']] },
+      ...SIZE,
+    ],
+  },
   shape: {
     title: 'Forma',
     defaults: { ...SHAPE_DEFAULT },
@@ -35,6 +46,7 @@ const FIELDS: Record<Exclude<BlockName, 'slides'>, { title: string; fields: Fiel
     title: 'Gráfico',
     defaults: { ...CHART_DEFAULT },
     fields: [
+      NAME,
       { key: 'type', label: 'Tipo', kind: 'select', options: CHART_KINDS },
       { key: 'title', label: 'Título', kind: 'text' },
       { key: 'data', label: 'Dados', kind: 'textarea', rows: 7, hint: 'Uma linha por item, colunas separadas por ";". A primeira linha tem os nomes das séries; a primeira coluna, as categorias. Dá para colar do Excel.' },
@@ -46,6 +58,7 @@ const FIELDS: Record<Exclude<BlockName, 'slides'>, { title: string; fields: Fiel
     title: 'Diagrama',
     defaults: { ...DIAGRAM_DEFAULT },
     fields: [
+      NAME,
       { key: 'type', label: 'Tipo', kind: 'select', options: DIAGRAM_KINDS },
       { key: 'outline', label: 'Tópicos', kind: 'textarea', rows: 9, hint: 'Um tópico por linha. Recue com 2 espaços (ou "-") para pôr um tópico dentro do outro.' },
       ...SIZE,
@@ -110,9 +123,22 @@ export function openBlockDialog(kind: Exclude<BlockName, 'slides'>, current?: Re
     label.append(f.label);
     let el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     if (f.kind === 'select') { el = document.createElement('select'); for (const [v, l] of f.options!) el.append(new Option(l, v)); }
-    else if (f.kind === 'textarea') { el = document.createElement('textarea'); (el as HTMLTextAreaElement).rows = f.rows ?? 4; el.spellcheck = false; }
+    else if (f.kind === 'textarea' || f.kind === 'cells') { el = document.createElement('textarea'); (el as HTMLTextAreaElement).rows = f.rows ?? 4; el.spellcheck = false; }
     else { el = document.createElement('input'); (el as HTMLInputElement).type = f.kind === 'number' ? 'number' : f.kind === 'color' ? 'color' : 'text'; if (f.kind === 'number') { (el as HTMLInputElement).min = '10'; (el as HTMLInputElement).max = '1200'; } }
     el.name = f.key;
+    if (f.kind === 'cells') {
+      // JSON {"A1": "x"} ↔ linhas "A1: x" (o bloco guarda JSON; a pessoa edita em linhas)
+      el.value = Object.entries(parseCells(values[f.key])).map(([k, v]) => `${k}: ${v}`).join('\n');
+      el.addEventListener('input', () => {
+        const o: Record<string, string> = {};
+        for (const line of el.value.split('\n')) { const m = /^\s*([A-Za-z]{1,3})\.?(\d+)\s*[:=]\s?(.*)$/.exec(line); if (m) o[`${m[1].toUpperCase()}${m[2]}`] = m[3].trim(); }
+        values[f.key] = JSON.stringify(o); draw();
+      });
+      label.append(el);
+      if (f.hint) { const s = document.createElement('small'); s.textContent = f.hint; label.append(s); }
+      left.append(label);
+      continue;
+    }
     el.value = f.kind === 'color' ? (/^#[0-9a-f]{6}$/i.test(values[f.key]) ? values[f.key] : f.key === 'textColor' ? '#000000' : values.fill || '#FBBF00') : values[f.key] ?? '';
     el.addEventListener('input', () => { values[f.key] = el.value; draw(); });
     label.append(el);

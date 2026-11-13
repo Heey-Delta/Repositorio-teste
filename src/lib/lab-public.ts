@@ -3,6 +3,7 @@
 import { and, eq, inArray, lte, or, type SQL } from 'drizzle-orm';
 import { Marked } from 'marked';
 import { markedBlocks } from './rich-blocks';
+import { dataItems, KIND_LABEL } from './data-items';
 import GithubSlugger from 'github-slugger';
 import { departments as staticDepartments, areas as staticAreas } from '../lab/data';
 import { db, schema as s } from '../db/client';
@@ -98,8 +99,10 @@ async function load(filter: SQL | undefined): Promise<LabEntry[]> {
 const attr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const decode = (v: string) => v.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
-// Markdown do corpo em HTML, com âncoras nos títulos (o sumário da publicação usa os de nível 2)
-export function renderMarkdown(md: string) {
+// Markdown do corpo em HTML, com âncoras nos títulos (o sumário da publicação usa os de nível 2).
+// Com dataBase (ex.: "/dados/minha-publicacao/"), cada tabela, planilha, gráfico, diagrama e apresentação ganha,
+// logo abaixo, o link para a página própria dos dados.
+export function renderMarkdown(md: string, ctx: { dataBase?: string } = {}) {
   const slugger = new GithubSlugger();
   const headings: { depth: number; slug: string; text: string }[] = [];
   const marked = new Marked({
@@ -120,7 +123,15 @@ export function renderMarkdown(md: string) {
       },
     },
   });
-  const html = marked.parse(md, { async: false }) as string;
+  const tokens = marked.lexer(md);
+  if (ctx.dataBase) {
+    const items = dataItems(md).filter((it) => it.kind !== 'foto');
+    for (const it of [...items].reverse()) {
+      const link = `<p class="lab-data-link"><a href="${attr(ctx.dataBase + it.slug)}/">${KIND_LABEL[it.kind]}: ${attr(it.name)} — ver os dados</a></p>\n`;
+      tokens.splice(it.tokenIndex + 1, 0, { type: 'html', block: true, raw: link, text: link, pre: false } as any);
+    }
+  }
+  const html = marked.parser(tokens) as string;
   return { html, headings };
 }
 
@@ -166,4 +177,10 @@ async function loadCatalog(): Promise<PublicCatalog> {
     departments: staticDepartments.map((d) => ({ ...d, short: bySlug.get(d.slug)?.short ?? d.short, about: bySlug.get(d.slug)?.about ?? d.about })),
     areas,
   };
+}
+
+// Rota das páginas de dados de uma publicação: /dados/<slug>/ (com o departamento na frente se dois tiverem o mesmo slug)
+export function dataSlugOf(entry: LabEntry, all: LabEntry[]) {
+  const slug = entry.id.split('/').pop()!;
+  return all.some((e) => e.id !== entry.id && e.id.split('/').pop() === slug) ? `${entry.data.department}-${slug}` : slug;
 }

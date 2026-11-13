@@ -437,6 +437,7 @@ function collect() {
     areaIds: [...form.querySelectorAll<HTMLInputElement>('input[name="areaIds"]:checked')].map((i) => Number(i.value)),
     tags: f('tags').value.split(',').map((t) => t.trim()).filter(Boolean),
     relatedProject: nullable('relatedProject'),
+    responsible: nullable('responsible'),
     methodology: nullable('methodology'),
     aiAssistance: nullable('aiAssistance'),
     scheduledAt: scheduled ? new Date(scheduled).toISOString() : null,
@@ -937,6 +938,52 @@ document.getElementById('deletePost')?.addEventListener('click', async () => {
   dirty = false;
   location.href = '/admin/publicacoes/';
 });
+
+// ---------- pseudocódigo: ver, baixar, importar, PDF ----------
+// O pseudocódigo é o meio-termo das conversões: página ↔ pseudocódigo ↔ PDF.
+{
+  const dlg = $<HTMLDialogElement>('#pseudoDialog'), area = $<HTMLTextAreaElement>('#pseudoText'), msg = $('#pseudoMsg');
+  const say = (t: string, bad = false) => { msg.textContent = t; msg.style.color = bad ? '#ff8a8a' : ''; };
+  const fileName = (ext: string) => `${(f('slug').value || slugify(plain(titleEl)) || 'pagina')}.${ext}`;
+  const save = (blob: Blob, name: string) => { const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name }); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+  const fromPage = async () => { const { postToPseudo } = await import('../lib/pseudo'); area.value = postToPseudo(plain(titleEl), editor.getMarkdown()); say('Pseudocódigo gerado a partir da página.'); };
+  $('#pseudoBtn').addEventListener('click', async () => { await fromPage(); dlg.showModal(); area.focus(); });
+  $('#pseudoClose').addEventListener('click', () => dlg.close());
+  $('#pseudoReload').addEventListener('click', () => { void fromPage(); });
+  $('#pseudoTxt').addEventListener('click', () => save(new Blob([area.value], { type: 'text/plain;charset=utf-8' }), fileName('txt')));
+  $('#pseudoApply').addEventListener('click', async () => {
+    const { pseudoToPost } = await import('../lib/pseudo');
+    try {
+      const { title, body } = pseudoToPost(area.value);
+      if (!confirm('Substituir o título e o corpo da página pelo pseudocódigo? Dá para desfazer com Ctrl+Z no corpo e restaurar pelas Versões.')) return;
+      if (title) { titleEl.textContent = title; titleEl.dispatchEvent(new Event('input')); }
+      editor.commands.setContent(body, { contentType: 'markdown' });
+      markDirty(); refreshDerived();
+      say('Aplicado na página. Salve para guardar.');
+      dlg.close();
+    } catch (err) { say((err as Error).message, true); }
+  });
+  $('#pseudoPdf').addEventListener('click', async () => {
+    try {
+      const [{ pseudoToModel }, { toPdf }] = await Promise.all([import('../lib/pseudo'), import('../editor-core/io/pdf')]);
+      save(new Blob([toPdf(pseudoToModel(area.value)) as BlobPart], { type: 'application/pdf' }), fileName('pdf'));
+      say('PDF gerado a partir do pseudocódigo.');
+    } catch (err) { say((err as Error).message, true); }
+  });
+  $<HTMLInputElement>('#pseudoPdfIn').addEventListener('change', async (ev) => {
+    const input = ev.target as HTMLInputElement, file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    say('Lendo o PDF…');
+    try { const { pdfToPseudo } = await import('./pdf-to-pseudo'); area.value = await pdfToPseudo(file, file.name.replace(/\.pdf$/i, '')); say('PDF lido. Confira o pseudocódigo e clique em Aplicar na página.'); }
+    catch (err) { say(`Não deu para ler o PDF: ${(err as Error).message}`, true); }
+  });
+  $<HTMLInputElement>('#pseudoTxtIn').addEventListener('change', async (ev) => {
+    const input = ev.target as HTMLInputElement, file = input.files?.[0];
+    input.value = '';
+    if (file) { area.value = await file.text(); say(`${file.name} aberto. Clique em Aplicar na página para usar.`); }
+  });
+}
 
 // ---------- pré-visualização ----------
 // A prévia mostra o que está salvo: com alterações pendentes, salva antes. A aba abre já no clique (senão o navegador bloqueia).

@@ -13,6 +13,7 @@ import { layoutDiagram } from '../editor-core/ops/diagram.ts';
 import type { ChartData } from '../editor-core/charts/chart.ts';
 import { circleHtml, circleInk, parseCircleAttrs } from './circle-block.ts';
 import { SHAPES, shapeKind, shapeSvg } from '../editor-core/io/shapes.ts';
+import { createEngine, createDocument } from '../editor-core/index.ts';
 
 /** Mesmas cores e fonte do site (shared.css): fundo do texto, tinta, cinza, linhas e o amarelo de destaque. */
 export const SITE_THEME: SvgTheme = {
@@ -21,7 +22,7 @@ export const SITE_THEME: SvgTheme = {
   palette: ['#FBBF00', '#F2F2EE', '#A6A6A0', '#8A6A00', '#5C5C58', '#FFE08A'],
 };
 
-export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as const;
+export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as const;
 export type BlockName = (typeof BLOCK_NAMES)[number];
 const NAMES = BLOCK_NAMES.join('|');
 export const BLOCK_RE = new RegExp(`^ {0,3}:::(${NAMES})(?:\\s+\\{([^}]*)\\})?\\s*:::(?:\\n|$)`);
@@ -191,20 +192,52 @@ export function slidesHtml(a: Partial<SlidesAttrs>) {
     + (n > 1 ? `<div class="lab-deck-nav"><button type="button" data-deck-prev aria-label="Slide anterior">Anterior</button><span data-deck-count aria-live="polite">1 / ${n}</span><button type="button" data-deck-next aria-label="Próximo slide">Próximo</button></div>` : '')
     + `</section>`;
 }
-/** Liga os botões e o contador de uma apresentação já na página (site e editor). */
-export function wireDeck(root: ParentNode) {
-  for (const deck of root.querySelectorAll<HTMLElement>('[data-deck]')) {
-    if (deck.dataset.wired) continue;
-    deck.dataset.wired = '1';
-    const track = deck.querySelector<HTMLElement>('.lab-deck-track')!, count = deck.querySelector<HTMLElement>('[data-deck-count]');
-    const total = track.children.length;
-    const at = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    const go = (i: number) => track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' });
-    deck.querySelector('[data-deck-prev]')?.addEventListener('click', () => go(at() - 1));
-    deck.querySelector('[data-deck-next]')?.addEventListener('click', () => go(at() + 1));
-    track.addEventListener('scroll', () => { if (count) count.textContent = `${at() + 1} / ${total}`; }, { passive: true });
-    track.addEventListener('keydown', (ev) => { if (ev.key === 'ArrowRight') { ev.preventDefault(); go(at() + 1); } if (ev.key === 'ArrowLeft') { ev.preventDefault(); go(at() - 1); } });
+
+// ---------------------------------------------------------------- planilha (pln)
+// Células no formato da planilha: "A1" = coluna A, linha 1. Aceita valores e fórmulas (=SOMA(B2:B5)); o site mostra
+// o valor calculado pelo mesmo motor de fórmulas do editor de planilhas.
+export interface SheetAttrs { id: string; name: string; cells: string; header: string; width: string; align: string }
+export const SHEET_DEFAULT: SheetAttrs = { id: '', name: 'Planilha', cells: JSON.stringify({ A1: 'Produto', B1: 'Preço', A2: 'Notebook', B2: '3500', A3: 'Mouse', B3: '50', A4: 'Total', B4: '=SOMA(B2:B3)' }), header: 'true', width: '', align: 'center' };
+export const parseCells = (v: unknown): Record<string, string> => {
+  try { const o = typeof v === 'string' ? JSON.parse(v || '{}') : v; return o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, x]) => [k.toUpperCase().replace('.', ''), String(x ?? '')])) : {}; } catch { return {}; }
+};
+const colIdx = (letters: string) => [...letters].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
+const colName = (n: number) => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+/** Valores calculados (texto como aparece) e a fórmula de cada célula, numa matriz linhas × colunas. */
+export function sheetMatrix(cellsAttr: unknown) {
+  const cells = parseCells(cellsAttr);
+  let R = 0, C = 0;
+  for (const a of Object.keys(cells)) { const m = /^([A-Z]{1,3})(\d+)$/.exec(a); if (!m) continue; C = Math.max(C, colIdx(m[1])); R = Math.max(R, Number(m[2])); }
+  if (!R || !C) return { rows: [] as (string | number | boolean | null)[][], formulas: [] as (string | null)[][], cols: 0 };
+  const e = createEngine(createDocument('SPREADSHEET_EDITOR'));
+  const sh = e.state.activeSurface!;
+  for (const [cell, value] of Object.entries(cells)) if (/^[A-Z]{1,3}\d+$/.test(cell)) e.execute({ type: 'SET_CELL', targetId: sh, payload: { cell, value } });
+  const rows: (string | number | boolean | null)[][] = [], formulas: (string | null)[][] = [];
+  for (let r = 1; r <= R; r++) {
+    const line: (string | number | boolean | null)[] = [], f: (string | null)[] = [];
+    for (let c = 1; c <= C; c++) {
+      const addr = `${colName(c)}${r}`;
+      const got = e.execute({ type: 'GET_CELL', targetId: sh, payload: { cell: addr } });
+      const v = got.ok ? (got.value as any) : null;
+      line.push(v ? (v.error ? v.error.code : v.display ?? null) : null);
+      f.push(v?.formula ?? null);
+    }
+    rows.push(line); formulas.push(f);
   }
+  return { rows, formulas, cols: C };
+}
+const cellShow = (v: unknown) => (v === null || v === undefined ? '' : typeof v === 'number' ? (Math.round(v * 1e6) / 1e6).toLocaleString('pt-BR') : typeof v === 'boolean' ? (v ? 'VERDADEIRO' : 'FALSO') : String(v));
+export function sheetHtml(a: Partial<SheetAttrs>, opts: { refs?: boolean } = {}) {
+  const { rows, formulas, cols } = sheetMatrix(a.cells);
+  if (!rows.length) return `<figure class="lab-sheet lab-chart-empty" style="${box(a)}"><p>Planilha vazia.</p></figure>`;
+  const header = a.header !== 'false';
+  const head = opts.refs ? `<tr><th class="lab-ref"></th>${Array.from({ length: cols }, (_, i) => `<th class="lab-ref" scope="col">${colName(i + 1)}</th>`).join('')}</tr>` : '';
+  const body = rows.map((r, i) => `<tr>${opts.refs ? `<th class="lab-ref" scope="row">${i + 1}</th>` : ''}${r.map((v, k) => {
+    const tag = header && i === 0 ? 'th' : 'td';
+    const f = formulas[i][k];
+    return `<${tag}${typeof v === 'number' ? ' class="num"' : ''}${f ? ` title="${esc(f)}" data-formula="${esc(f)}"` : ''}>${esc(cellShow(v))}</${tag}>`;
+  }).join('')}</tr>`).join('');
+  return `<figure class="lab-sheet" style="${box(a)}"><div class="lab-sheet-scroll"><table>${head}${body}</table></div>${a.name ? `<figcaption>${esc(a.name)}</figcaption>` : ''}</figure>`;
 }
 
 /** Qualquer bloco → HTML (usado pelo site e pela pré-visualização do editor). */
@@ -215,6 +248,7 @@ export function blockHtml(name: BlockName, attrs: Record<string, string>) {
   if (name === 'diagram') return diagramHtml(attrs);
   if (name === 'picture') return pictureHtml(attrs);
   if (name === 'slides') return slidesHtml(attrs);
+  if (name === 'sheet') return sheetHtml(attrs);
   return mathHtml(attrs);
 }
 

@@ -24,6 +24,7 @@ export async function listPosts(opts: { status?: EditorialStatus; q?: string; li
   const q = db().select({
     id: s.posts.id, code: s.posts.code, slug: s.posts.slug, title: s.posts.title, status: s.posts.status, stage: s.posts.stage,
     updatedAt: s.posts.updatedAt, department: s.departments.name, departmentSlug: s.departments.slug,
+    responsible: s.posts.responsible, scheduledAt: s.posts.scheduledAt,
   }).from(s.posts).innerJoin(s.departments, eq(s.posts.departmentId, s.departments.id))
     .where(and(opts.status ? eq(s.posts.status, opts.status) : undefined, search))
     .orderBy(desc(s.posts.updatedAt));

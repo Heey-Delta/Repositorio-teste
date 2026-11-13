@@ -1,7 +1,8 @@
 // /llms.txt: resumo do site em Markdown para buscadores com IA (proposta llmstxt.org): quem é o Hallan, o que faz,
 // os serviços e as publicações do Lab com link e resumo. Gerado no build, junto com o sitemap.
 import type { APIRoute } from 'astro';
-import { getLabEntries, getAuthor } from '../lib/lab-public';
+import { getLabEntries, getAuthor, dataSlugOf } from '../lib/lab-public';
+import { dataItems, describe, KIND_LABEL } from '../lib/data-items';
 import { services } from '../lib/site';
 import { departments, LAB_DESCRIPTION } from '../lab/data';
 
@@ -35,6 +36,13 @@ export const GET: APIRoute = async ({ site }) => {
       for (const e of own) lines.push(`- [${e.data.title}](${at(`/lab/${e.id}/`)}): ${e.data.description}`);
       lines.push('');
     }
+  }
+  // dados com página própria: cada um aponta para a publicação de origem, onde está o contexto
+  const data = live.flatMap((e) => dataItems(e.body).map((it) => ({ e, it })));
+  if (data.length) {
+    lines.push('## Dados das publicações', '', 'Cada item abaixo tem página própria com o dado, CSV/JSON e o link para a publicação de origem (cite a publicação).', '');
+    for (const { e, it } of data) lines.push(`- [${KIND_LABEL[it.kind]}: ${it.name}](${at(`/dados/${dataSlugOf(e, entries)}/${it.slug}/`)}): ${describe(it, e.data.title)} Origem: ${at(`/lab/${e.id}/`)}`);
+    lines.push('');
   }
   if (author.sameAs?.length) lines.push('## Perfis', '', ...author.sameAs.map((u) => `- ${u}`), '');
   return new Response(lines.join('\n'), { headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });

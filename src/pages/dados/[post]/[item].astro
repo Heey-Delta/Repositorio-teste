@@ -1,0 +1,95 @@
+---
+// Página própria de cada dado de uma publicação (tabela, planilha, gráfico, diagrama, apresentação ou foto).
+// Pública e indexável: mostra o dado, liga de volta para a publicação de origem (página-mãe), oferece CSV e JSON
+// e descreve tudo em dados estruturados (Dataset, ImageObject ou PresentationDigitalDocument) para buscadores e IAs.
+import Lab from '../../../layouts/Lab.astro';
+import { getLabEntries, getAuthor, renderMarkdown, dataSlugOf, type LabEntry } from '../../../lib/lab-public';
+import { dataItems, describe, KIND_LABEL, TABULAR, type DataItem } from '../../../lib/data-items';
+import { departmentBySlug, fmtDate, up } from '../../../lab/data';
+
+export async function getStaticPaths() {
+  const all = await getLabEntries();
+  return all.flatMap((entry) => {
+    const items = dataItems(entry.body);
+    return items.map((it) => ({ params: { post: dataSlugOf(entry, all), item: it.slug }, props: { entry, it, items, postSlug: dataSlugOf(entry, all) } }));
+  });
+}
+interface Props { entry: LabEntry; it: DataItem; items: DataItem[]; postSlug: string }
+const { entry, it, items, postSlug } = Astro.props;
+const d = entry.data, dep = departmentBySlug(d.department), root = up(3);
+const author = await getAuthor();
+const postPath = `/lab/${d.department}/${entry.id.split('/').pop()}/`;
+const postUrl = new URL(postPath, Astro.site).href;
+const url = new URL(`/dados/${postSlug}/${it.slug}/`, Astro.site).href;
+const title = `${it.name}`;
+const description = describe(it, d.title);
+const { html } = renderMarkdown(it.markdown);
+const tabular = TABULAR.includes(it.kind) || it.kind === 'diagrama' || it.kind === 'apresentacao';
+const files = tabular ? [{ fmt: 'CSV', href: `${root}dados/${postSlug}/${it.slug}.csv`, mime: 'text/csv' }, { fmt: 'JSON', href: `${root}dados/${postSlug}/${it.slug}.json`, mime: 'application/json' }] : [];
+const year = (d.updated ?? d.date).getFullYear();
+const cite = `${author.name}. ${it.name}. In: ${d.title}. ${year}. Disponível em: ${url}. Acesso em: ${fmtDate(new Date())}.`;
+const personId = new URL('/#hallan', Astro.site).href;
+const base = {
+  '@context': 'https://schema.org', name: it.name, description, url, inLanguage: 'pt-BR',
+  creator: { '@id': personId }, author: { '@id': personId },
+  datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
+  isPartOf: { '@type': 'Article', '@id': postUrl, url: postUrl, name: d.title },
+  isBasedOn: postUrl, keywords: [...d.tags, ...d.areas].join(', '), ...(it.id ? { identifier: it.id } : {}),
+  isAccessibleForFree: true,
+};
+const ld = it.kind === 'foto'
+  ? { ...base, '@type': 'ImageObject', contentUrl: new URL(it.extra.src!, Astro.site).href, caption: it.extra.alt ?? '' }
+  : it.kind === 'apresentacao'
+    ? { ...base, '@type': 'PresentationDigitalDocument', numberOfPages: it.rows.length }
+    : { ...base, '@type': 'Dataset',
+        ...(it.rows[0] ? { variableMeasured: it.rows[0].filter((c) => c !== '' && c !== null).map((c) => ({ '@type': 'PropertyValue', name: String(c) })) } : {}),
+        distribution: files.map((f) => ({ '@type': 'DataDownload', encodingFormat: f.mime, contentUrl: new URL(f.href.replace(root, '/'), Astro.site).href })) };
+const others = items.filter((x) => x.slug !== it.slug);
+---
+<Lab title={`${title} · ${d.title}`} description={description} depth={3} noindex={d.draft} current={d.department}
+  crumbs={[{ name: dep.name, path: `/lab/${d.department}/` }, { name: d.title, path: postPath }, { name: it.name, path: `/dados/${postSlug}/${it.slug}/` }]}
+  jsonld={[ld]} canonical={url} ogImage={it.kind === 'foto' ? { url: new URL(it.extra.src!, Astro.site).href, alt: it.extra.alt ?? it.name } : d.cover}>
+  <article class="wrap flex max-w-[960px] flex-col gap-8 py-10 lg:py-14">
+    <header class="flex flex-col gap-3">
+      <p class="label-ui m-0 text-[11px] text-muted">{KIND_LABEL[it.kind]} · dados de <a href={`${root}${postPath.slice(1)}`} class="underline hover:text-accent">{d.title}</a></p>
+      <h1 class="m-0 font-display text-[clamp(34px,8vw,56px)] leading-[0.98] uppercase">{it.name}</h1>
+      <p class="m-0 max-w-[680px] text-base text-muted">{description}</p>
+    </header>
+    <div class="lab-prose max-w-none" set:html={html} />
+    {it.kind === 'grafico' && it.rows.length > 1 && (
+      <section aria-labelledby="tabela-dados" class="flex flex-col gap-3">
+        <h2 id="tabela-dados" class="label-ui m-0 text-[11px] text-muted">Dados do gráfico</h2>
+        <div class="lab-sheet"><div class="lab-sheet-scroll"><table>{it.rows.map((r, i) => <tr>{r.map((c) => i === 0 ? <th>{String(c ?? '')}</th> : <td class={typeof c === 'number' ? 'num' : ''}>{typeof c === 'number' ? c.toLocaleString('pt-BR') : String(c ?? '')}</td>)}</tr>)}</table></div></div>
+      </section>
+    )}
+    <section aria-labelledby="fonte" class="flex flex-col gap-3 border-t border-line pt-6 text-[15px]">
+      <h2 id="fonte" class="label-ui m-0 text-[11px] text-muted">Fonte e contexto</h2>
+      <p class="m-0">Este dado faz parte da publicação <a href={`${root}${postPath.slice(1)}`} class="underline hover:text-accent">{d.title}</a>, de {author.name}, publicada em {fmtDate(d.date)}{d.updated && <>, atualizada em {fmtDate(d.updated)}</>}. A explicação completa, a metodologia e as referências estão na publicação.</p>
+      {d.description && <p class="m-0 text-muted">{d.description}</p>}
+      <p class="m-0 text-sm"><strong>Como citar:</strong> <span class="text-muted">{cite}</span></p>
+    </section>
+    {files.length > 0 && (
+      <section aria-labelledby="baixar" class="flex flex-col gap-3">
+        <h2 id="baixar" class="label-ui m-0 text-[11px] text-muted">Baixar os dados</h2>
+        <div class="flex flex-wrap gap-2">{files.map((f) => <a href={f.href} download class="inline-flex min-h-10 items-center rounded-[6px] border border-line px-4 text-sm hover:border-ink">{f.fmt}</a>)}</div>
+      </section>
+    )}
+    {others.length > 0 && (
+      <section aria-labelledby="outros" class="flex flex-col gap-3 border-t border-line pt-6">
+        <h2 id="outros" class="label-ui m-0 text-[11px] text-muted">Outros dados da mesma publicação</h2>
+        <ul class="m-0 grid list-none gap-2 p-0 text-sm sm:grid-cols-2">{others.map((x) => <li><a href={`${root}dados/${postSlug}/${x.slug}/`} class="underline hover:text-accent">{KIND_LABEL[x.kind]}: {x.name}</a></li>)}</ul>
+      </section>
+    )}
+  </article>
+  <script is:inline>
+    document.querySelectorAll('[data-deck]').forEach(function (deck) {
+      var track = deck.querySelector('.lab-deck-track'), count = deck.querySelector('[data-deck-count]'), total = track.children.length;
+      function at() { return Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); }
+      function go(i) { track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' }); }
+      var p = deck.querySelector('[data-deck-prev]'), n = deck.querySelector('[data-deck-next]');
+      if (p) p.addEventListener('click', function () { go(at() - 1); });
+      if (n) n.addEventListener('click', function () { go(at() + 1); });
+      track.addEventListener('scroll', function () { if (count) count.textContent = (at() + 1) + ' / ' + total; }, { passive: true });
+    });
+  </script>
+</Lab>

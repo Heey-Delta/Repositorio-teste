@@ -5,14 +5,19 @@
 import Lab from '../../layouts/Lab.astro';
 import PubCard from './PubCard.astro';
 import Cover from './Cover.astro';
-import { renderMarkdown, type LabEntry } from '../../lib/lab-public';
+import { renderMarkdown, dataSlugOf, type LabEntry } from '../../lib/lab-public';
+import { dataItems, KIND_LABEL } from '../../lib/data-items';
 import { departmentBySlug, statuses, fmtDate, up } from '../../lab/data';
 
 interface Props { entry: LabEntry; all: LabEntry[]; depth?: number; preview?: { status: string; editHref: string } }
 const { entry, all, depth = 3, preview } = Astro.props;
 const d = entry.data, dep = departmentBySlug(d.department), root = up(depth);
 const personId = new URL('/#hallan', Astro.site).href;
-const { html, headings } = renderMarkdown(entry.body);
+const postSlug = dataSlugOf(entry, all.some((e) => e.id === entry.id) ? all : [...all, entry]);
+const dataBase = `${root}dados/${postSlug}/`;
+const { html, headings } = renderMarkdown(entry.body, { dataBase });
+// cada dado do texto tem página própria: a lista no fim liga todas (bom para quem lê e para os buscadores)
+const items = dataItems(entry.body);
 const toc = headings.filter((h) => h.depth === 2);
 const related = all.filter((e) => (e.data.code && d.related.includes(e.data.code)) || (d.code && e.data.related.includes(d.code))).filter((e) => e.id !== entry.id);
 const url = new URL(`/lab/${d.department}/${entry.id.split('/').pop()}/`, Astro.site).href;
@@ -82,6 +87,14 @@ const meta = [
         )}
       </div>
     </div>
+    {items.length > 0 && (
+      <section class="wrap border-t border-line py-8" aria-labelledby="data-title">
+        <h2 id="data-title" class="label-ui m-0 mb-4 text-[11px] text-muted">Dados desta publicação</h2>
+        <ul class="m-0 grid list-none gap-2 p-0 text-sm sm:grid-cols-2">{items.map((it) => (
+          <li><a href={`${dataBase}${it.slug}/`} class="underline hover:text-accent">{KIND_LABEL[it.kind]}: {it.name}</a></li>
+        ))}</ul>
+      </section>
+    )}
     {d.attachments.length > 0 && (
       <section class="wrap border-t border-line py-8" aria-labelledby="files">
         <h2 id="files" class="label-ui m-0 mb-4 text-[11px] text-muted">Arquivos</h2>

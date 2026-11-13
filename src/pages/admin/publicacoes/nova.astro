@@ -7,7 +7,7 @@ const options = await editorOptions();
 const first = options.departments[0];
 const draft: PostDraft = {
   title: '', summary: '', body: '', departmentId: first.id, contentTypeId: null, status: 'draft', stage: 'concept',
-  level: 'Introdutório', format: null, code: await nextCode(first.id), slug: '', areaIds: [], tags: [], relatedProject: null,
+  level: 'Introdutório', format: null, code: await nextCode(first.id), slug: '', areaIds: [], tags: [], relatedProject: null, responsible: Astro.locals.admin!.login,
   methodology: null, aiAssistance: null, scheduledAt: null,
   seo: { metaTitle: null, metaDescription: null, canonicalUrl: null, noindex: false, schemaType: null },
 };

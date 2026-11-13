@@ -36,6 +36,13 @@
       "when": 1794545253299,
       "tag": "0004_editor-publicacoes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794590381201,
+      "tag": "0005_fila-responsavel",
+      "breakpoints": true
     }
   ]
 }

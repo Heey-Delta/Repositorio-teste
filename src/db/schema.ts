@@ -115,6 +115,7 @@ export const posts = pgTable('posts', {
   level: level('level').notNull().default('Introdutório'),
   format: text('format'),   // Field Notes: Essay, Observation, Idea, Tutorial, Opinion
   relatedProject: text('related_project'),   // slug de um trabalho do portfólio
+  responsible: text('responsible'),   // quem cuida da publicação na fila de produção (login ou nome)
   methodology: text('methodology'),   // transparência editorial (spec 9.4)
   aiAssistance: text('ai_assistance'),
   readingMinutes: integer('reading_minutes'),

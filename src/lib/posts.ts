@@ -25,6 +25,7 @@ export const postInput = z.object({
   areaIds: z.array(z.number().int()).max(8),
   tags: z.array(z.string().trim().min(1).max(40)).max(20),
   relatedProject: optText(120),
+  responsible: optText(80).default(null),
   methodology: optText(2000),
   aiAssistance: optText(2000),
   coverMediaId: z.uuid().nullable().default(null),
@@ -89,7 +90,7 @@ export async function loadPost(id: string) {
   const draft: PostDraft = {
     title: p.title, summary: p.summary, body: p.body, departmentId: p.departmentId, contentTypeId: p.contentTypeId,
     status: p.status, stage: p.stage, level: p.level, format: p.format as PostDraft['format'], code: p.code, slug: p.slug,
-    areaIds: areaRows.map((a) => a.id), tags: tagRows.map((t) => t.name), relatedProject: p.relatedProject,
+    areaIds: areaRows.map((a) => a.id), tags: tagRows.map((t) => t.name), relatedProject: p.relatedProject, responsible: p.responsible,
     methodology: p.methodology, aiAssistance: p.aiAssistance, scheduledAt: p.scheduledAt?.toISOString() ?? null, coverMediaId: p.coverMediaId,
     references: refRows.map(({ r }) => ({ id: r.id, title: r.title, author: r.author, url: r.url, sourceType: r.sourceType, publisher: r.publisher, publishedOn: r.publishedOn, accessedOn: r.accessedOn })),
     relations: relRows.map((r) => ({ postId: r.postId, kind: r.kind as 'related' })),
@@ -170,7 +171,7 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   const values = {
     title: input.title, summary: input.summary, body: input.body, departmentId: input.departmentId, contentTypeId: input.contentTypeId,
     status: input.status, stage: input.stage, level: input.level, format: input.format, code: input.code, slug: input.slug,
-    relatedProject: input.relatedProject, methodology: input.methodology, aiAssistance: input.aiAssistance, coverMediaId: input.coverMediaId,
+    relatedProject: input.relatedProject, responsible: input.responsible ?? null, methodology: input.methodology, aiAssistance: input.aiAssistance, coverMediaId: input.coverMediaId,
     scheduledAt: input.status === 'scheduled' ? input.scheduledAt : null, publishedAt,
     readingMinutes: Math.max(1, Math.ceil(words(input.body) / 200)), updatedAt: now,
   };

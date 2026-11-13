@@ -3,17 +3,19 @@
 // vira uma linha ":::nome {atributos} :::" no Markdown e abre a janela de edição com duplo clique (ou Enter).
 // Selecionado, mostra as alças nos cantos e nas laterais (como no Word/PowerPoint): arrastar muda largura e altura.
 import { Node as TiptapNode, createAtomBlockMarkdownSpec } from '@tiptap/core';
-import { blockHtml, parseAttrs, serializeAttrs, SHAPE_DEFAULT, wireDeck, type BlockName } from '../lib/rich-blocks.ts';
+import { blockHtml, parseAttrs, serializeAttrs, SHAPE_DEFAULT, SHEET_DEFAULT, type BlockName } from '../lib/rich-blocks.ts';
 import { openBlockDialog } from '../editor-ui/block-dialog.ts';
 
 const SIZE = { width: '', align: 'center' };
 export const DEFAULTS: Record<BlockName, Record<string, string>> = {
   shape: { ...SHAPE_DEFAULT },
-  chart: { type: 'COLUMN', title: '', data: '', colors: '', ...SIZE },
-  diagram: { type: 'ORGCHART', outline: '', ...SIZE },
+  // id e name: viram a rota da página de dados (/dados/<publicação>/<nome>) e o {hash.nome} do pseudocódigo
+  chart: { id: '', name: '', type: 'COLUMN', title: '', data: '', colors: '', ...SIZE },
+  diagram: { id: '', name: '', type: 'ORGCHART', outline: '', ...SIZE },
   math: { tex: '', ...SIZE },
   picture: { src: '', alt: '', ...SIZE },
-  slides: { deck: '', ...SIZE },
+  slides: { id: '', name: '', deck: '', ...SIZE },
+  sheet: { ...SHEET_DEFAULT, name: '', cells: '{}' },
   circle: { text: '', color: '#FBBF00', size: '160' },
 };
 /** Blocos com altura própria (as alças de cima/baixo mexem na altura); os demais mantêm a proporção. */
@@ -120,5 +122,21 @@ function makeBlock(name: BlockName) {
   });
 }
 
-export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as BlockName[]).map(makeBlock);
+export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as BlockName[]).map(makeBlock);
 export { openBlockDialog };
+
+/** Liga os botões e o contador de uma apresentação já na página (site e editor). */
+export function wireDeck(root: ParentNode) {
+  for (const deck of root.querySelectorAll<HTMLElement>('[data-deck]')) {
+    if (deck.dataset.wired) continue;
+    deck.dataset.wired = '1';
+    const track = deck.querySelector<HTMLElement>('.lab-deck-track')!, count = deck.querySelector<HTMLElement>('[data-deck-count]');
+    const total = track.children.length;
+    const at = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    const go = (i: number) => track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' });
+    deck.querySelector('[data-deck-prev]')?.addEventListener('click', () => go(at() - 1));
+    deck.querySelector('[data-deck-next]')?.addEventListener('click', () => go(at() + 1));
+    track.addEventListener('scroll', () => { if (count) count.textContent = `${at() + 1} / ${total}`; }, { passive: true });
+    track.addEventListener('keydown', (ev) => { if (ev.key === 'ArrowRight') { ev.preventDefault(); go(at() + 1); } if (ev.key === 'ArrowLeft') { ev.preventDefault(); go(at() - 1); } });
+  }
+}

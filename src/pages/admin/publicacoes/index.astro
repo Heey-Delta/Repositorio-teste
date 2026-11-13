@@ -1,68 +1,217 @@
 ---
-// Lista de publicações (Content Manager, spec 5.2), com busca e filtro por status. Cada título abre o editor.
+// Fila de produção das publicações: em lista (com busca e filtro por status) ou em quadro Kanban (uma coluna por status;
+// arrastar o cartão ou escolher no menu dele muda o status). Responsável em cada publicação, com filtro.
 import Admin from '../../../layouts/Admin.astro';
 import { countsByStatus, listPosts, statusLabel, statusOrder, fmtDateTime, type EditorialStatus } from '../../../lib/admin';
 export const prerender = false;
-const rawStatus = Astro.url.searchParams.get('status');
-const status = statusOrder.includes(rawStatus as EditorialStatus) ? (rawStatus as EditorialStatus) : undefined;
-const q = (Astro.url.searchParams.get('q') ?? '').slice(0, 100);
-const [counts, posts] = await Promise.all([countsByStatus(), listPosts({ status, q })]);
-const withQ = (base: string) => (q ? `${base}${base.includes('=') ? '&' : ''}q=${encodeURIComponent(q)}` : base);
+const params = Astro.url.searchParams;
+const view = params.get('ver') === 'quadro' ? 'quadro' : 'lista';
+const rawStatus = params.get('status');
+const status = view === 'lista' && statusOrder.includes(rawStatus as EditorialStatus) ? (rawStatus as EditorialStatus) : undefined;
+const q = (params.get('q') ?? '').slice(0, 100);
+const resp = (params.get('resp') ?? '').slice(0, 80);
+const owner = Astro.locals.admin!.login;
+const [counts, all] = await Promise.all([countsByStatus(), listPosts({ status, q })]);
+const who = (r: string | null) => r || owner;
+const responsibles = [...new Set([owner, ...all.map((p) => who(p.responsible))])].sort();
+const posts = resp ? all.filter((p) => who(p.responsible) === resp) : all;
+const link = (over: Record<string, string | undefined>) => {
+  const u = new URLSearchParams();
+  const v = { ver: view === 'quadro' ? 'quadro' : undefined, status, q: q || undefined, resp: resp || undefined, ...over };
+  for (const [k, val] of Object.entries(v)) if (val) u.set(k, val);
+  const s = u.toString();
+  return s ? `?${s}` : '?';
+};
 const filters: { key?: EditorialStatus; label: string }[] = [{ label: 'Todas' }, ...statusOrder.map((k) => ({ key: k, label: statusLabel[k] }))];
+const fmtShort = (d: Date) => d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 ---
 <Admin title="Publicações" current="publicacoes">
   <div class="flex flex-col gap-6">
-    <form method="get" role="search" class="flex max-w-[520px] gap-2">
-      {status && <input type="hidden" name="status" value={status}>}
-      <label for="q" class="sr-only">Buscar publicações</label>
-      <input id="q" name="q" type="search" value={q} placeholder="Buscar por título, código ou endereço" autocomplete="off"
-        class="h-11 min-w-0 flex-1 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent">
-      <button type="submit" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Buscar</button>
-    </form>
-    <div class="flex flex-wrap items-center justify-between gap-4">
-    <nav aria-label="Filtrar por status">
-      <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
-        {filters.map((f) => {
-          const active = f.key === status;
-          return (
-            <li>
-              <a href={withQ(f.key ? `?status=${f.key}` : '?')} aria-current={active ? 'true' : undefined}
-                class:list={['inline-flex min-h-9 items-center gap-2 rounded-full border px-4 text-sm', active ? 'border-accent text-accent' : 'border-line hover:border-ink']}>
-                {f.label}{f.key && <span class="text-muted tabular-nums">{counts[f.key]}</span>}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-    <a href="/admin/publicacoes/nova/" class="inline-flex min-h-10 items-center rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110">Nova publicação</a>
+    <div class="flex flex-wrap items-center gap-3">
+      <form method="get" role="search" class="flex min-w-0 flex-1 basis-[320px] gap-2">
+        {view === 'quadro' && <input type="hidden" name="ver" value="quadro">}
+        {status && <input type="hidden" name="status" value={status}>}
+        {resp && <input type="hidden" name="resp" value={resp}>}
+        <label for="q" class="sr-only">Buscar publicações</label>
+        <input id="q" name="q" type="search" value={q} placeholder="Buscar por título, código ou endereço" autocomplete="off"
+          class="h-11 min-w-0 flex-1 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent">
+        <button type="submit" class="min-h-11 shrink-0 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Buscar</button>
+      </form>
+      <div class="flex rounded-[6px] border border-line p-0.5" role="group" aria-label="Visualização">
+        <a href={link({ ver: undefined })} aria-current={view === 'lista' ? 'page' : undefined} class:list={['inline-flex min-h-9 items-center rounded-[4px] px-3 text-sm', view === 'lista' ? 'bg-[#1c1c1c] text-accent' : 'text-muted hover:text-ink']}>Lista</a>
+        <a href={link({ ver: 'quadro', status: undefined })} aria-current={view === 'quadro' ? 'page' : undefined} class:list={['inline-flex min-h-9 items-center rounded-[4px] px-3 text-sm', view === 'quadro' ? 'bg-[#1c1c1c] text-accent' : 'text-muted hover:text-ink']}>Quadro</a>
+      </div>
+      <label class="flex items-center gap-2 text-[13px] text-muted">Responsável
+        <select id="respFilter" class="h-11 rounded-[6px] border border-line bg-bg px-2 text-[14px] text-ink">
+          <option value="">Todos</option>
+          {responsibles.map((r) => <option value={r} selected={r === resp}>{r}</option>)}
+        </select>
+      </label>
+      <a href="/admin/publicacoes/nova/" class="inline-flex min-h-11 items-center rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110">Nova publicação</a>
     </div>
 
-    {posts.length === 0
-      ? <p class="m-0 text-sm text-muted">{q ? <>Nada encontrado para “{q}”{status ? ' com esse status' : ''}. <a href={status ? `?status=${status}` : '?'} class="underline hover:text-ink">Limpar a busca</a></> : 'Nada com esse status.'}</p>
-      : (
-        <div class="overflow-x-auto rounded-[8px] border border-line">
-          <table class="w-full min-w-[720px] border-collapse text-left text-sm">
-            <thead class="text-[12px] text-muted">
-              <tr class="border-b border-line">
-                <th class="px-4 py-3 font-normal">Código</th><th class="px-4 py-3 font-normal">Título</th>
-                <th class="px-4 py-3 font-normal">Departamento</th><th class="px-4 py-3 font-normal">Status</th>
-                <th class="px-4 py-3 font-normal">Atualizada</th>
+    {view === 'lista' && (
+      <nav aria-label="Filtrar por status">
+        <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+          {filters.map((f) => {
+            const active = f.key === status;
+            return (
+              <li>
+                <a href={link({ status: f.key })} aria-current={active ? 'true' : undefined}
+                  class:list={['inline-flex min-h-9 items-center gap-2 rounded-full border px-4 text-sm', active ? 'border-accent text-accent' : 'border-line hover:border-ink']}>
+                  {f.label}{f.key && <span class="text-muted tabular-nums">{counts[f.key]}</span>}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    )}
+
+    {posts.length === 0 && <p class="m-0 text-sm text-muted">{q || resp ? <>Nada encontrado com esses filtros. <a href={link({ q: undefined, resp: undefined, status: undefined })} class="underline hover:text-ink">Limpar</a></> : 'Nenhuma publicação ainda.'}</p>}
+
+    {view === 'lista' && posts.length > 0 && (
+      <div class="overflow-x-auto rounded-[8px] border border-line">
+        <table class="w-full min-w-[860px] border-collapse text-left text-sm">
+          <thead class="text-[12px] text-muted">
+            <tr class="border-b border-line">
+              <th class="px-4 py-3 font-normal">Código</th><th class="px-4 py-3 font-normal">Título</th>
+              <th class="px-4 py-3 font-normal">Departamento</th><th class="px-4 py-3 font-normal">Status</th>
+              <th class="px-4 py-3 font-normal">Responsável</th><th class="px-4 py-3 font-normal">Atualizada</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((p) => (
+              <tr class="border-b border-line last:border-b-0 hover:bg-[#0b0b0b]">
+                <td class="px-4 py-3 font-mono text-[12px] text-muted tabular-nums">{p.code ?? '—'}</td>
+                <td class="px-4 py-3"><a href={`/admin/publicacoes/${p.id}/`} class="hover:text-accent">{p.title || 'Sem título'}</a></td>
+                <td class="px-4 py-3 text-muted">{p.department}</td>
+                <td class="px-4 py-3">{statusLabel[p.status]}{p.status === 'scheduled' && p.scheduledAt && <span class="block text-xs text-muted">{fmtShort(p.scheduledAt)}</span>}</td>
+                <td class="px-4 py-3 text-muted">{who(p.responsible)}</td>
+                <td class="px-4 py-3 text-muted tabular-nums">{fmtDateTime(p.updatedAt)}</td>
               </tr>
-            </thead>
-            <tbody>
-              {posts.map((p) => (
-                <tr class="border-b border-line last:border-b-0 hover:bg-[#0b0b0b]">
-                  <td class="px-4 py-3 font-mono text-[12px] text-muted tabular-nums">{p.code ?? '—'}</td>
-                  <td class="px-4 py-3"><a href={`/admin/publicacoes/${p.id}/`} class="hover:text-accent">{p.title || 'Sem título'}</a></td>
-                  <td class="px-4 py-3 text-muted">{p.department}</td>
-                  <td class="px-4 py-3">{statusLabel[p.status]}</td>
-                  <td class="px-4 py-3 text-muted tabular-nums">{fmtDateTime(p.updatedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    {view === 'quadro' && posts.length > 0 && (
+      <div id="board" class="board" aria-label="Quadro da fila de produção">
+        {statusOrder.map((st) => {
+          const col = posts.filter((p) => p.status === st);
+          return (
+            <section class="board-col" data-status={st} aria-labelledby={`col-${st}`}>
+              <h2 id={`col-${st}`} class="m-0 flex items-center justify-between font-display text-lg leading-none font-normal uppercase">{statusLabel[st]}<span class="font-sans text-sm text-muted tabular-nums" data-count>{col.length}</span></h2>
+              <ul class="board-list m-0 flex list-none flex-col gap-2 p-0">
+                {col.map((p) => (
+                  <li class="board-card" draggable="true" data-id={p.id} data-status={p.status}>
+                    <p class="m-0 font-mono text-[11px] text-muted tabular-nums">{p.code ?? 'sem código'} · {p.department}</p>
+                    <a href={`/admin/publicacoes/${p.id}/`} class="text-[14px] leading-snug hover:text-accent">{p.title || 'Sem título'}</a>
+                    {p.status === 'scheduled' && p.scheduledAt && <p class="m-0 text-xs text-accent">Agendada: {fmtShort(p.scheduledAt)}</p>}
+                    <div class="flex items-center justify-between gap-2 text-xs text-muted">
+                      <button type="button" class="card-resp cursor-pointer underline-offset-2 hover:text-ink hover:underline" title="Trocar o responsável">{who(p.responsible)}</button>
+                      <span class="tabular-nums">{fmtShort(p.updatedAt)}</span>
+                    </div>
+                    <label class="sr-only" for={`mv-${p.id}`}>Mover “{p.title}” para</label>
+                    <select id={`mv-${p.id}`} class="card-move h-8 rounded-[4px] border border-line bg-bg px-1 text-xs text-ink">
+                      {statusOrder.map((o) => <option value={o} selected={o === p.status}>{o === p.status ? `Em ${statusLabel[o].toLowerCase()}` : `Mover: ${statusLabel[o]}`}</option>)}
+                    </select>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    )}
+    <p id="boardMsg" role="status" aria-live="polite" class="m-0 min-h-5 text-[13px] text-muted"></p>
   </div>
+  <dialog id="schedDialog" aria-labelledby="schedTitle" class="m-auto w-[min(420px,calc(100%-32px))] rounded-[8px] border border-line bg-bg p-0 text-ink backdrop:bg-black/70">
+    <form method="dialog" class="flex flex-col gap-4 p-5">
+      <h2 id="schedTitle" class="m-0 font-display text-2xl leading-none font-normal uppercase">Agendar</h2>
+      <label class="flex flex-col gap-1.5 text-[13px] text-muted">Publicar em
+        <input id="schedAt" type="datetime-local" required class="h-11 rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink">
+      </label>
+      <div class="flex justify-end gap-2">
+        <button value="cancel" formnovalidate class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Cancelar</button>
+        <button value="ok" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black">Agendar</button>
+      </div>
+    </form>
+  </dialog>
 </Admin>
+
+<script>
+  const msg = document.getElementById('boardMsg')!;
+  const say = (t: string, bad = false) => { msg.textContent = t; msg.style.color = bad ? '#ff8a8a' : ''; };
+  document.getElementById('respFilter')?.addEventListener('change', (e) => {
+    const u = new URL(location.href); const v = (e.target as HTMLSelectElement).value;
+    if (v) u.searchParams.set('resp', v); else u.searchParams.delete('resp');
+    location.href = u.toString();
+  });
+  const board = document.getElementById('board');
+  const dlg = document.getElementById('schedDialog') as HTMLDialogElement;
+  /** Data e hora do agendamento (abre a janelinha); null se cancelar. */
+  const askDate = () => new Promise<string | null>((resolve) => {
+    const input = document.getElementById('schedAt') as HTMLInputElement;
+    const d = new Date(Date.now() + 86400000); d.setMinutes(0, 0, 0);
+    input.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    dlg.returnValue = '';
+    dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok' && input.value ? new Date(input.value).toISOString() : null), { once: true });
+    dlg.showModal();
+  });
+  async function patch(id: string, body: Record<string, unknown>) {
+    const res = await fetch(`/api/posts/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.error ?? 'Não deu para salvar.');
+    return out;
+  }
+  function recount() { board?.querySelectorAll<HTMLElement>('.board-col').forEach((c) => { c.querySelector('[data-count]')!.textContent = String(c.querySelectorAll('.board-card').length); }); }
+  async function move(card: HTMLElement, to: string) {
+    const from = card.dataset.status!;
+    if (to === from) return;
+    let scheduledAt: string | null | undefined;
+    if (to === 'scheduled') { scheduledAt = await askDate(); if (!scheduledAt) { (card.querySelector('.card-move') as HTMLSelectElement).value = from; return; } }
+    if (to === 'published' && !confirm('Publicar agora? A página vai ao ar no próximo build do site.')) { (card.querySelector('.card-move') as HTMLSelectElement).value = from; return; }
+    const target = board!.querySelector(`.board-col[data-status="${to}"] .board-list`)!;
+    const back = card.parentElement!, next = card.nextSibling;
+    target.prepend(card); card.dataset.status = to; recount();
+    say('Salvando…');
+    try {
+      await patch(card.dataset.id!, { status: to, ...(scheduledAt ? { scheduledAt } : {}) });
+      (card.querySelector('.card-move') as HTMLSelectElement).value = to;
+      say(to === 'scheduled' ? 'Agendada.' : 'Status atualizado.');
+      if (to === 'scheduled' || from === 'scheduled') location.reload();
+    } catch (err) {
+      back.insertBefore(card, next); card.dataset.status = from; recount();
+      (card.querySelector('.card-move') as HTMLSelectElement).value = from;
+      say((err as Error).message, true);
+    }
+  }
+  if (board) {
+    let dragging: HTMLElement | null = null;
+    board.addEventListener('dragstart', (e) => { dragging = (e.target as HTMLElement).closest('.board-card'); dragging?.classList.add('is-dragging'); e.dataTransfer?.setData('text/plain', dragging?.dataset.id ?? ''); });
+    board.addEventListener('dragend', () => { dragging?.classList.remove('is-dragging'); board.querySelectorAll('.is-over').forEach((x) => x.classList.remove('is-over')); dragging = null; });
+    board.addEventListener('dragover', (e) => { const col = (e.target as HTMLElement).closest('.board-col'); if (!col || !dragging) return; e.preventDefault(); board.querySelectorAll('.is-over').forEach((x) => x !== col && x.classList.remove('is-over')); col.classList.add('is-over'); });
+    board.addEventListener('drop', (e) => { const col = (e.target as HTMLElement).closest<HTMLElement>('.board-col'); if (!col || !dragging) return; e.preventDefault(); col.classList.remove('is-over'); void move(dragging, col.dataset.status!); });
+    board.addEventListener('change', (e) => { const sel = e.target as HTMLSelectElement; if (!sel.classList.contains('card-move')) return; void move(sel.closest('.board-card')!, sel.value); });
+    board.addEventListener('click', async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.card-resp');
+      if (!b) return;
+      const card = b.closest<HTMLElement>('.board-card')!;
+      const name = prompt('Responsável por esta publicação:', b.textContent ?? '');
+      if (name === null) return;
+      try { await patch(card.dataset.id!, { responsible: name.trim() || null }); b.textContent = name.trim() || b.textContent; say('Responsável atualizado.'); }
+      catch (err) { say((err as Error).message, true); }
+    });
+  }
+</script>
+
+<style is:global>
+  .board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+  .board-col { display: flex; flex-direction: column; gap: 12px; min-height: 240px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #050505; }
+  .board-col.is-over { border-color: var(--accent); }
+  .board-card { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); cursor: grab; }
+  .board-card:hover { border-color: #3a3a3a; }
+  .board-card.is-dragging { opacity: .5; }
+</style>
