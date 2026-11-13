@@ -118,6 +118,7 @@ export const estimateMeasure: Measure = (e, n, width) => {
     return { height: lines * lh + spacing, lineHeight: lh, lines };
   }
   if (n.type === 'TABLE') return { height: (n.data.rows ?? []).reduce((s: number, r: any) => s + (r.height ?? Math.max(24, lh + 8)), 0) + 8 };
+  if (n.type === 'FIELD' && Array.isArray(n.data.entries)) return { height: (n.data.entries.length + (n.data.title ? 2 : 0)) * lh + spacing };   // sumário, índice, bibliografia
   if (n.type === 'BREAK') return { height: 0 };
   const h = typeof n.layout.height === 'number' ? n.layout.height : { IMAGE: 240, CHART: 300, VIDEO: 270, DIAGRAM: 320, EQUATION: 48, AUDIO: 54, SHAPE: 120, LINE: 2 }[n.type as string] ?? lh;
   const w = typeof n.layout.width === 'number' ? n.layout.width : width;

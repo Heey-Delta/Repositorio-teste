@@ -16,6 +16,7 @@ import { contentHandlers } from './ops/content.ts';
 import { tableHandlers } from './ops/table.ts';
 import { chartHandlers, watchCharts } from './charts/chart.ts';
 import { pageHandlers } from './ops/page.ts';
+import { referenceHandlers } from './ops/reference.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -36,6 +37,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   table: tableHandlers,
   chart: chartHandlers,
   page: pageHandlers,
+  reference: referenceHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
@@ -60,3 +62,4 @@ export { chartData } from './charts/chart.ts';
 export { resolveStyle } from './ops/format.ts';
 export { formulas } from './formula/service.ts';
 export { paginate, estimateMeasure } from './ops/page.ts';
+export { fieldText, formatCitation, formatReference } from './ops/reference.ts';

@@ -129,7 +129,7 @@ Cada passo usa o anterior. ✅ concluído · 🔨 em andamento · ⬜ a fazer.
 | ✅ 01 | Especificação organizada (este documento) + catálogo no código e teste de conformidade | todas |
 | ✅ 02 | Edição: colar especial (valores, transposto, vínculo), arrastar e soltar | F01.07–08 |
 | ✅ 03 | Layout de páginas: tamanho, orientação, margens, colunas, fundo, paginação, cabeçalho/rodapé por página, impressão | F09.01–10, F04.14 |
-| ⬜ 04 | Referências: campos calculados, indicadores, referências cruzadas, numeração de notas e legendas, sumário, índice, citações e bibliografia | F15, F04.15–16 |
+| ✅ 04 | Referências: campos calculados, indicadores, referências cruzadas, numeração de notas e legendas, sumário, índice, citações e bibliografia | F15, F04.15–16 |
 | ⬜ 05 | Formatação condicional e regras visuais, bordas/sombras/efeitos estruturados, filtros combinados, modelos | F02.25–27, F06.10, F06.13, F08.14–15, F10.08–10 |
 | ⬜ 06 | Motor de diagramas (fluxograma, organograma, layout automático, conectores) | F04.07, F08.10–12 |
 | ⬜ 07 | Animações e transições (linha do tempo e reprodução) | F11 |

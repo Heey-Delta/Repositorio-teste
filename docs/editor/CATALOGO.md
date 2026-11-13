@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 158 prontas · 🟡 19 parciais · ⬜ 83 a fazer
+**260 funcionalidades** · ✅ 170 prontas · 🟡 12 parciais · ⬜ 78 a fazer
 
 ## Resumo por categoria
 
@@ -11,7 +11,7 @@
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 27 | 3 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
-| 04 | Inserção de elementos | Adicionar componentes | 12 | 4 | 0 |
+| 04 | Inserção de elementos | Adicionar componentes | 14 | 2 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 15 | 2 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 15 | 1 | 0 |
@@ -22,7 +22,7 @@
 | 12 | Revisão e validação | Verificar conteúdo | 4 | 1 | 8 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 0 | 0 | 11 |
 | 14 | Histórico e recuperação | Preservar alterações | 5 | 1 | 3 |
-| 15 | Referências e elementos automáticos | Vincular informações | 1 | 5 | 5 |
+| 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 0 | 0 | 12 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 0 | 1 | 8 |
 | 18 | Visualização e navegação | Controlar a experiência | 0 | 0 | 14 |
@@ -148,8 +148,8 @@
 | ✅ | F04.12 | Vídeo | CONTENT | `INSERT_CONTENT` | assetId \| url, poster, captions | Arquivo ou endereço de vídeo. |
 | ✅ | F04.13 | Caixas de texto | CONTENT | `INSERT_CONTENT` |  | Texto com posicionamento livre (TEXT em layout ABSOLUTE). |
 | ✅ | F04.14 | Cabeçalhos e rodapés | PAGE | `INSERT_STRUCTURE` `SET_HEADER_FOOTER` `PAGINATE` | regionType: HEADER\|FOOTER, applyTo | Regiões repetidas nas páginas: todas, primeira diferente, pares e ímpares. Depende de F09.01. |
-| 🟡 | F04.15 | Numeração automática | REFERENCE | `INSERT_CONTENT` | contentType: FIELD, fieldType | Número de página, slide, figura etc. Depende de F15.11. Cálculo dos valores na Etapa 04. |
-| 🟡 | F04.16 | Data e hora | REFERENCE | `INSERT_CONTENT` | fieldType: DATE\|TIME\|DATETIME, format | Campo de data/hora atualizável. Depende de F15.10. Cálculo dos valores na Etapa 04. |
+| ✅ | F04.15 | Numeração automática | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` `FIELD_TEXT` | contentType: FIELD, fieldType | Número de página, total de páginas, slide, figura, tabela e notas. Depende de F15.11. |
+| ✅ | F04.16 | Data e hora | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | fieldType: DATE\|TIME\|DATETIME, format | Campo de data/hora atualizável, formato livre (ex.: 13 de novembro de 2026). Depende de F15.10. |
 
 ## 05. Manipulação de objetos
 
@@ -347,16 +347,16 @@
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
 | ✅ | F15.01 | Criar hiperlinks | REFERENCE | `INSERT_CONTENT` |  | Mesmo que F04.08. Depende de F04.08. |
-| ⬜ | F15.02 | Criar indicadores | REFERENCE | `ADD_BOOKMARK` `REMOVE_BOOKMARK` | targetId, name | Marca um ponto do documento com um nome (destino de links e referências). Etapa 04. |
-| 🟡 | F15.03 | Criar referências cruzadas | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | fieldType: CROSS_REFERENCE, targetId, show | "Veja a Figura 3, página 7" sempre atualizado. Depende de F15.02. Texto atualizado na Etapa 04. |
-| 🟡 | F15.04 | Inserir notas | REFERENCE | `INSERT_CONTENT` | noteType | Nota de rodapé/fim numerada. Numeração na Etapa 04. |
-| 🟡 | F15.05 | Inserir legendas | REFERENCE | `INSERT_CONTENT` | label, targetId | "Figura 1 — …" numerada por tipo. Numeração na Etapa 04. |
-| ⬜ | F15.06 | Criar sumários automáticos | REFERENCE | `BUILD_TOC` | levels | Títulos e páginas, atualizável. Depende de F09.07. Etapa 04. |
-| ⬜ | F15.07 | Criar índices | REFERENCE | `MARK_INDEX_ENTRY` `BUILD_INDEX` | term | Índice remissivo de termos marcados. Etapa 04. |
-| 🟡 | F15.08 | Gerenciar citações | REFERENCE | `INSERT_CONTENT` `FORMAT_CITATION` | source, style | Citação no texto formatada (ABNT, APA, MLA, Chicago). Formatação na Etapa 04. |
-| ⬜ | F15.09 | Gerenciar bibliografia | REFERENCE | `ADD_SOURCE` `BUILD_BIBLIOGRAPHY` | source, style | Fontes do documento e lista de referências. Depende de F15.08. Etapa 04. |
-| ⬜ | F15.10 | Atualizar campos automáticos | REFERENCE | `UPDATE_FIELDS` |  | Recalcula todos os campos, numerações, sumário e índice. Etapa 04. |
-| 🟡 | F15.11 | Inserir numeração automática | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` |  | Listas (feito), páginas, slides, figuras e tabelas. Depende de F04.15. Etapa 04. |
+| ✅ | F15.02 | Criar indicadores | REFERENCE | `ADD_BOOKMARK` `REMOVE_BOOKMARK` `LIST_BOOKMARKS` | targetId, name | Marca um ponto do documento com um nome único (destino de links e referências). |
+| ✅ | F15.03 | Criar referências cruzadas | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | fieldType: CROSS_REFERENCE, targetId \| bookmark, show | "Veja a Figura 3, página 7" sempre atualizado (texto, número, rótulo, página, acima/abaixo). Depende de F15.02. |
+| ✅ | F15.04 | Inserir notas | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | noteType | Notas de rodapé (1, 2, 3) e de fim (i, ii, iii) numeradas. |
+| ✅ | F15.05 | Inserir legendas | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | label, targetId | "Figura 1 — …" numerada por rótulo, renumera ao mudar a ordem. |
+| ✅ | F15.06 | Criar sumários automáticos | REFERENCE | `BUILD_TOC` `UPDATE_FIELDS` | levels | Títulos e páginas, atualizável (duas passadas de paginação). Depende de F09.07. |
+| ✅ | F15.07 | Criar índices | REFERENCE | `MARK_INDEX_ENTRY` `UNMARK_INDEX_ENTRY` `BUILD_INDEX` | term, subterm | Índice remissivo de termos (e subtermos) marcados, em ordem alfabética com páginas. |
+| ✅ | F15.08 | Gerenciar citações | REFERENCE | `INSERT_CONTENT` `FORMAT_CITATION` `SET_CITATION_STYLE` | sourceId \| source, page, style | Citação no texto formatada (ABNT, APA, MLA, Chicago); trocar a norma reformata tudo. |
+| ✅ | F15.09 | Gerenciar bibliografia | REFERENCE | `ADD_SOURCE` `UPDATE_SOURCE` `REMOVE_SOURCE` `LIST_SOURCES` `BUILD_BIBLIOGRAPHY` | source, style, onlyCited | Fontes do documento e lista de referências em ordem alfabética. Depende de F15.08. |
+| ✅ | F15.10 | Atualizar campos automáticos | REFERENCE | `UPDATE_FIELDS` `FIELD_TEXT` |  | Recalcula todos os campos, numerações, sumário, índice e bibliografia (campos de cabeçalho/rodapé são calculados por página). |
+| ✅ | F15.11 | Inserir numeração automática | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` |  | Listas, páginas, slides, figuras, tabelas e notas. Depende de F04.15. |
 
 ## 16. Importação e exportação
 

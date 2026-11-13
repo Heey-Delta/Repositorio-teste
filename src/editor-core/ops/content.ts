@@ -32,7 +32,7 @@ const withIds = <T extends Record<string, any>>(e: Engine, list: T[] = [], prefi
 
 export const TEXT_TYPES = ['PARAGRAPH', 'TITLE', 'SUBTITLE', 'HEADING_1', 'HEADING_2', 'HEADING_3', 'HEADING_4', 'HEADING_5', 'HEADING_6', 'QUOTE', 'CODE'];
 export const SHAPE_TYPES = ['RECTANGLE', 'ROUNDED_RECTANGLE', 'SQUARE', 'CIRCLE', 'ELLIPSE', 'TRIANGLE', 'DIAMOND', 'PENTAGON', 'HEXAGON', 'POLYGON', 'STAR', 'ARROW', 'CALLOUT', 'CUSTOM'];
-export const FIELD_TYPES = ['PAGE_NUMBER', 'PAGE_COUNT', 'DATE', 'TIME', 'DATETIME', 'DOC_NAME', 'AUTHOR', 'SECTION_TITLE', 'CROSS_REFERENCE', 'SLIDE_NUMBER', 'SHEET_NAME'];
+export const FIELD_TYPES = ['PAGE_NUMBER', 'PAGE_COUNT', 'DATE', 'TIME', 'DATETIME', 'DOC_NAME', 'AUTHOR', 'SECTION_TITLE', 'CROSS_REFERENCE', 'SLIDE_NUMBER', 'SHEET_NAME', 'TOC', 'INDEX', 'BIBLIOGRAPHY'];
 
 export const CONTENT: Record<ContentType, ContentSpec> = {
   TEXT: {
@@ -92,9 +92,9 @@ export const CONTENT: Record<ContentType, ContentSpec> = {
   },
   LINK: {
     size: [240, 30],
-    build: (i, e) => ({ data: { url: i.url ?? null, targetId: i.targetId ?? null, runs: runs(e, { text: i.text ?? i.url ?? '' , runs: i.runs }), title: i.title ?? '' } }),
+    build: (i, e) => ({ data: { url: i.url ?? null, targetId: i.targetId ?? null, ...(i.bookmark ? { bookmark: i.bookmark } : {}), runs: runs(e, { text: i.text ?? i.url ?? i.bookmark ?? '', runs: i.runs }), title: i.title ?? '' } }),
     validate: (d, e) => {
-      if (!d.url && !d.targetId) fail('VALIDATION', 'O link precisa de um endereço (url) ou de um elemento do documento (targetId).');
+      if (!d.url && !d.targetId && !d.bookmark) fail('VALIDATION', 'O link precisa de um endereço (url), de um elemento (targetId) ou de um indicador (bookmark).');
       if (d.url && !URL_OK.test(d.url)) fail('VALIDATION', 'Endereço do link precisa começar com http(s)://, mailto:, tel: ou #.');
       if (d.targetId) e.get(d.targetId);
       needRuns(d);
@@ -122,8 +122,15 @@ export const CONTENT: Record<ContentType, ContentSpec> = {
   },
   FIELD: {
     size: [120, 24],
-    build: (i) => ({ data: { fieldType: i.fieldType, format: i.format ?? null, targetId: i.targetId ?? null } }),
-    validate: (d, e) => { oneOf(d.fieldType, FIELD_TYPES, 'Campo'); if (d.fieldType === 'CROSS_REFERENCE') e.get(d.targetId); },
+    build: (i) => ({ data: { ...i, fieldType: i.fieldType, format: i.format ?? null, targetId: i.targetId ?? null } }),
+    validate: (d, e) => {
+      oneOf(d.fieldType, FIELD_TYPES, 'Campo');
+      if (d.fieldType === 'CROSS_REFERENCE') {
+        if (d.targetId) e.get(d.targetId);
+        else if (!d.bookmark || !Object.values(e.doc.nodes).some((n) => n.metadata.bookmark === d.bookmark)) fail('VALIDATION', 'Referência cruzada: informe targetId ou um indicador existente (bookmark).');
+        if (d.show) oneOf(d.show, ['TEXT', 'NUMBER', 'LABEL_NUMBER', 'PAGE', 'ABOVE_BELOW'], 'Mostrar');
+      }
+    },
   },
   NOTE: {
     size: [320, 60],
@@ -137,11 +144,12 @@ export const CONTENT: Record<ContentType, ContentSpec> = {
   },
   CITATION: {
     size: [400, 30],
-    build: (i, e) => ({ data: { source: i.source ?? {}, page: i.page ?? null, citationStyle: i.citationStyle ?? 'ABNT', runs: runs(e, { text: i.text ?? '' }) } }),
-    validate: (d) => {
-      if (!d.source?.title && !d.source?.author) fail('VALIDATION', 'A citação precisa de autor ou título da fonte.');
+    build: (i, e) => ({ data: { ...(i.sourceId ? { sourceId: i.sourceId } : { source: i.source ?? {} }), page: i.page ?? null, citationStyle: i.citationStyle ?? e.doc.document.settings.citationStyle ?? 'ABNT', runs: runs(e, { text: i.text ?? '' }) } }),
+    validate: (d, e) => {
+      if (d.sourceId) { if (!(e.doc.document.settings.sources as any)?.[d.sourceId]) fail('VALIDATION', `Fonte ${d.sourceId} não existe na bibliografia do documento.`); }
+      else if (!d.source?.title && !d.source?.author && !d.source?.authors) fail('VALIDATION', 'A citação precisa de autor ou título da fonte.');
       oneOf(d.citationStyle, ['ABNT', 'APA', 'MLA', 'CHICAGO'], 'Norma');
-      if (d.source.url && !URL_OK.test(d.source.url)) fail('VALIDATION', 'Endereço da fonte inválido.');
+      if (d.source?.url && !URL_OK.test(d.source.url)) fail('VALIDATION', 'Endereço da fonte inválido.');
     },
   },
 };
