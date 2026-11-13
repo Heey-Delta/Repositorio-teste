@@ -168,6 +168,10 @@ export const FEATURES: Feature[] = [
     ['Reiniciar numeração', 'ORGANIZE', ['LIST_RESTART'], 'DONE', 'Recomeça em 1 (ou outro número); num item do meio divide a lista.', 'start', undefined, 'B1.'],
     ['Continuar numeração', 'ORGANIZE', ['LIST_CONTINUE'], 'DONE', 'Segue a contagem da lista anterior.', 'fromId?', undefined, 'B1.'],
     ['Classificar parágrafos', 'ORGANIZE', ['SORT_PARAGRAPHS'], 'DONE', 'A→Z, Z→A, por número ou data.', 'ids, by, order', undefined, 'B1.'],
+    { group: 'D1 · Apresentações' },
+    ['Seções de slides', 'ORGANIZE', ['ADD_SLIDE_SECTION', 'RENAME_SLIDE_SECTION', 'REMOVE_SLIDE_SECTION', 'MOVE_SLIDE_SECTION', 'LIST_SLIDE_SECTIONS'], 'DONE', 'Agrupar slides, renomear, recolher, mover a seção inteira, excluir com ou sem os slides.', 'name, startSlideId | id, toIndex', undefined, 'D1.'],
+    ['Reutilizar e mesclar apresentações', 'ORGANIZE', ['REUSE_SLIDES', 'MERGE_PRESENTATION'], 'DONE', 'Trazer slides de outra apresentação (com imagens; mantendo ou não a formatação) e juntar com as seções dela.', 'from, slideIds, index, keepFormatting', undefined, 'D1.'],
+    ['Estrutura de tópicos', 'ORGANIZE', ['OUTLINE'], 'DONE', 'Título e textos de cada slide.', undefined, undefined, 'D1.'],
   ]),
   ...category(4, [
     ['Texto', 'CONTENT', ['INSERT_CONTENT'], 'DONE', 'Parágrafos, títulos, citações, código.', 'contentType: TEXT, textType, text|runs'],
@@ -340,6 +344,8 @@ export const FEATURES: Feature[] = [
     ['Reutilizar layouts', 'FORMAT', ['APPLY_TEMPLATE', 'SAVE_LAYOUT', 'APPLY_LAYOUT'], 'DONE', 'Novo slide/página a partir de um layout salvo.', 'templateId | layoutId', ['F10.08'], 'Também SAVE_LAYOUT, LIST_LAYOUTS, DELETE_LAYOUT (Etapa 05).'],
     ['Definir padrões visuais', 'FORMAT', ['UPDATE_THEME'], 'DONE', 'Padrões por tipo no tema.', 'defaults'],
     ['Aplicar alterações globalmente', 'FORMAT', ['UPDATE_THEME', 'UPDATE_STYLE'], 'DONE', 'Mudar tema/estilo muda todos os vinculados.'],
+    { group: 'D1 · Slide mestre' },
+    ['Slide mestre', 'PAGE', ['ENSURE_MASTER', 'SET_MASTER', 'SET_SLIDE_MASTER'], 'DONE', 'Elementos fixos (logotipo, faixas), fundo, fontes e cores padrão; rodapé com texto, número do slide e data; ocultar no slide de título ou em um slide.', 'background, fonts, colors, footer | hideMaster', undefined, 'D1.'],
   ]),
   ...category(11, [
     ['Criar animações', 'ANIMATION', ['ADD_ANIMATION', 'REMOVE_ANIMATION', 'CLEAR_ANIMATIONS', 'COPY_ANIMATION'], 'DONE', 'Animação num elemento do slide.', 'targetId, kind, effect', undefined, 'Etapa 07.'],
@@ -355,6 +361,12 @@ export const FEATURES: Feature[] = [
     ['Configurar velocidade de transição', 'ANIMATION', ['SET_TRANSITION'], 'DONE', 'Duração da transição.', 'duration', undefined, 'Etapa 07.'],
     ['Visualizar animações', 'ANIMATION', ['ANIMATION_TIMELINE'], 'DONE', 'Linha do tempo calculada (início/fim de cada efeito).', 'surfaceId', undefined, 'Etapa 07.'],
     ['Reproduzir animações', 'ANIMATION', ['ANIMATION_STEPS', 'ANIMATION_STATE'], 'DONE', 'Passos de reprodução (cada clique).', 'surfaceId', undefined, 'Etapa 07.'],
+    { group: 'D1 · Apresentador e mídia' },
+    ['Anotações do apresentador', 'VIEW', ['SET_SPEAKER_NOTES', 'LIST_NOTES'], 'DONE', 'Notas por slide.', 'notes', undefined, 'D1.'],
+    ['Modo do apresentador', 'VIEW', ['PRESENTER_VIEW'], 'DONE', 'Slide atual e próximo, notas, cronômetro geral e do slide, tempo planejado.', undefined, undefined, 'D1.'],
+    ['Ensaiar intervalos', 'VIEW', ['RECORD_SLIDE_TIME', 'SET_SLIDE_TIMINGS'], 'DONE', 'Grava o tempo de cada slide; avanço automático.', 'seconds | use, clear', undefined, 'D1.'],
+    ['Ponteiro, caneta e tela preta', 'VIEW', ['SET_POINTER', 'SET_SCREEN', 'ANNOTATE', 'CLEAR_ANNOTATIONS', 'KEEP_ANNOTATIONS'], 'DONE', 'Laser, caneta, marca-texto, borracha; tela preta/branca; manter as marcações como desenho no slide.', 'mode | points, tool, color', undefined, 'D1.'],
+    ['Configurações de áudio e vídeo', 'CONTENT', ['MEDIA_SETTINGS'], 'DONE', 'Cortar, volume, iniciar automático/clique, repetir, tocar entre slides, tela cheia, ocultar, esmaecer, capa.', 'trimStart, trimEnd, volume, start, loop…', undefined, 'D1.'],
   ]),
   ...category(12, [
     ['Verificar ortografia', 'REVIEW', ['CHECK_SPELLING', 'ADD_TO_DICTIONARY'], 'DONE', 'Palavras fora do dicionário pt-BR, com sugestões.', 'scope, language', undefined, 'Erros comuns embutidos; dicionário completo por provedor (services.spellcheck); dicionário do documento (Etapa 08).'],
@@ -428,6 +440,9 @@ export const FEATURES: Feature[] = [
     ['Imprimir', 'IO', ['PRINT_LAYOUT', 'SET_PRINT'], 'DONE', 'Gera o layout de impressão (páginas prontas).', undefined, ['F09.10'], 'Etapa 11.'],
     ['Visualizar impressão', 'IO', ['PRINT_LAYOUT'], 'DONE', 'Prévia com as páginas paginadas.', undefined, ['F16.10'], 'Etapa 11.'],
     ['Converter arquivos em lote', 'IO', ['CONVERT_BATCH'], 'DONE', 'Vários arquivos de uma vez.', 'files, to', ['F16.03'], 'convertFiles() aceita todos os formatos (Etapa 11).'],
+    { group: 'D1 · Saída de apresentações' },
+    ['Folhetos', 'IO', ['HANDOUT_LAYOUT'], 'DONE', '1, 2, 3 (com linhas), 4, 6 ou 9 slides por página, com notas.', 'perPage, notes, orientation', undefined, 'D1.'],
+    ['Exportar slides como imagem', 'IO', ['EXPORT_SLIDE_IMAGES'], 'DONE', 'Um SVG por slide (com mestre e rodapé).', 'slideIds', undefined, 'D1.'],
   ]),
   ...category(17, [
     ['Criar macros', 'AUTOMATION', ['START_RECORDING', 'STOP_RECORDING', 'RUN_MACRO', 'LIST_MACROS', 'DELETE_MACRO'], 'DONE', 'Grava operações e reproduz.', 'name', undefined, 'Etapa 12.'],

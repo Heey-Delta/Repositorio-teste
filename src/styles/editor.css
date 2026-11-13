@@ -144,3 +144,5 @@
 .sh-table tr.is-frozen > td, .sh-table tr.is-frozen > th { position: sticky; top: var(--fz-top, 23px); z-index: 1; background: #fff; box-shadow: inset 0 -1px 0 #94a3b8; }
 .sh-table tr.is-frozen > th { background: #f1f5f9; z-index: 3; }
 .sh-table td.is-frozen-col { position: sticky; z-index: 1; background: #fff; box-shadow: inset -1px 0 0 #94a3b8; }
+.sl-master { pointer-events: none; }
+.sl-footer { position: absolute; font: 16px/1.2 Calibri, Carlito, Arial, sans-serif; color: #64748b; }

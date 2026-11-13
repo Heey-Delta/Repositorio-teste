@@ -24,8 +24,10 @@ const view = (e: Engine) => (e.state.view ??= { ...DEFAULT_VIEW });
 const PX_PER: Record<string, number> = { CM: 96 / 2.54, IN: 96, PX: 1, PT: 96 / 72 };
 
 /** Em leitura ou apresentação, o documento não muda (só comentários continuam possíveis na leitura). */
-export const readOnlyHook: CommitHook = (e, { changes, remote }) => {
+export const readOnlyHook: CommitHook = (e, { type, changes, remote }) => {
   if (remote || e.state.mode === 'EDIT') return;
+  // ensaiar intervalos grava o tempo de cada slide durante a apresentação
+  if (e.state.mode === 'PRESENT' && (type === 'RECORD_SLIDE_TIME' || type === 'SET_SLIDE_TIMINGS')) return;
   const allowed = e.state.mode === 'READ' ? ['comments'] : [];
   if (changes.some((c) => !allowed.includes(c.collection))) fail('LOCKED', e.state.mode === 'READ' ? 'Modo de leitura: volte para edição para alterar.' : 'Apresentação em andamento: saia da apresentação para editar.');
 };

@@ -9,6 +9,7 @@ import { readCell } from '../ops/table.ts';
 import { chartData } from '../charts/chart.ts';
 import { clone } from '../util.ts';
 import { listLabelsIn } from '../ops/word.ts';
+import { footerItems, masterOf, slideOrder } from './master.ts';
 
 export type Scalar = string | number | boolean | null;
 export interface RunM { text: string; format?: Record<string, unknown> }
@@ -69,10 +70,12 @@ export function readDocument(e: Engine, scope?: string): ImportModel {
   const sheets = surfaces.filter((s) => s.data.surfaceType === 'SHEET');
   if (slides.length) {
     model.slideSize = clone(doc.document.settings.slide ?? { width: 1280, height: 720 });
+    const master = masterOf(doc), allSlides = slideOrder(doc);
     model.slides = slides.map((s) => ({
-      ...(s.data.background?.color ? { background: s.data.background.color } : s.styleOverrides.fill ? { background: String(s.styleOverrides.fill) } : {}),
+      ...(s.data.background?.color ? { background: s.data.background.color } : s.styleOverrides.fill ? { background: String(s.styleOverrides.fill) } : master?.data.background?.color ? { background: master.data.background.color } : {}),
       ...(s.data.notes ? { notes: String(s.data.notes) } : {}),
-      items: e.descendants(s.id).map((id) => doc.nodes[id]).filter((n) => n.metadata.visible !== false && n.type !== 'GROUP').flatMap((n): SlideItemM[] => {
+      // por baixo: o que está no slide mestre (a não ser que o slide oculte) e o rodapé (texto, número, data)
+      items: [...(master && !s.data.hideMaster ? e.descendants(master.id) : []), ...e.descendants(s.id)].map((id) => doc.nodes[id]).filter((n) => n.metadata.visible !== false && n.type !== 'GROUP').flatMap((n): SlideItemM[] => {
         const L = n.layout, box = { x: Number(L.x ?? 0), y: Number(L.y ?? 0), width: Number(L.width ?? 200), height: Number(L.height ?? 40) };
         const look = { ...(n.styleOverrides.fill ? { fill: String(n.styleOverrides.fill) } : {}), ...(n.styleOverrides.stroke ? { stroke: String(n.styleOverrides.stroke) } : {}) };
         if (n.type === 'TEXT') return [{ kind: 'text', ...box, textType: n.data.textType, runs: runsOf(n), ...look }];
@@ -84,7 +87,7 @@ export function readDocument(e: Engine, scope?: string): ImportModel {
         if (b?.kind === 'text') return [{ kind: 'text', ...box, textType: b.textType, runs: b.runs }];
         if (b?.kind === 'table') return [{ kind: 'table', ...box, rows: b.rows }];
         return [];
-      }),
+      }).concat(footerItems(doc, s, allSlides.indexOf(s)).map((f): SlideItemM => ({ kind: 'text', x: f.x, y: f.y, width: f.width, height: f.height, textType: 'FOOTER', runs: [{ text: f.text, format: { fontSize: 12 } }] }))),
     }));
   }
   if (sheets.length) {

@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**318 funcionalidades** · ✅ 318 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**329 funcionalidades** · ✅ 329 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -10,20 +10,20 @@
 | --- | --- | --- | --- | --- | --- |
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 39 | 0 | 0 |
-| 03 | Estrutura e organização | Organizar hierarquias | 17 | 0 | 0 |
+| 03 | Estrutura e organização | Organizar hierarquias | 20 | 0 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 18 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 23 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 39 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 20 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 22 | 0 | 0 |
-| 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
-| 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
+| 10 | Temas e estilos | Padronizar aparência | 13 | 0 | 0 |
+| 11 | Animações e transições | Controlar movimento | 18 | 0 | 0 |
 | 12 | Revisão e validação | Verificar conteúdo | 15 | 0 | 0 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 14 | 0 | 0 |
 | 14 | Histórico e recuperação | Preservar alterações | 9 | 0 | 0 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
-| 16 | Importação e exportação | Gerenciar formatos | 12 | 0 | 0 |
+| 16 | Importação e exportação | Gerenciar formatos | 14 | 0 | 0 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 9 | 0 | 0 |
 | 18 | Visualização e navegação | Controlar a experiência | 14 | 0 | 0 |
 
@@ -34,19 +34,19 @@
 | Núcleo de operações (`CORE`) | 1 | 4 |
 | Seleção e área de transferência (`SELECTION`) | 1 | 7 |
 | Histórico e versões (`HISTORY`) | 1 | 11 |
-| Hierarquia e organização (`ORGANIZE`) | 1 | 19 |
+| Hierarquia e organização (`ORGANIZE`) | 1 | 22 |
 | Formatação, estilos e temas (`FORMAT`) | 1 | 50 |
-| Inserção de conteúdo (`CONTENT`) | 1 | 19 |
+| Inserção de conteúdo (`CONTENT`) | 1 | 20 |
 | Texto (`TEXT`) | 1 | 5 |
 | Manipulação de objetos (`OBJECTS`) | 1 | 20 |
 | Comentários e colaboração (`COLLAB`) | 1 | 14 |
-| Importação e exportação (`IO`) | 1 | 12 |
-| Visualização e navegação (`VIEW`) | 1 | 15 |
+| Importação e exportação (`IO`) | 1 | 14 |
+| Visualização e navegação (`VIEW`) | 1 | 19 |
 | Tabelas e dados (`TABLE`) | 2 | 38 |
 | Cálculos e fórmulas (`FORMULA`) | 2 | 27 |
 | Visualização de dados (`CHART`) | 2 | 11 |
 | Diagramas (`DIAGRAM`) | 2 | 4 |
-| Layout e composição (`PAGE`) | 2 | 17 |
+| Layout e composição (`PAGE`) | 2 | 18 |
 | Animações e transições (`ANIMATION`) | 2 | 13 |
 | Revisão e validação (`REVIEW`) | 2 | 10 |
 | Referências e elementos automáticos (`REFERENCE`) | 2 | 13 |
@@ -144,6 +144,10 @@
 | ✅ | F03.15 | Reiniciar numeração | ORGANIZE | `LIST_RESTART` | start | Recomeça em 1 (ou outro número); num item do meio divide a lista. B1. |
 | ✅ | F03.16 | Continuar numeração | ORGANIZE | `LIST_CONTINUE` | fromId? | Segue a contagem da lista anterior. B1. |
 | ✅ | F03.17 | Classificar parágrafos | ORGANIZE | `SORT_PARAGRAPHS` | ids, by, order | A→Z, Z→A, por número ou data. B1. |
+| | | **D1 · Apresentações** | | | | |
+| ✅ | F03.18 | Seções de slides | ORGANIZE | `ADD_SLIDE_SECTION` `RENAME_SLIDE_SECTION` `REMOVE_SLIDE_SECTION` `MOVE_SLIDE_SECTION` `LIST_SLIDE_SECTIONS` | name, startSlideId \| id, toIndex | Agrupar slides, renomear, recolher, mover a seção inteira, excluir com ou sem os slides. D1. |
+| ✅ | F03.19 | Reutilizar e mesclar apresentações | ORGANIZE | `REUSE_SLIDES` `MERGE_PRESENTATION` | from, slideIds, index, keepFormatting | Trazer slides de outra apresentação (com imagens; mantendo ou não a formatação) e juntar com as seções dela. D1. |
+| ✅ | F03.20 | Estrutura de tópicos | ORGANIZE | `OUTLINE` |  | Título e textos de cada slide. D1. |
 
 ## 04. Inserção de elementos
 
@@ -337,6 +341,8 @@
 | ✅ | F10.10 | Reutilizar layouts | FORMAT | `APPLY_TEMPLATE` `SAVE_LAYOUT` `APPLY_LAYOUT` | templateId \| layoutId | Novo slide/página a partir de um layout salvo. Depende de F10.08. Também SAVE_LAYOUT, LIST_LAYOUTS, DELETE_LAYOUT (Etapa 05). |
 | ✅ | F10.11 | Definir padrões visuais | FORMAT | `UPDATE_THEME` | defaults | Padrões por tipo no tema. |
 | ✅ | F10.12 | Aplicar alterações globalmente | FORMAT | `UPDATE_THEME` `UPDATE_STYLE` |  | Mudar tema/estilo muda todos os vinculados. |
+| | | **D1 · Slide mestre** | | | | |
+| ✅ | F10.13 | Slide mestre | PAGE | `ENSURE_MASTER` `SET_MASTER` `SET_SLIDE_MASTER` | background, fonts, colors, footer \| hideMaster | Elementos fixos (logotipo, faixas), fundo, fontes e cores padrão; rodapé com texto, número do slide e data; ocultar no slide de título ou em um slide. D1. |
 
 ## 11. Animações e transições
 
@@ -355,6 +361,12 @@
 | ✅ | F11.11 | Configurar velocidade de transição | ANIMATION | `SET_TRANSITION` | duration | Duração da transição. Etapa 07. |
 | ✅ | F11.12 | Visualizar animações | ANIMATION | `ANIMATION_TIMELINE` | surfaceId | Linha do tempo calculada (início/fim de cada efeito). Etapa 07. |
 | ✅ | F11.13 | Reproduzir animações | ANIMATION | `ANIMATION_STEPS` `ANIMATION_STATE` | surfaceId | Passos de reprodução (cada clique). Etapa 07. |
+| | | **D1 · Apresentador e mídia** | | | | |
+| ✅ | F11.14 | Anotações do apresentador | VIEW | `SET_SPEAKER_NOTES` `LIST_NOTES` | notes | Notas por slide. D1. |
+| ✅ | F11.15 | Modo do apresentador | VIEW | `PRESENTER_VIEW` |  | Slide atual e próximo, notas, cronômetro geral e do slide, tempo planejado. D1. |
+| ✅ | F11.16 | Ensaiar intervalos | VIEW | `RECORD_SLIDE_TIME` `SET_SLIDE_TIMINGS` | seconds \| use, clear | Grava o tempo de cada slide; avanço automático. D1. |
+| ✅ | F11.17 | Ponteiro, caneta e tela preta | VIEW | `SET_POINTER` `SET_SCREEN` `ANNOTATE` `CLEAR_ANNOTATIONS` `KEEP_ANNOTATIONS` | mode \| points, tool, color | Laser, caneta, marca-texto, borracha; tela preta/branca; manter as marcações como desenho no slide. D1. |
+| ✅ | F11.18 | Configurações de áudio e vídeo | CONTENT | `MEDIA_SETTINGS` | trimStart, trimEnd, volume, start, loop… | Cortar, volume, iniciar automático/clique, repetir, tocar entre slides, tela cheia, ocultar, esmaecer, capa. D1. |
 
 ## 12. Revisão e validação
 
@@ -443,6 +455,9 @@
 | ✅ | F16.10 | Imprimir | IO | `PRINT_LAYOUT` `SET_PRINT` |  | Gera o layout de impressão (páginas prontas). Depende de F09.10. Etapa 11. |
 | ✅ | F16.11 | Visualizar impressão | IO | `PRINT_LAYOUT` |  | Prévia com as páginas paginadas. Depende de F16.10. Etapa 11. |
 | ✅ | F16.12 | Converter arquivos em lote | IO | `CONVERT_BATCH` | files, to | Vários arquivos de uma vez. Depende de F16.03. convertFiles() aceita todos os formatos (Etapa 11). |
+| | | **D1 · Saída de apresentações** | | | | |
+| ✅ | F16.13 | Folhetos | IO | `HANDOUT_LAYOUT` | perPage, notes, orientation | 1, 2, 3 (com linhas), 4, 6 ou 9 slides por página, com notas. D1. |
+| ✅ | F16.14 | Exportar slides como imagem | IO | `EXPORT_SLIDE_IMAGES` | slideIds | Um SVG por slide (com mestre e rodapé). D1. |
 
 ## 17. Automação e extensibilidade
 

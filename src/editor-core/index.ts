@@ -33,6 +33,7 @@ import { wordHandlers } from './ops/word.ts';
 import { objectHandlers } from './ops/objects.ts';
 import { documentToolHandlers, installProtection } from './ops/document-tools.ts';
 import { sheetToolHandlers, installSheetProtection } from './ops/sheet-tools.ts';
+import { presentationHandlers } from './ops/presentation.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -85,6 +86,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   objects: objectHandlers,
   documentTools: documentToolHandlers,
   sheetTools: sheetToolHandlers,
+  presentation: presentationHandlers,
   storage: storageHandlers as Record<string, Handler>,
 };
 

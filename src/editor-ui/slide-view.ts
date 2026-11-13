@@ -7,6 +7,7 @@ import { chartData } from '../editor-core/charts/chart.ts';
 import { chartSvg, diagramSvg, slideSvg } from '../editor-core/io/svg.ts';
 import { readDocument } from '../editor-core/io/model.ts';
 import katex from 'katex';
+import { footerItems, masterOf, slideOrder } from '../editor-core/io/master.ts';
 import { shapeSvg } from '../editor-core/io/shapes.ts';
 import { imageClip, imageFilter, tableCellLook } from '../editor-core/ops/objects.ts';
 
@@ -64,7 +65,16 @@ export function slideItem(e: Engine, n: EditorNode): HTMLElement {
 
 export function slideBackground(e: Engine, s: EditorNode) {
   const bg = s.data.background;
-  return bg?.color ?? (bg?.gradient ? `linear-gradient(${bg.gradient.angle}deg, ${bg.gradient.from}, ${bg.gradient.to})` : String(s.styleOverrides.fill ?? '#FFFFFF'));
+  return bg?.color ?? (bg?.gradient ? `linear-gradient(${bg.gradient.angle}deg, ${bg.gradient.from}, ${bg.gradient.to})` : String(s.styleOverrides.fill ?? masterOf(e.doc)?.data.background?.color ?? '#FFFFFF'));
+}
+/** O que fica por baixo do slide: elementos do slide mestre e o rodapé (texto, número, data). Não dá para selecionar. */
+export function masterLayer(e: Engine, s: EditorNode): HTMLElement[] {
+  const m = masterOf(e.doc);
+  if (!m || s.data.hideMaster) return [];
+  const items = m.children.map((c) => e.get(c)).filter((n) => n.metadata.visible !== false).map((n) => { const el = slideItem(e, n); el.classList.add('sl-master'); el.removeAttribute('data-node-id'); return el; });
+  const idx = slideOrder(e.doc).findIndex((x) => x.id === s.id);
+  for (const f of footerItems(e.doc, s, idx)) items.push(h('div', { class: 'sl-item sl-master sl-footer', style: `left:${f.x}px;top:${f.y}px;width:${f.width}px;height:${f.height}px;text-align:${f.align.toLowerCase()}` }, f.text));
+  return items;
 }
 
 export class SlideView {
@@ -120,7 +130,7 @@ export class SlideView {
     // palco
     Object.assign(this.canvas.style, { width: `${size.width}px`, height: `${size.height}px`, background: cur ? slideBackground(this.e, cur) : '#fff' });
     const sel = new Set(this.e.state.selection.selectedIds);
-    this.canvas.replaceChildren(...(cur ? cur.children.map((c) => this.e.get(c)).filter((n) => n.metadata.visible !== false).map((n) => {
+    this.canvas.replaceChildren(...(cur ? masterLayer(this.e, cur) : []), ...(cur ? cur.children.map((c) => this.e.get(c)).filter((n) => n.metadata.visible !== false).map((n) => {
       const el = slideItem(this.e, n);
       if (sel.has(n.id)) { el.classList.add('is-selected'); if (sel.size === 1 && !n.metadata.locked) el.append(h('span', { class: 'sl-handle', 'data-handle': 'se', 'aria-hidden': 'true' })); }
       if (n.metadata.locked) el.classList.add('is-locked');
@@ -255,7 +265,7 @@ export function present(e: Engine, from: 'start' | 'current' = 'start') {
     const k = Math.min(window.innerWidth / size.width, window.innerHeight / size.height);
     Object.assign(stage.style, { width: `${size.width}px`, height: `${size.height}px`, transform: `scale(${k})`, background: slideBackground(e, slide) });
     if (lastSlide !== st.slideId) {
-      stage.replaceChildren(...slide.children.map((c) => e.get(c)).filter((n) => n.metadata.visible !== false).map((n) => slideItem(e, n)));
+      stage.replaceChildren(...masterLayer(e, slide), ...slide.children.map((c) => e.get(c)).filter((n) => n.metadata.visible !== false).map((n) => slideItem(e, n)));
       if (st.transition) { stage.animate([{ opacity: 0, translate: st.transition.effect === 'PUSH' ? '40px 0' : '0 0' }, { opacity: 1, translate: '0 0' }], { duration: st.transition.duration ?? 600, easing: 'ease-out' }); }
       lastSlide = st.slideId;
     }
