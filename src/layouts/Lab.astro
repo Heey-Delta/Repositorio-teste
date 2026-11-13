@@ -83,11 +83,13 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
         {nav.map((n) => <a href={n.href} class:list={['label-ui border-b border-line py-3.5 text-[13px] last:border-b-0 hover:text-accent', n.slug === current && 'text-accent']}>{n.name}</a>)}
       </div>
     </nav>
-    <div id="labSearch" class="hidden border-t border-line bg-bg">
+    <div id="labSearch" class="hidden max-h-[calc(100dvh-64px)] overflow-y-auto border-t border-line bg-bg">
       <div class="wrap flex flex-col gap-3 py-4">
-        <label for="labSearchInput" class="text-xs text-muted">Buscar por título, assunto ou código (ex.: RES-001)</label>
-        <input id="labSearchInput" type="search" autocomplete="off" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-accent" placeholder="percepção, EXP-001, brutalismo…">
-        <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0" aria-live="polite"></ul>
+        <label for="labSearchInput" class="text-xs text-muted">Busque por assunto, título, código ou tag. Não precisa ser a palavra exata: "inteligência artificial" também encontra "IA".</label>
+        <input id="labSearchInput" type="search" autocomplete="off" enterkeyhint="search" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-accent" placeholder="cérebro, IA, EXP-001, #tipografia…">
+        <ul id="labSearchTags" class="m-0 flex list-none gap-1.5 overflow-x-auto p-0 pb-1 [scrollbar-width:none] sm:flex-wrap" aria-label="Tags"></ul>
+        <p id="labSearchState" class="m-0 min-h-4 text-xs text-muted" role="status"></p>
+        <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0"></ul>
       </div>
     </div>
   </header>
@@ -131,24 +133,102 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
       var input = document.getElementById('labSearchInput'), out = document.getElementById('labSearchOut');
       sBtn.addEventListener('click', function () { if (toggle(sBtn, sPanel, { btn: mBtn, panel: mPanel })) input.focus(); });
       mBtn.addEventListener('click', function () { toggle(mBtn, mPanel, { btn: sBtn, panel: sPanel }); });
-      var norm = function (s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+      // busca: primeiro no servidor (significado + palavras + tags); sem rede, filtra o índice desta página
+      var norm = function (s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
       var items = index.map(function (i) { return { i: i, s: norm(i.t + ' ' + i.c + ' ' + i.d + ' ' + i.k) }; });
-      input.addEventListener('input', function () {
-        var q = norm(input.value.trim()); out.innerHTML = '';
-        if (q.length < 2) return;
-        var hits = items.filter(function (x) { return q.split(/\s+/).every(function (w) { return x.s.indexOf(w) >= 0; }); }).slice(0, 8);
-        if (!hits.length) { out.innerHTML = '<li class="py-3 text-sm text-muted">Nada com “' + input.value.trim().replace(/[<>&]/g, '') + '”. Tente outra palavra.</li>'; return; }
-        hits.forEach(function (x) {
-          var li = document.createElement('li'), a = document.createElement('a');
-          a.href = x.i.u; a.className = 'flex items-baseline gap-3 border-b border-line py-3 hover:text-accent';
-          var c = document.createElement('span'); c.className = 'font-mono text-[11px] text-accent'; c.textContent = x.i.c;
-          var t = document.createElement('span'); t.className = 'text-[15px]'; t.textContent = x.i.t;
-          a.appendChild(c); a.appendChild(t); li.appendChild(a); out.appendChild(li);
+      var tagsBox = document.getElementById('labSearchTags'), state = document.getElementById('labSearchState');
+      var tag = null, timer = null, seq = 0, tagsLoaded = false;
+      var el = function (tagName, cls, text) { var n = document.createElement(tagName); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+      var show = function (list, note) {
+        out.innerHTML = ''; state.textContent = note || '';
+        list.forEach(function (h) {
+          var li = el('li'), a = el('a', 'group grid grid-cols-[64px_1fr] items-center gap-3 border-b border-line py-3');
+          a.href = h.url;
+          var th = el('span', 'block aspect-[16/10] overflow-hidden border border-line bg-[#111]');
+          if (h.cover) { var im = el('img', 'h-full w-full object-cover'); im.src = h.cover; im.alt = ''; im.loading = 'lazy'; th.appendChild(im); }
+          var tx = el('span', 'flex min-w-0 flex-col gap-1');
+          tx.appendChild(el('span', 'text-[15px] leading-tight group-hover:text-accent', h.title));
+          tx.appendChild(el('span', 'font-mono text-[11px] uppercase text-muted', h.meta));
+          a.appendChild(th); a.appendChild(tx); li.appendChild(a); out.appendChild(li);
         });
-      });
+      };
+      var local = function (q) {
+        var w = norm(q).split(/\s+/).filter(Boolean);
+        return items.filter(function (x) { return w.every(function (t) { return x.s.indexOf(t) >= 0; }); }).slice(0, 12)
+          .map(function (x) { return { url: x.i.u, title: x.i.t, meta: [x.i.d, x.i.c].filter(Boolean).join(' · ') }; });
+      };
+      var run = function () {
+        var q = input.value.trim(), my = ++seq;
+        if (q.length < 2 && !tag) { show([]); return; }
+        state.textContent = 'Buscando…';
+        fetch('/api/lab/busca?q=' + encodeURIComponent(q) + (tag ? '&tag=' + encodeURIComponent(tag) : ''))
+          .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+          .then(function (d) {
+            if (my !== seq) return;
+            var list = d.items.map(function (h) {
+              if (h.kind === 'volume') return { url: h.volume.url, title: h.volume.title, cover: h.volume.cover && h.volume.cover.url, meta: 'Volume · ' + h.volume.count + ' artigos' + (h.how === 'significado' ? ' · por assunto' : '') };
+              return { url: h.card.url, title: h.card.title, cover: h.card.cover && h.card.cover.url, meta: [h.card.deptName, h.card.code, h.how === 'significado' ? 'por assunto' : ''].filter(Boolean).join(' · ') };
+            });
+            show(list, list.length ? list.length + (list.length === 1 ? ' resultado' : ' resultados') + (tag ? ' com a tag selecionada' : '') : 'Nada encontrado. Tente outra palavra ou uma tag.');
+          })
+          .catch(function () { if (my !== seq) return; var l = local(q); show(l, l.length ? '' : 'Nada com "' + q + '". Tente outra palavra.'); });
+      };
+      var loadTags = function () {
+        if (tagsLoaded) return; tagsLoaded = true;
+        fetch('/api/lab/busca?tags=1').then(function (r) { return r.json(); }).then(function (d) {
+          (d.tags || []).forEach(function (t) {
+            var li = el('li', 'shrink-0'), b = el('button', 'min-h-9 whitespace-nowrap cursor-pointer rounded-full border border-line px-3 text-[12px] text-muted hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:text-accent', '#' + t.name);
+            b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+            b.addEventListener('click', function () {
+              var on = tag !== t.slug; tag = on ? t.slug : null;
+              tagsBox.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+              b.setAttribute('aria-pressed', String(on)); run();
+            });
+            li.appendChild(b); tagsBox.appendChild(li);
+          });
+        }).catch(function () { tagsLoaded = false; });
+      };
+      sBtn.addEventListener('click', loadTags);
+      input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 250); });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { sBtn.setAttribute('aria-expanded', 'false'); sPanel.classList.add('hidden'); mBtn.setAttribute('aria-expanded', 'false'); mPanel.classList.add('hidden'); }
         if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); if (sPanel.classList.contains('hidden')) sBtn.click(); else input.focus(); }
+      });
+    })();
+  </script>
+  <script is:inline>
+    // Curtidas: marca o que este visitante já curtiu, atualiza as contagens e curte/descurte no clique.
+    (function () {
+      var api = '/api/lab/curtir';
+      var all = function (id) { return document.querySelectorAll('[data-like="' + id + '"]'); };
+      var paint = function (id, liked, count) {
+        all(id).forEach(function (b) {
+          if (liked != null) b.setAttribute('aria-pressed', String(liked));
+          if (count != null) { var c = b.querySelector('[data-like-count]'); if (c) c.textContent = count; b.setAttribute('aria-label', (b.getAttribute('aria-pressed') === 'true' ? 'Descurtir' : 'Curtir') + ': ' + count + (count === 1 ? ' curtida' : ' curtidas')); }
+        });
+      };
+      var sync = function (ids) {
+        ids = ids.filter(Boolean); if (!ids.length) return;
+        fetch(api + '?ids=' + ids.slice(0, 100).join(','), { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+          if (!d) return;
+          Object.keys(d.counts).forEach(function (id) { paint(id, d.liked.indexOf(id) >= 0, d.counts[id]); });
+        }).catch(function () {});
+      };
+      window.labLikes = { sync: sync };
+      var ids = Array.prototype.map.call(document.querySelectorAll('[data-like]'), function (b) { return b.dataset.like; });
+      sync(ids.filter(function (x, i) { return ids.indexOf(x) === i; }));
+      document.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('[data-like]');
+        if (!b) return;
+        e.preventDefault();
+        var id = b.dataset.like, was = b.getAttribute('aria-pressed') === 'true';
+        var n = Number((b.querySelector('[data-like-count]') || {}).textContent || 0);
+        paint(id, !was, Math.max(0, n + (was ? -1 : 1)));
+        b.classList.add('pop'); setTimeout(function () { b.classList.remove('pop'); }, 180);
+        fetch(api, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: id }) })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) { paint(id, d.liked, d.count); })
+          .catch(function () { paint(id, was, n); });
       });
     })();
   </script>

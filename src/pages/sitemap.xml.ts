@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { getLabEntries, getAuthor, dataSlugOf } from '../lib/lab-public';
 import { dataItems } from '../lib/data-items';
 import { departments } from '../lab/data';
+import { publishedVolumes } from '../lib/lab-feed';
 
 const xml = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const day = (d: Date) => d.toISOString().slice(0, 10);
@@ -18,6 +19,12 @@ export const GET: APIRoute = async ({ site }) => {
     for (const d of departments) {
       const own = live.filter((e) => e.data.department === d.slug);
       if (own.length) urls.push({ loc: at(`/lab/${d.slug}/`), lastmod: day(changed(own)) });
+    }
+    // volumes: a página de todos e a de cada um (coletâneas indexáveis)
+    const vols = await publishedVolumes().catch(() => []);
+    if (vols.length) {
+      urls.push({ loc: at('/lab/volumes/') });
+      for (const v of vols) urls.push({ loc: at(v.url), lastmod: v.updated.slice(0, 10), image: v.cover ? { url: new URL(v.cover.url, site).href, alt: v.cover.alt || v.title } : undefined });
     }
     if ((await getAuthor()).bio) urls.push({ loc: at('/lab/autor/') });   // a página do autor só entra quando tiver bio
     const all = await getLabEntries();

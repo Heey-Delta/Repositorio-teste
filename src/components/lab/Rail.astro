@@ -1,0 +1,11 @@
+---
+// Carrossel horizontal do feed: arrasta de lado (toque, trackpad ou setas no computador) e volta ao começo no fim
+// (carrossel infinito, montado pelo script da página). size: vol (40/40/20) ou card (3 e 1/3).
+interface Props { size: 'vol' | 'card'; label: string; loop?: boolean }
+const { size, label, loop = true } = Astro.props;
+---
+<div class:list={['rail', `rail--${size}`]} data-rail data-loop={loop ? '1' : undefined} role="region" aria-roledescription="carrossel" aria-label={label}>
+  <button type="button" class="rail-nav" data-dir="-1" aria-label={`Anterior: ${label}`}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <ul class="rail-track"><slot /></ul>
+  <button type="button" class="rail-nav" data-dir="1" aria-label={`Próximo: ${label}`}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>

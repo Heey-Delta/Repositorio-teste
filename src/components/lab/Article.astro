@@ -8,6 +8,9 @@ import Cover from './Cover.astro';
 import { renderMarkdown, dataSlugOf, type LabEntry } from '../../lib/lab-public';
 import { dataItems, KIND_LABEL } from '../../lib/data-items';
 import { layoutAttrs } from '../../lib/page-layout';
+import { volumesOfPost } from '../../lib/lab-feed';
+import LikeButton from './LikeButton.astro';
+import '../../styles/lab-feed.css';
 import { departmentBySlug, statuses, fmtDate, up } from '../../lab/data';
 
 interface Props { entry: LabEntry; all: LabEntry[]; depth?: number; preview?: { status: string; editHref: string } }
@@ -18,6 +21,8 @@ const postSlug = dataSlugOf(entry, all.some((e) => e.id === entry.id) ? all : [.
 const dataBase = `${root}dados/${postSlug}/`;
 const { html, headings } = renderMarkdown(entry.body, { dataBase });
 const pl = layoutAttrs(entry.data.layout);
+// volumes de que a publicação faz parte (o volume é o caminho principal de leitura no Lab)
+const vols = process.env.DATABASE_URL && entry.postId ? await volumesOfPost(entry.postId).catch(() => []) : [];
 // cada dado do texto tem página própria: a lista no fim liga todas (bom para quem lê e para os buscadores)
 const items = dataItems(entry.body);
 const toc = headings.filter((h) => h.depth === 2);
@@ -28,6 +33,7 @@ const jsonld = [{
   headline: d.title, description: d.description, url, mainEntityOfPage: url, inLanguage: 'pt-BR',
   datePublished: d.date.toISOString(), dateModified: (d.updated ?? d.date).toISOString(),
   author: { '@id': personId }, publisher: { '@id': personId },
+  ...(vols.length ? { isPartOf: vols.map((v) => ({ '@type': 'CollectionPage', name: v.title, url: new URL(`/lab/volumes/${v.slug}/`, Astro.site).href })) } : {}),
   ...(d.cover ? { image: { '@type': 'ImageObject', url: d.cover.url, caption: d.cover.alt, ...(d.cover.width ? { width: d.cover.width, height: d.cover.height } : {}) } } : {}),
   ...(d.readingMinutes ? { timeRequired: `PT${d.readingMinutes}M` } : {}),
   wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
@@ -61,7 +67,9 @@ const meta = [
         <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
           <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-accent hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
           <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-accent hover:text-accent">Copiar link</button>
+          {!preview && entry.postId && <LikeButton id={entry.postId} big title={d.title} />}
         </div>
+        {vols.length > 0 && <p class="m-0 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">Faz parte de {vols.map((v, i) => <a href={`${root}lab/volumes/${v.slug}/`} class="font-bold text-ink underline underline-offset-4 hover:text-accent">{i ? ', ' : ''}Volume: {v.title}</a>)}</p>}
       </div>
       {d.cover && <div class="mx-auto max-w-[1440px] border-t border-line"><Cover cover={d.cover} eager class="max-h-[640px]" /></div>}
     </header>

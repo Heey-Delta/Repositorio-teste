@@ -1,0 +1,148 @@
+---
+// Editor de volume: título, endereço, descrição, capa (da biblioteca de mídia; sem capa, fica cinza com o título),
+// status, ordem na página e os artigos (adicionar, reordenar, tirar). Artigos agendados aparecem como "em breve".
+import Admin from '../../../layouts/Admin.astro';
+import { desc, eq } from 'drizzle-orm';
+import { db, schema as s } from '../../../db/client';
+import { loadVolume } from '../../../lib/volumes';
+import { statusLabel } from '../../../lib/admin';
+export const prerender = false;
+const isNew = Astro.params.id === 'novo';
+const vol = isNew ? null : await loadVolume(Astro.params.id!);
+if (!isNew && !vol) return Astro.redirect('/admin/volumes/');
+const [posts, images] = await Promise.all([
+  db().select({ id: s.posts.id, title: s.posts.title, code: s.posts.code, status: s.posts.status, dep: s.departments.name }).from(s.posts).innerJoin(s.departments, eq(s.departments.id, s.posts.departmentId)).orderBy(desc(s.posts.updatedAt)),
+  db().select({ id: s.media.id, url: s.media.url, alt: s.media.alt }).from(s.media).where(eq(s.media.kind, 'image')).orderBy(desc(s.media.createdAt)).limit(80),
+]);
+const data = JSON.stringify({ id: vol?.id ?? null, postIds: vol?.postIds ?? [], posts: posts.map((p) => ({ ...p, statusName: statusLabel[p.status] })) }).replace(/</g, '\\u003c');
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
+const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
+---
+<Admin title={vol ? `Volume: ${vol.title}` : 'Novo volume'} current="volumes">
+  <script type="application/json" id="volData" set:html={data} />
+  <form id="volForm" class="flex max-w-[1080px] flex-col gap-8" novalidate>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-col gap-1"><a href="/admin/volumes/" class="text-sm text-muted hover:text-ink">← Volumes</a><h1 class="m-0 text-2xl font-bold">{vol ? vol.title : 'Novo volume'}</h1></div>
+      <div class="flex items-center gap-2">
+        {vol && vol.status === 'published' && <a href={`/lab/volumes/${vol.slug}/`} target="_blank" rel="noopener" class="text-sm text-muted hover:text-ink">Ver no site ↗</a>}
+        {vol && <button type="button" id="volDelete" class="min-h-10 cursor-pointer rounded-[6px] px-3 text-sm text-[#ff8a8a] hover:bg-[#1a0b0b]">Excluir</button>}
+        <button type="submit" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:opacity-60">Salvar</button>
+      </div>
+    </div>
+    <p id="volState" class="m-0 min-h-5 text-[13px] text-muted" role="status"></p>
+    <div class="grid gap-8 lg:grid-cols-[260px_1fr]">
+      <div class="flex flex-col gap-3">
+        <div id="volPreview" class="relative aspect-[3/4] overflow-hidden border border-line bg-[#3a3a3a]" style="border-left:7px solid var(--accent)">
+          <img id="volPreviewImg" alt="" class="absolute inset-0 h-full w-full object-cover" hidden>
+          <span class="absolute inset-0 flex flex-col justify-between p-4"><span class="font-mono text-[11px] text-accent">VOL.</span><span id="volPreviewTitle" class="font-display text-[28px] uppercase leading-none"></span></span>
+        </div>
+        <p class="m-0 text-xs text-muted">Sem capa, o volume aparece em cinza com o título.</p>
+      </div>
+      <div class="flex flex-col gap-4">
+        <label class={label}>Título<input name="title" value={vol?.title ?? ''} maxlength="140" required class={`${field} h-11`} placeholder="A inteligência artificial no mundo moderno"></label>
+        <label class={label}>Endereço<input name="slug" value={vol?.slug ?? ''} maxlength="100" class={`${field} h-11 font-mono text-[13px]`} placeholder="gerado a partir do título"><span class="text-xs">/lab/volumes/<span id="slugEcho" class="text-ink">{vol?.slug ?? ''}</span>/</span></label>
+        <label class={label}>Descrição<textarea name="summary" rows="3" maxlength="400" class={`${field} py-2`} placeholder="Uma ou duas frases: para quem é e o que reúne. Vira a descrição no Google.">{vol?.summary ?? ''}</textarea></label>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class={label}>Status<select name="status" class={`${field} h-11`}><option value="draft" selected={vol?.status !== 'published'}>Rascunho (fora do site)</option><option value="published" selected={vol?.status === 'published'}>Publicado</option></select></label>
+          <label class={label}>Ordem na página<input name="sortOrder" type="number" min="0" max="999" value={vol?.sortOrder ?? 0} class={`${field} h-11`}><span class="text-xs">Menor aparece primeiro.</span></label>
+        </div>
+      </div>
+    </div>
+
+    <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+      <legend class="mb-2 text-base font-bold">Capa</legend>
+      <ul class="m-0 grid list-none grid-cols-4 gap-2 p-0 sm:grid-cols-6 lg:grid-cols-8">
+        <li><label class="flex aspect-square cursor-pointer items-center justify-center border border-line bg-[#3a3a3a] text-center text-xs has-[:checked]:outline has-[:checked]:outline-2 has-[:checked]:outline-accent"><input type="radio" name="coverMediaId" value="" checked={!vol?.coverMediaId} class="sr-only">Sem capa</label></li>
+        {images.map((m) => (
+          <li><label class="block aspect-square cursor-pointer overflow-hidden border border-line has-[:checked]:outline has-[:checked]:outline-2 has-[:checked]:outline-accent"><input type="radio" name="coverMediaId" value={m.id} data-url={m.url} checked={vol?.coverMediaId === m.id} class="sr-only"><img src={m.url} alt={m.alt ?? ''} loading="lazy" class="h-full w-full object-cover"></label></li>
+        ))}
+      </ul>
+      {images.length === 0 && <p class="m-0 text-xs text-muted">A biblioteca ainda não tem imagens. Envie em Mídia e volte aqui.</p>}
+    </fieldset>
+
+    <section class="grid gap-6 lg:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-base font-bold">Artigos no volume <span id="volCount" class="font-normal text-muted"></span></h2>
+        <p class="m-0 text-xs text-muted">Na ordem de leitura. Só os publicados aparecem como link; agendados aparecem como "em breve"; rascunhos ficam escondidos até irem ao ar.</p>
+        <ol id="volList" class="m-0 flex list-none flex-col gap-1 p-0"></ol>
+      </div>
+      <div class="flex flex-col gap-3">
+        <h2 class="m-0 text-base font-bold">Adicionar artigos</h2>
+        <input id="volFind" type="search" placeholder="Filtrar por título ou código" class={`${field} h-10`}>
+        <ul id="volAll" class="m-0 flex max-h-[420px] list-none flex-col gap-1 overflow-y-auto p-0"></ul>
+      </div>
+    </section>
+  </form>
+
+  <script is:inline>
+    (function () {
+      var data = JSON.parse(document.getElementById('volData').textContent);
+      var form = document.getElementById('volForm'), state = document.getElementById('volState');
+      var list = document.getElementById('volList'), allBox = document.getElementById('volAll'), find = document.getElementById('volFind');
+      var ids = data.postIds.slice();
+      var byId = {}; data.posts.forEach(function (p) { byId[p.id] = p; });
+      var slugify = function (v) { return v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100); };
+      var btn = function (text, title, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.title = title; b.setAttribute('aria-label', title); b.className = 'min-h-9 min-w-9 cursor-pointer rounded-[4px] border border-line px-2 text-[13px] hover:border-ink'; b.addEventListener('click', fn); return b; };
+      var line = function (p) { var s = document.createElement('span'); s.className = 'flex min-w-0 flex-1 flex-col'; var t = document.createElement('span'); t.className = 'truncate text-sm'; t.textContent = p.title; var m = document.createElement('span'); m.className = 'text-xs text-muted'; m.textContent = [p.code, p.dep, p.statusName].filter(Boolean).join(' · '); s.appendChild(t); s.appendChild(m); return s; };
+      var draw = function () {
+        list.innerHTML = '';
+        ids.forEach(function (id, i) {
+          var p = byId[id]; if (!p) return;
+          var li = document.createElement('li'); li.className = 'flex items-center gap-2 border border-line px-3 py-2';
+          var n = document.createElement('span'); n.className = 'w-6 font-mono text-xs text-muted'; n.textContent = String(i + 1).padStart(2, '0');
+          li.appendChild(n); li.appendChild(line(p));
+          li.appendChild(btn('↑', 'Subir', function () { if (i) { ids.splice(i - 1, 0, ids.splice(i, 1)[0]); draw(); } }));
+          li.appendChild(btn('↓', 'Descer', function () { if (i < ids.length - 1) { ids.splice(i + 1, 0, ids.splice(i, 1)[0]); draw(); } }));
+          li.appendChild(btn('✕', 'Tirar do volume', function () { ids.splice(i, 1); draw(); }));
+          list.appendChild(li);
+        });
+        if (!ids.length) list.innerHTML = '<li class="rounded-[6px] border border-dashed border-line p-4 text-sm text-muted">Nenhum artigo ainda. Adicione pela lista ao lado.</li>';
+        document.getElementById('volCount').textContent = '(' + ids.length + ')';
+        var q = slugify(find.value);
+        allBox.innerHTML = '';
+        data.posts.filter(function (p) { return ids.indexOf(p.id) < 0 && (!q || slugify(p.title + ' ' + (p.code || '')).indexOf(q) >= 0); }).slice(0, 60).forEach(function (p) {
+          var li = document.createElement('li'); li.className = 'flex items-center gap-2 border-b border-line py-2';
+          li.appendChild(line(p)); li.appendChild(btn('+ Adicionar', 'Adicionar ao volume', function () { ids.push(p.id); draw(); }));
+          allBox.appendChild(li);
+        });
+      };
+      find.addEventListener('input', draw);
+      // prévia da capa e do título
+      var prevImg = document.getElementById('volPreviewImg'), prevTitle = document.getElementById('volPreviewTitle');
+      var preview = function () {
+        var r = form.querySelector('input[name="coverMediaId"]:checked');
+        if (r && r.dataset.url) { prevImg.src = r.dataset.url; prevImg.hidden = false; } else prevImg.hidden = true;
+        prevTitle.textContent = form.title.value || 'Título do volume';
+      };
+      form.addEventListener('change', preview); form.title.addEventListener('input', function () {
+        preview();
+        if (!form.slug.dataset.touched) { form.slug.value = slugify(form.title.value); document.getElementById('slugEcho').textContent = form.slug.value; }
+      });
+      form.slug.addEventListener('input', function () { form.slug.dataset.touched = '1'; document.getElementById('slugEcho').textContent = slugify(form.slug.value); });
+      if (data.id) form.slug.dataset.touched = '1';
+      preview(); draw();
+      var say = function (t, err) { state.textContent = t; state.style.color = err ? '#ff8a8a' : ''; };
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        form.querySelectorAll('[aria-invalid]').forEach(function (x) { x.removeAttribute('aria-invalid'); });
+        var r = form.querySelector('input[name="coverMediaId"]:checked');
+        var body = { title: form.title.value, slug: form.slug.value || slugify(form.title.value), summary: form.summary.value, status: form.status.value, sortOrder: Number(form.sortOrder.value) || 0, coverMediaId: r && r.value ? r.value : null, postIds: ids };
+        say('Salvando…');
+        fetch(data.id ? '/api/volumes/' + data.id : '/api/volumes', { method: data.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+          .then(function (x) {
+            if (!x.ok) { say(x.d.error || 'Não deu para salvar.', true); if (x.d.field && form[x.d.field]) form[x.d.field].setAttribute('aria-invalid', 'true'); return; }
+            var site = x.d.site === 'started' ? ' O site atualiza em cerca de 1 minuto.' : '';
+            if (!data.id) { location.href = '/admin/volumes/' + x.d.id + '/'; return; }
+            say('Salvo.' + site);
+          })
+          .catch(function () { say('Sem conexão. Tente de novo.', true); });
+      });
+      var del = document.getElementById('volDelete');
+      if (del) del.addEventListener('click', function () {
+        if (!confirm('Excluir este volume? Os artigos continuam no ar; só a coletânea some.')) return;
+        fetch('/api/volumes/' + data.id, { method: 'DELETE' }).then(function (r) { if (r.ok) location.href = '/admin/volumes/'; else say('Não deu para excluir.', true); });
+      });
+    })();
+  </script>
+</Admin>

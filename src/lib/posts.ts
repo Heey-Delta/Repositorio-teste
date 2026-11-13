@@ -6,6 +6,7 @@ import { db, schema as s } from '../db/client';
 import { isLive, triggerRebuild } from './rebuild';
 import { addRedirect, postPath } from './redirects';
 import { compactLayout, pageLayoutSchema, readLayout } from './page-layout';
+import { refreshPostVector } from './search-index';
 
 const CODE = /^(EXP|FN|RES|VA|LAB|OBS)-\d{3}$/;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -221,6 +222,8 @@ export async function savePost(opts: { id: string | null; input: PostInput; logi
   const newPath = await postPath(values.departmentId, values.slug);
   const redirected = oldPath && newPath && oldPath !== newPath ? oldPath : null;
   if (redirected) await addRedirect(redirected, newPath!);
+  // busca por significado: o vetor acompanha o texto (entra quando vai ao ar, sai quando deixa de estar)
+  if (wasLive || isLive(values.status, values.scheduledAt, now)) await refreshPostVector(db(), id);
   // só gera o site de novo se a publicação estava ou passou a estar no ar
   const site = wasLive || isLive(values.status, values.scheduledAt, now) ? await triggerRebuild(login, id) : null;
   return { id, updatedAt: now.toISOString(), revisionId: (revision as { id: number }[])[0]?.id, site, redirected, refIds };

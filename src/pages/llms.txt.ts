@@ -2,6 +2,7 @@
 // os serviços e as publicações do Lab com link e resumo. Gerado no build, junto com o sitemap.
 import type { APIRoute } from 'astro';
 import { getLabEntries, getAuthor, dataSlugOf } from '../lib/lab-public';
+import { publishedVolumes } from '../lib/lab-feed';
 import { dataItems, describe, KIND_LABEL } from '../lib/data-items';
 import { services } from '../lib/site';
 import { departments, LAB_DESCRIPTION } from '../lab/data';
@@ -28,6 +29,12 @@ export const GET: APIRoute = async ({ site }) => {
     '',
   ];
   if (live.length) {
+    const vols = await publishedVolumes().catch(() => []);
+    if (vols.length) {
+      lines.push('## Volumes (coletâneas do Lab)', '');
+      for (const v of vols) lines.push(`- [Vol. ${v.number}: ${v.title}](${at(v.url)}): ${v.summary || 'Coletânea de artigos.'} Artigos: ${v.posts.filter((p) => !p.soon).map((p) => p.title).join('; ')}`);
+      lines.push('');
+    }
     lines.push('## Publicações do Lab', '');
     for (const d of departments) {
       const own = live.filter((e) => e.data.department === d.slug);

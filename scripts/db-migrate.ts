@@ -7,15 +7,20 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
 import * as s from '../src/db/schema.ts';
 import { departments, areas } from '../src/lab/data.ts';
+import { refreshAllVectors } from '../src/lib/search-index.ts';
 
 const url = process.env.DATABASE_URL;
 if (!url || (process.env.VERCEL && process.env.VERCEL_ENV !== 'production')) {
   console.log('[db] fora do build de produção: migrações e carga inicial puladas.');
   process.exit(0);
 }
-const db = drizzle(neon(url), { schema: s });
+// DB_DRIVER=pg: Postgres local (testes); no Vercel, sempre o Neon por HTTP
+const local = process.env.DB_DRIVER === 'pg';
+const db: any = local
+  ? (await import('drizzle-orm/node-postgres')).drizzle(url, { schema: s })
+  : drizzle(neon(url), { schema: s });
 
-await migrate(db, { migrationsFolder: 'drizzle' });
+await (local ? (await import('drizzle-orm/node-postgres/migrator')).migrate : migrate)(db, { migrationsFolder: 'drizzle' });
 console.log('[db] migrações aplicadas');
 
 const slugify = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -32,3 +37,10 @@ await db.insert(s.authors).values({
   specialties: ['Design de interfaces', 'Desenvolvimento web', 'Experiências 3D na web', 'Percepção visual'],
 }).onConflictDoNothing();
 console.log('[db] catálogos conferidos');
+
+// busca por significado: recalcula os vetores do que mudou desde o último build (sem gateway, só avisa)
+try {
+  const r = await refreshAllVectors(db);
+  console.log(r.updated === null ? '[busca] AI Gateway indisponível: vetores não atualizados (a busca usa palavras e tags)' : `[busca] ${r.total} itens, ${r.updated} vetores novos, ${r.removed} removidos`);
+} catch (err) { console.warn('[busca] vetores não atualizados:', (err as Error).message); }
+if (local) await db.$client.end();

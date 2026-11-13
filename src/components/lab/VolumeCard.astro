@@ -1,0 +1,18 @@
+---
+// Card de volume: capa (ou cinza com o título, se não tiver capa), número do volume, título e quantos artigos.
+import type { VolumeCard as V } from '../../lib/lab-feed';
+interface Props { v: V; eager?: boolean; href?: string }
+const { v, eager = false, href } = Astro.props;
+const soon = v.posts.length - v.open;
+const meta = [`${v.open} ${v.open === 1 ? 'artigo' : 'artigos'}`, soon ? `${soon} em breve` : ''].filter(Boolean).join(' · ');
+---
+<a href={href ?? v.url} class:list={['vol', v.cover ? 'vol--img' : 'vol--blank']} aria-label={`Volume ${v.number}: ${v.title}. ${meta}`}>
+  {v.cover && <img src={v.cover.url} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async">}
+  <span class="vol-in">
+    <span class="vol-num">VOL. {String(v.number).padStart(2, '0')}</span>
+    <span>
+      <span class="vol-title" role="presentation">{v.title}</span>
+      <span class="vol-meta" style="display:block">{meta}</span>
+    </span>
+  </span>
+</a>

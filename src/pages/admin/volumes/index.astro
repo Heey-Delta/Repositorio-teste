@@ -1,0 +1,34 @@
+---
+// Volumes do Lab: lista com capa, status e quantos artigos. Cada volume abre o editor.
+import Admin from '../../../layouts/Admin.astro';
+import { listVolumesAdmin } from '../../../lib/volumes';
+export const prerender = false;
+const vols = await listVolumesAdmin();
+---
+<Admin title="Volumes" current="volumes">
+  <div class="flex max-w-[1080px] flex-col gap-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-col gap-1">
+        <h1 class="m-0 text-2xl font-bold">Volumes</h1>
+        <p class="m-0 text-[13px] text-muted">Coletâneas de artigos com capa e página própria (indexada). No Lab, os volumes ficam logo abaixo das categorias, em destaque.</p>
+      </div>
+      <a href="/admin/volumes/novo/" class="inline-flex min-h-10 items-center rounded-[6px] bg-accent px-4 text-sm font-bold text-black hover:brightness-110">Novo volume</a>
+    </div>
+    {vols.length === 0
+      ? <p class="m-0 rounded-[8px] border border-dashed border-line p-6 text-sm text-muted">Nenhum volume ainda. Crie o primeiro e escolha os artigos que entram nele.</p>
+      : <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4">
+          {vols.map((v) => (
+            <li>
+              <a href={`/admin/volumes/${v.id}/`} class="group flex flex-col gap-2">
+                <span class="relative block aspect-[3/4] overflow-hidden border border-line bg-[#3a3a3a]" style="border-left:6px solid var(--accent)">
+                  {v.coverUrl && <img src={v.coverUrl} alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover" />}
+                  {!v.coverUrl && <span class="absolute inset-0 grid place-items-center p-3 text-center font-display text-xl uppercase leading-none">{v.title}</span>}
+                </span>
+                <span class="text-sm font-bold group-hover:text-accent">{v.title}</span>
+                <span class="text-xs text-muted">{v.status === 'published' ? 'Publicado' : 'Rascunho'} · {v.count} {v.count === 1 ? 'artigo' : 'artigos'} · ordem {v.sortOrder}</span>
+              </a>
+            </li>
+          ))}
+        </ul>}
+  </div>
+</Admin>

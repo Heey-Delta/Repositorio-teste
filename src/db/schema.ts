@@ -1,7 +1,7 @@
 // Banco do Experimental Lab (Postgres na Neon). Entidades da especificação funcional, seção 4.
 // Mudou algo aqui? Rode `npm run db:generate` para criar a migração em drizzle/; o build do Vercel aplica.
 import {
-  pgTable, pgEnum, text, integer, bigint, boolean, timestamp, jsonb, uuid, serial, primaryKey, uniqueIndex, index,
+  pgTable, pgEnum, text, integer, bigint, boolean, timestamp, jsonb, uuid, serial, primaryKey, uniqueIndex, index, vector,
 } from 'drizzle-orm/pg-core';
 
 const created = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
@@ -248,3 +248,44 @@ export const editorPublications = pgTable('editor_publications', {
   publishedAt: created(),
   updatedAt: updated(),
 });
+
+// ---------- Volumes do Lab ----------
+// Coletânea de publicações escolhidas pelo autor, com capa (opcional) e página própria indexável (/lab/volumes/<slug>/).
+export const volumes = pgTable('volumes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  summary: text('summary').notNull().default(''),
+  coverMediaId: uuid('cover_media_id').references(() => media.id, { onDelete: 'set null' }),
+  status: text('status').notNull().default('draft'),   // draft | published (só publicado aparece no site)
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: created(),
+  updatedAt: updated(),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+});
+export const volumePosts = pgTable('volume_posts', {
+  volumeId: uuid('volume_id').notNull().references(() => volumes.id, { onDelete: 'cascade' }),
+  postId: uuid('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+}, (t) => [primaryKey({ columns: [t.volumeId, t.postId] })]);
+
+// ---------- Curtidas ----------
+// Uma por visitante (cookie anônimo) e publicação; ip_hash (sha-256 com sal) só limita abuso, não identifica ninguém.
+export const postLikes = pgTable('post_likes', {
+  postId: uuid('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  visitor: text('visitor').notNull(),
+  ipHash: text('ip_hash'),
+  createdAt: created(),
+}, (t) => [primaryKey({ columns: [t.postId, t.visitor] }), index('post_likes_ip').on(t.ipHash, t.createdAt)]);
+
+// ---------- Busca por significado ----------
+// Vetor (embedding) do texto de cada publicação e volume: a busca compara o sentido, não só as letras
+// ("inteligência artificial" encontra "IA"; "cérebro" encontra "neurônios artificiais"). `hash` evita recalcular.
+export const searchVectors = pgTable('search_vectors', {
+  kind: text('kind').notNull(),        // post | volume
+  refId: text('ref_id').notNull(),
+  hash: text('hash').notNull(),
+  model: text('model').notNull(),
+  embedding: vector('embedding', { dimensions: 512 }).notNull(),
+  updatedAt: updated(),
+}, (t) => [primaryKey({ columns: [t.kind, t.refId] })]);

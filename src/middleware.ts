@@ -20,7 +20,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
 
   const session = await readSession(ctx.cookies);
   if (session) ctx.locals.admin = session;
-  if (!session && !OPEN.has(path)) {
+  // API pública do Lab (busca, lista e curtidas): sem login, mas os POST continuam presos à origem do site
+  const isPublic = path.startsWith('/api/lab/');
+  if (!session && !OPEN.has(path) && !isPublic) {
     if (isApi) return Response.json({ error: 'não autorizado' }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
     return ctx.redirect('/admin/login');
   }
@@ -32,7 +34,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
 
   const res = await next();
   const out = new Response(res.body, res);
-  out.headers.set('Cache-Control', 'no-store');
+  if (!out.headers.has('Cache-Control') || !isPublic) out.headers.set('Cache-Control', 'no-store');
   out.headers.set('X-Robots-Tag', 'noindex, nofollow');
   out.headers.set('X-Frame-Options', 'SAMEORIGIN');   // a pré-visualização abre a página dentro do próprio admin
   out.headers.set('X-Content-Type-Options', 'nosniff');

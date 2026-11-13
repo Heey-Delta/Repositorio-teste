@@ -1,0 +1,31 @@
+---
+// Todos os volumes do Lab (coletâneas de publicações). Página indexável, guardada na CDN por 5 minutos.
+import '../../../styles/lab-feed.css';
+import Lab from '../../../layouts/Lab.astro';
+import VolumeCard from '../../../components/lab/VolumeCard.astro';
+import { publishedVolumes } from '../../../lib/lab-feed';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=900');
+const volumes = process.env.DATABASE_URL ? await publishedVolumes() : [];
+const jsonld = [{
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Volumes do Experimental Lab', inLanguage: 'pt-BR',
+  url: new URL('/lab/volumes/', Astro.site).href,
+  description: 'Coletâneas de experimentos, ensaios e pesquisas do Hallan, organizadas por tema.',
+  mainEntity: { '@type': 'ItemList', itemListElement: volumes.map((v, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(v.url, Astro.site).href, name: v.title })) },
+}];
+---
+<Lab title="Volumes" description="Coletâneas de experimentos, ensaios e pesquisas do Hallan, organizadas por tema. Cada volume reúne os artigos de um assunto, na ordem certa para ler." depth={2} noindex={!volumes.length} crumbs={[{ name: 'Volumes', path: '/lab/volumes/' }]} jsonld={jsonld}>
+  <section class="lf-sec">
+    <div class="wrap flex flex-col gap-8">
+      <div class="flex flex-col gap-3">
+        <p class="lf-eyebrow">{volumes.length} {volumes.length === 1 ? 'volume' : 'volumes'}</p>
+        <h1 class="lf-title">Volumes</h1>
+        <p class="m-0 max-w-[560px] text-[15px] text-muted">Cada volume reúne os artigos de um assunto, na ordem em que vale a pena ler. É o melhor jeito de começar.</p>
+      </div>
+      {volumes.length
+        ? <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 lg:grid-cols-3">{volumes.map((v, i) => <li><VolumeCard v={v} eager={i < 4} /></li>)}</ul>
+        : <p class="m-0 text-muted">Os primeiros volumes estão sendo montados.</p>}
+    </div>
+  </section>
+</Lab>

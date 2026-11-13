@@ -46,3 +46,23 @@ test('layout e regras da publicação: só o que muda é guardado e vira CSS', a
   assert.equal(a.flags, 'justify num');
   assert.equal(layoutAttrs(null).flags, '');
 });
+
+test('busca do Lab: siglas e sinônimos entram junto com a pergunta', async () => {
+  const { expand } = await import('../../src/lib/search-terms.ts');
+  assert.ok(expand('IA').includes('inteligencia artificial'));
+  assert.ok(expand('Inteligência Artificial').includes('ia'));
+  assert.ok(expand('cérebro').includes('neuronios'));
+  assert.ok(expand('#webgl shaders').includes('3d'));
+  assert.deepEqual(expand('a'), []);
+});
+
+test('busca do Lab: vetor de teste aproxima textos parecidos', async () => {
+  const { fakeEmbedding, postText } = await import('../../src/lib/embeddings.ts');
+  const cos = (a: number[], b: number[]) => a.reduce((s, x, i) => s + x * b[i], 0);
+  const q = fakeEmbedding('redes neurais'), near = fakeEmbedding('Redes neurais desenhando estátuas'), far = fakeEmbedding('Diário de um site lento');
+  assert.equal(q.length, 512);
+  assert.ok(cos(q, near) > cos(q, far));
+  const t = postText({ title: 'T', summary: 'S', tags: ['a'], body: ':::chart {data="x"} :::\n\n## Título\n\nTexto **forte** com [link](http://x).' });
+  assert.match(t, /Título Texto forte com link/);
+  assert.doesNotMatch(t, /chart|\*\*|http/);
+});
