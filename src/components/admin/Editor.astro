@@ -38,21 +38,22 @@ const tools = [
   ['underline', 'Sublinhado', 'U'], ['strike', 'Riscado', 'S'], ['sup', 'Sobrescrito', 'x²'], ['sub', 'Subscrito', 'x₂'], ['clear', 'Limpar formatação', 'Limpar'],
   ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
   ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
-  ['math', 'Inserir equação', 'Equação'], ['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'],
+  ['math', 'Inserir equação', 'Equação'], ['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'], ['slides', 'Inserir apresentação (slides passáveis dentro do texto)', 'Apresentação'],
   ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 // aparecem só com o cursor dentro de uma tabela
 const tableTools = [
   ['rowBefore', 'Adicionar linha acima', '+ Linha acima'], ['colBefore', 'Adicionar coluna à esquerda', '+ Coluna à esquerda'],
   ['rowAdd', 'Adicionar linha abaixo', '+ Linha abaixo'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna à direita'],
-  ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableDel', 'Apagar tabela', 'Excluir tabela'],
+  ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableRefs', 'Mostrar letras das colunas e números das linhas', 'Linhas e colunas'],
+  ['tableSelect', 'Selecionar a tabela inteira', 'Selecionar tabela'], ['tableUp', 'Mover a tabela para cima', 'Mover para cima'], ['tableDown', 'Mover a tabela para baixo', 'Mover para baixo'], ['tableDel', 'Apagar tabela', 'Excluir tabela'],
 ];
 // aparecem com uma forma, gráfico, diagrama, equação ou imagem selecionados
 const blockTools = [
   ['blockEdit', 'Editar dados e aparência', 'Editar'], ['alignLeft', 'Alinhar à esquerda', 'Esquerda'], ['alignCenter', 'Centralizar', 'Centro'], ['alignRight', 'Alinhar à direita', 'Direita'],
   ['sizeDown', 'Diminuir', 'Menor'], ['sizeUp', 'Aumentar', 'Maior'], ['sizeReset', 'Largura do texto', 'Largura total'], ['blockDup', 'Duplicar', 'Duplicar'], ['blockDel', 'Excluir', 'Excluir'],
 ];
-const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'image'];
+const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'slides', 'image', 'tableSelect', 'tableUp', 'tableDown'];
 ---
 <Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
@@ -381,9 +382,17 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
   #body .ProseMirror td, #body .ProseMirror th { position: relative; }
   #body .ProseMirror .rich-block { cursor: pointer; }
   #tableTools[hidden], #blockTools[hidden], #tablePicker[hidden], #blockTools label[hidden] { display: none; }
+  /* referências da tabela (A, B, C / 1, 2, 3) — só no editor, não vão para o site */
+  #body.show-refs .ProseMirror table { counter-reset: tr; margin-top: 1.6em; margin-left: 2em; }
+  #body.show-refs .ProseMirror tr { counter-increment: tr; counter-reset: tc; }
+  #body.show-refs .ProseMirror td, #body.show-refs .ProseMirror th { counter-increment: tc; }
+  #body.show-refs .ProseMirror tr > :first-child::before { content: counter(tr); position: absolute; right: calc(100% + 6px); top: 50%; translate: 0 -50%; font: 11px Arial, sans-serif; color: var(--muted); }
+  #body.show-refs .ProseMirror tr:first-child > *::after { content: counter(tc, upper-alpha); position: absolute; left: 50%; bottom: calc(100% + 4px); translate: -50% 0; font: 11px Arial, sans-serif; color: var(--muted); }
+  #body .ProseMirror .tableWrapper.ProseMirror-selectednode, #body .ProseMirror table.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 4px; }
   #tableGrid span { width: 18px; height: 18px; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
   #tableGrid span[data-on] { background: rgb(251 191 0 / .35); border-color: var(--accent); }
   #body .ProseMirror .rich-block { position: relative; }
+  #body .ProseMirror .rich-block .lab-deck-nav button { cursor: pointer; }
   #body .ProseMirror .rich-frame { position: absolute; pointer-events: none; display: none; }
   #body .ProseMirror .rich-block.ProseMirror-selectednode { outline: none; }
   #body .ProseMirror .rich-block.ProseMirror-selectednode .rich-frame { display: block; outline: 1px solid var(--accent); }

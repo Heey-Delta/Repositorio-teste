@@ -3,7 +3,7 @@
 // vira uma linha ":::nome {atributos} :::" no Markdown e abre a janela de edição com duplo clique (ou Enter).
 // Selecionado, mostra as alças nos cantos e nas laterais (como no Word/PowerPoint): arrastar muda largura e altura.
 import { Node as TiptapNode, createAtomBlockMarkdownSpec } from '@tiptap/core';
-import { blockHtml, parseAttrs, serializeAttrs, SHAPE_DEFAULT, type BlockName } from '../lib/rich-blocks.ts';
+import { blockHtml, parseAttrs, serializeAttrs, SHAPE_DEFAULT, wireDeck, type BlockName } from '../lib/rich-blocks.ts';
 import { openBlockDialog } from '../editor-ui/block-dialog.ts';
 
 const SIZE = { width: '', align: 'center' };
@@ -13,6 +13,7 @@ export const DEFAULTS: Record<BlockName, Record<string, string>> = {
   diagram: { type: 'ORGCHART', outline: '', ...SIZE },
   math: { tex: '', ...SIZE },
   picture: { src: '', alt: '', ...SIZE },
+  slides: { deck: '', ...SIZE },
   circle: { text: '', color: '#FBBF00', size: '160' },
 };
 /** Blocos com altura própria (as alças de cima/baixo mexem na altura); os demais mantêm a proporção. */
@@ -46,6 +47,7 @@ function makeBlock(name: BlockName) {
         frame.setAttribute('aria-hidden', 'true');
         const draw = () => {
           try { body.innerHTML = blockHtml(name, attrs); } catch (x) { body.textContent = (x as Error).message; }
+          if (name === 'slides') wireDeck(body);   // Anterior/Próximo funcionam no editor também
           placeFrame();
         };
         // a moldura acompanha o elemento desenhado (que pode estar alinhado à esquerda, ao centro ou à direita)
@@ -108,7 +110,7 @@ function makeBlock(name: BlockName) {
           update: (n) => { if (n.type.name !== name) return false; node = n; attrs = n.attrs as Record<string, string>; draw(); return true; },
           selectNode: () => { dom.classList.add('ProseMirror-selectednode'); placeFrame(); },
           deselectNode: () => dom.classList.remove('ProseMirror-selectednode'),
-          stopEvent: (e) => (e.target as HTMLElement).classList?.contains('rich-handle') ?? false,
+          stopEvent: (e) => { const t = e.target as HTMLElement; return Boolean(t.classList?.contains('rich-handle') || (e.type !== 'dblclick' && t.closest?.('.lab-deck-nav button, .lab-deck-track') && e.type !== 'mousedown')); },
           ignoreMutation: () => true,
           destroy: () => ro?.disconnect(),
         };
@@ -118,5 +120,5 @@ function makeBlock(name: BlockName) {
   });
 }
 
-export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'circle'] as BlockName[]).map(makeBlock);
+export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as BlockName[]).map(makeBlock);
 export { openBlockDialog };

@@ -172,3 +172,22 @@
 .ed-err { color: #ff8a8a; }
 .ed-panel-body > .ed-select, .ed-panel-body > textarea { width: 100%; margin-bottom: .5rem; }
 .ed-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+/* tabela do documento: barra com alça de mover, referências (A, B, C / 1, 2, 3) e endereço da célula */
+.ed-tbl { margin: .8em 0; position: relative; user-select: none; }
+.ed-tbl-bar { display: flex; align-items: center; gap: .35rem; min-height: 28px; font: 12px/1.2 Arial, Helvetica, sans-serif; color: #64748b; opacity: 0; transition: opacity .15s; }
+.ed-tbl:hover .ed-tbl-bar, .ed-tbl:focus-within .ed-tbl-bar, .ed-tbl.is-selected .ed-tbl-bar { opacity: 1; }
+.ed-tbl-grip { cursor: grab; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; min-width: 28px; min-height: 26px; color: #475569; letter-spacing: -2px; }
+.ed-tbl-grip:active { cursor: grabbing; }
+.ed-tbl-btn { border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; min-height: 26px; padding: 0 .5rem; color: #334155; cursor: pointer; font: inherit; }
+.ed-tbl-btn[aria-pressed="true"] { border-color: #FBBF00; background: #FFF4CC; color: #000; }
+.ed-tbl-addr { margin-left: auto; font-family: ui-monospace, Consolas, monospace; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+.ed-tbl.is-selected .ed-tbl-scroll { outline: 2px solid #FBBF00; outline-offset: 3px; }
+.ed-tbl-scroll { overflow-x: auto; }
+.ed-tbl .ed-table { margin: 0; }
+.ed-table .ed-ref { background: #e2e8f0; color: #475569; font: 11px Arial, sans-serif; text-align: center; padding: .15em .35em; min-width: 2em; cursor: default; }
+.ed-table .ed-ref-corner { background: #cbd5e1; }
+.ed-table td.has-formula { box-shadow: inset 3px 0 0 #FBBF00; }
+.ed-cell-input { width: 100%; box-sizing: border-box; font: inherit; border: 0; outline: 2px solid #FBBF00; padding: .1em .2em; }
+.ed-page.is-dragging .ed-drop-before { box-shadow: 0 -3px 0 #FBBF00; }
+.ed-page.is-dragging .ed-drop-after { box-shadow: 0 3px 0 #FBBF00; }

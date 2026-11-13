@@ -8,6 +8,7 @@ import { chartSvg, diagramSvg } from '../editor-core/io/svg.ts';
 import katex from 'katex';
 import { slideItem } from './slide-view.ts';
 import { listLabelsIn } from '../editor-core/ops/word.ts';
+import { indexToCol } from '../editor-core/formula/parse.ts';
 import { imageClip, imageFilter, tableCellLook } from '../editor-core/ops/objects.ts';
 
 export interface TextPoint { id: string; offset: number }
@@ -36,6 +37,15 @@ export class DocView {
     this.root.addEventListener('compositionend', () => { this.composing = false; this.syncFromDom(); });
     this.root.addEventListener('paste', (ev) => this.paste(ev));
     this.root.addEventListener('keydown', (ev) => this.keydown(ev));
+    // arrastar objetos (tabela) para outro lugar do texto
+    this.root.addEventListener('dragover', (ev) => {
+      if (!ev.dataTransfer?.types.includes('application/x-ed-node')) return;
+      ev.preventDefault();
+      this.root.querySelectorAll('.ed-drop-before, .ed-drop-after').forEach((x) => x.classList.remove('ed-drop-before', 'ed-drop-after'));
+      const over = (ev.target as HTMLElement).closest<HTMLElement>('[data-text-id], [data-node-id]');
+      if (over) over.classList.add(ev.clientY > over.getBoundingClientRect().top + over.offsetHeight / 2 ? 'ed-drop-after' : 'ed-drop-before');
+    });
+    this.root.addEventListener('drop', (ev) => this.dropBlock(ev));
     document.addEventListener('selectionchange', () => { const r = this.range(); if (r) { this.last = r; this.onSelect(r); } });
     this.render();
   }
@@ -147,15 +157,31 @@ export class DocView {
     if (this.pending) { const p = this.pending; this.pending = null; this.focusText(p.id, p.start, p.end); }
   }
 
+  /** Tabelas com letras/números de referência visíveis (botão "Linhas e colunas"). */
+  showRefs = new Set<string>();
+  /** Célula em edição de fórmula: clicar em outra célula da mesma tabela insere a referência dela. */
+  private formulaEdit: { tableId: string; input: HTMLInputElement; anchor: string | null } | null = null;
+
   private table(n: EditorNode) {
-    const t = h('table', { class: 'ed-table', contenteditable: 'false', 'data-node-id': n.id, style: n.data.align === 'CENTER' ? 'margin-inline:auto' : n.data.align === 'RIGHT' ? 'margin-left:auto' : '' });
+    const refs = this.showRefs.has(n.id);
+    const selected = this.e.state.selection.selectedIds.includes(n.id);
+    const cols = n.data.columns?.length ?? n.data.rows?.[0]?.cells.length ?? 0;
+    const t = h('table', { class: `ed-table${refs ? ' has-refs' : ''}`, 'data-table-id': n.id });
+    if (refs) t.append(h('tr', { class: 'ed-ref-row' }, h('th', { class: 'ed-ref ed-ref-corner', 'aria-hidden': 'true' }), ...Array.from({ length: cols }, (_, k) => h('th', { class: 'ed-ref', scope: 'col' }, indexToCol(k + 1)))));
+    const addrBar = h('span', { class: 'ed-tbl-addr', 'aria-live': 'polite' }, 'Clique numa célula');
     (n.data.rows ?? []).forEach((row: any, r: number) => {
       const tr = h('tr');
+      if (refs) tr.append(h('th', { class: 'ed-ref', scope: 'row' }, String(r + 1)));
       row.cells.forEach((c: any, k: number) => {
         if (c.merged || c.mergedInto) return;
-        const addr = `${String.fromCharCode(65 + k)}${r + 1}`;
+        const addr = `${indexToCol(k + 1)}${r + 1}`;
         const shown = c.error ? c.error.code : c.calculatedValue ?? c.value ?? '';
-        const td = h(r === 0 && n.data.header ? 'th' : 'td', { title: c.formula ?? '', tabindex: '0', ondblclick: () => this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''), onkeydown: (ev: KeyboardEvent) => { if (ev.key === 'Enter') { ev.preventDefault(); this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''); } } }, String(shown));
+        const td = h(r === 0 && n.data.header ? 'th' : 'td', { title: c.formula ? `${addr}: ${c.formula}` : addr, tabindex: '0', 'data-addr': addr,
+          // durante a edição de uma fórmula, clicar em outra célula põe o endereço dela na fórmula (Shift+clique faz o intervalo)
+          onpointerdown: (ev: PointerEvent) => { const f = this.formulaEdit; if (f && f.tableId === n.id && f.input.value.trim().startsWith('=') && !td.contains(f.input)) { ev.preventDefault(); this.insertRef(addr, ev.shiftKey); } },
+          onfocus: () => { addrBar.textContent = `${addr}${c.formula ? ` · ${c.formula}` : shown !== '' ? ` · ${shown}` : ''}`; },
+          ondblclick: () => this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''),
+          onkeydown: (ev: KeyboardEvent) => { if (ev.key === 'Enter') { ev.preventDefault(); this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''); } } }, String(shown));
         const rs = c.span?.rows ?? c.rowSpan, cs = c.span?.columns ?? c.colSpan;
         if (rs > 1) td.setAttribute('rowspan', String(rs));
         if (cs > 1) td.setAttribute('colspan', String(cs));
@@ -163,21 +189,79 @@ export class DocView {
         if (lk.fill) td.style.background = lk.fill;
         if (lk.ink) td.style.color = lk.ink;
         if (lk.bold) td.style.fontWeight = '700';
+        if (c.formula) td.classList.add('has-formula');
         tr.append(td);
       });
       t.append(tr);
     });
-    return t;
+    // barra da tabela: alça para mover (arrastar), selecionar a tabela inteira e mostrar as referências
+    const grip = h('button', { type: 'button', class: 'ed-tbl-grip', draggable: 'true', title: 'Arraste para mover a tabela (ou use as setas com Alt)', 'aria-label': 'Mover tabela',
+      onclick: () => this.selectNode(n.id),
+      onkeydown: (ev: KeyboardEvent) => { if (ev.altKey && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) { ev.preventDefault(); this.shiftBlock(n.id, ev.key === 'ArrowUp' ? -1 : 1); } },
+      ondragstart: (ev: DragEvent) => { ev.dataTransfer!.setData('application/x-ed-node', n.id); ev.dataTransfer!.effectAllowed = 'move'; this.root.classList.add('is-dragging'); },
+      ondragend: () => this.root.classList.remove('is-dragging') }, '⋮⋮');
+    const bar = h('div', { class: 'ed-tbl-bar' }, grip,
+      h('button', { type: 'button', class: 'ed-tbl-btn', 'aria-pressed': String(refs), onclick: () => { if (refs) this.showRefs.delete(n.id); else this.showRefs.add(n.id); this.render(); } }, 'Linhas e colunas'),
+      h('button', { type: 'button', class: 'ed-tbl-btn', onclick: () => this.selectNode(n.id) }, 'Selecionar tabela'),
+      addrBar);
+    return h('div', { class: `ed-tbl${selected ? ' is-selected' : ''}`, contenteditable: 'false', 'data-node-id': n.id, style: n.data.align === 'CENTER' ? 'margin-inline:auto' : n.data.align === 'RIGHT' ? 'margin-left:auto' : '' }, bar, h('div', { class: 'ed-tbl-scroll' }, t));
+  }
+
+  /** Seleciona um objeto inteiro (a casca mostra o que dá para fazer com ele, ex.: Recursos → Estilo de tabela). */
+  selectNode(id: string) {
+    this.e.state.selection = { selectedIds: [id], primaryId: id, mode: 'SINGLE' };
+    this.render();
+    this.onSelect(null);
+  }
+  /** Sobe/desce um bloco uma posição no texto. */
+  shiftBlock(id: string, delta: number) {
+    const n = this.e.get(id), parent = this.e.get(n.parentId);
+    const i = parent.children.indexOf(id), j = Math.max(0, Math.min(parent.children.length - 1, i + delta));
+    if (i === j) return;
+    this.run({ type: 'MOVE', targetId: id, payload: { newParentId: parent.id, newOrder: j } });
+  }
+  /** Solta um objeto arrastado antes/depois do bloco sob o ponteiro. */
+  private dropBlock(ev: DragEvent) {
+    const id = ev.dataTransfer?.getData('application/x-ed-node');
+    if (!id) return;
+    ev.preventDefault();
+    this.root.classList.remove('is-dragging');
+    this.root.querySelectorAll('.ed-drop-before, .ed-drop-after').forEach((x) => x.classList.remove('ed-drop-before', 'ed-drop-after'));
+    const over = (ev.target as HTMLElement).closest<HTMLElement>('[data-text-id], [data-node-id]');
+    const targetId = over?.dataset.textId ?? over?.dataset.nodeId;
+    if (!targetId || targetId === id || targetId === '__new__') return;
+    const target = this.e.find(targetId);
+    if (!target?.parentId) return;
+    const after = ev.clientY > over!.getBoundingClientRect().top + over!.offsetHeight / 2;
+    const siblings = this.e.get(target.parentId).children.filter((c) => c !== id);
+    const at = siblings.indexOf(targetId) + (after ? 1 : 0);
+    this.run({ type: 'MOVE', targetId: id, payload: { newParentId: target.parentId, newOrder: at } });
+  }
+
+  private insertRef(addr: string, extend: boolean) {
+    const f = this.formulaEdit!;
+    const inp = f.input;
+    const pos = inp.selectionStart ?? inp.value.length;
+    if (extend && f.anchor) {
+      // troca a última referência inserida por um intervalo âncora:addr
+      const before = inp.value.slice(0, pos), m = /([A-Z]{1,3}\d+)(:[A-Z]{1,3}\d+)?$/.exec(before);
+      if (m) { const start = before.length - m[0].length; inp.value = `${inp.value.slice(0, start)}${f.anchor}:${addr}${inp.value.slice(pos)}`; const c = start + f.anchor.length + 1 + addr.length; inp.setSelectionRange(c, c); inp.focus(); return; }
+    }
+    inp.value = `${inp.value.slice(0, pos)}${addr}${inp.value.slice(inp.selectionEnd ?? pos)}`;
+    const c = pos + addr.length;
+    inp.setSelectionRange(c, c); inp.focus();
+    f.anchor = addr;
   }
 
   private editCell(td: HTMLElement, tableId: string, cell: string, value: unknown) {
-    const input = h('input', { class: 'ed-cell-input', value: String(value ?? ''), 'aria-label': `Célula ${cell}` });
+    const input = h('input', { class: 'ed-cell-input', value: String(value ?? ''), 'aria-label': `Célula ${cell}`, placeholder: 'Valor ou =fórmula' });
     td.replaceChildren(input);
     input.focus(); input.select();
+    this.formulaEdit = { tableId, input, anchor: null };
     let done = false;
-    const commit = (save: boolean) => { if (done) return; done = true; if (save) this.run({ type: 'SET_CELL', targetId: tableId, payload: { cell, value: input.value } }); else this.render(); };
+    const commit = (save: boolean) => { if (done) return; done = true; this.formulaEdit = null; if (save) this.run({ type: 'SET_CELL', targetId: tableId, payload: { cell, value: input.value } }); else this.render(); };
     input.addEventListener('keydown', (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') commit(true); if (ev.key === 'Escape') commit(false); });
-    input.addEventListener('blur', () => commit(true));
+    input.addEventListener('blur', () => { setTimeout(() => { if (document.activeElement !== input) commit(true); }, 0); });
   }
 
   // ---------------------------------------------------------------- cursor e seleção

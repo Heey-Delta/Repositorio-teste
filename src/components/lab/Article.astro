@@ -124,6 +124,19 @@ const meta = [
       function flash(t) { b.textContent = t; b.classList.add('copied'); setTimeout(function () { b.textContent = 'Copiar link'; b.classList.remove('copied'); }, 1600); }
     })();
   </script>
+  <script is:inline>
+    // apresentações dentro do texto: botões Anterior/Próximo, contador e setas do teclado (arrastar com o dedo já funciona)
+    document.querySelectorAll('[data-deck]').forEach(function (deck) {
+      var track = deck.querySelector('.lab-deck-track'), count = deck.querySelector('[data-deck-count]'), total = track.children.length;
+      function at() { return Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); }
+      function go(i) { track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' }); }
+      var p = deck.querySelector('[data-deck-prev]'), n = deck.querySelector('[data-deck-next]');
+      if (p) p.addEventListener('click', function () { go(at() - 1); });
+      if (n) n.addEventListener('click', function () { go(at() + 1); });
+      track.addEventListener('scroll', function () { if (count) count.textContent = (at() + 1) + ' / ' + total; }, { passive: true });
+      track.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight') { e.preventDefault(); go(at() + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); go(at() - 1); } });
+    });
+  </script>
 </Lab>
 <style is:global>
   #copyLink.copied { border-color: var(--accent); color: var(--accent); animation: copied .25s ease-out; }

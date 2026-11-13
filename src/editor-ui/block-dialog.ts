@@ -7,7 +7,7 @@ const SIZE: Field[] = [
   { key: 'width', label: 'Largura (px)', kind: 'number', hint: 'Vazio = largura do texto. Também dá para arrastar as alças no editor.' },
   { key: 'align', label: 'Alinhamento', kind: 'select', options: ALIGNS },
 ];
-const FIELDS: Record<BlockName, { title: string; fields: Field[]; defaults: Record<string, string> }> = {
+const FIELDS: Record<Exclude<BlockName, 'slides'>, { title: string; fields: Field[]; defaults: Record<string, string> }> = {
   shape: {
     title: 'Forma',
     defaults: { ...SHAPE_DEFAULT },
@@ -90,7 +90,7 @@ const CSS = `
 
 /** Abre a janela; devolve os atributos (ou null se cancelar). */
 export function ensureDialogCss() { if (!document.getElementById('bd-css')) { const st = document.createElement('style'); st.id = 'bd-css'; st.textContent = CSS; document.head.append(st); } }
-export function openBlockDialog(kind: BlockName, current?: Record<string, unknown>): Promise<Record<string, string> | null> {
+export function openBlockDialog(kind: Exclude<BlockName, 'slides'>, current?: Record<string, unknown>): Promise<Record<string, string> | null> {
   ensureDialogCss();
   const spec = FIELDS[kind];
   const values: Record<string, string> = { ...spec.defaults, ...Object.fromEntries(Object.entries(current ?? {}).map(([k, v]) => [k, String(v ?? '')])) };

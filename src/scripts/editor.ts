@@ -7,6 +7,7 @@ import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
 import { RichBlocks, openBlockDialog } from './editor-blocks';
+import { openDeckEditor } from '../editor-ui/deck-editor';
 import { TextExtras } from './editor-marks';
 import { CHART_KINDS, DIAGRAM_KINDS, SHAPE_KINDS } from '../lib/rich-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
@@ -79,6 +80,7 @@ const commands: Record<string, () => void> = {
   image: () => openMedia('inline'),
   table: () => toggleTablePicker(),
   shape: () => insertBlock('shape'),
+  slides: () => { void insertDeck(); },
   chart: () => insertBlock('chart'),
   diagram: () => insertBlock('diagram'),
   math: () => insertBlock('math'),
@@ -90,6 +92,10 @@ const commands: Record<string, () => void> = {
   colDel: () => editor.chain().focus().deleteColumn().run(),
   headerRow: () => editor.chain().focus().toggleHeaderRow().run(),
   tableDel: () => editor.chain().focus().deleteTable().run(),
+  tableRefs: () => { const on = $('#body').classList.toggle('show-refs'); document.querySelector('[data-cmd="tableRefs"]')?.setAttribute('aria-pressed', String(on)); },
+  tableSelect: () => { const t = tableAt(); if (t) editor.chain().focus().setNodeSelection(t.pos).run(); },
+  tableUp: () => moveTable(-1),
+  tableDown: () => moveTable(1),
   blockEdit: () => { void editBlock(); },
   alignLeft: () => setBlockAttrs({ align: 'left' }),
   alignCenter: () => setBlockAttrs({ align: 'center' }),
@@ -121,7 +127,7 @@ toolButtons.forEach((b) => b.addEventListener('mousedown', (e) => e.preventDefau
 toolButtons.forEach((b) => b.addEventListener('click', () => commands[b.dataset.cmd!]?.()));
 function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
-  $('#tableTools').hidden = !editor.isActive('table');
+  $('#tableTools').hidden = !(editor.isActive('table') || (editor.state.selection as any).node?.type.name === 'table');
   syncBlockTools();
   if (document.activeElement !== alignSel) alignSel.value = currentAlign()?.value ?? 'left';
 }
@@ -147,11 +153,11 @@ alignSel.addEventListener('change', () => {
 
 // ---------- blocos: forma, gráfico, diagrama, equação, imagem ----------
 // inserir pela janela; duplo clique (ou Enter quando selecionado) edita; selecionado mostra as alças e a barra do bloco
-const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'circle'] as const;
+const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as const;
 type Block = (typeof BLOCKS)[number];
 async function insertBlock(kind: Block) {
   const { from } = editor.state.selection;
-  const attrs = await openBlockDialog(kind);
+  const attrs = await openBlockDialog(kind as Exclude<Block, 'slides'>);
   if (attrs) editor.chain().focus().setTextSelection(from).insertContent({ type: kind, attrs }).run();
 }
 /** Bloco (ou imagem) selecionado. A imagem comum vira bloco "picture" ao ganhar tamanho ou alinhamento. */
@@ -214,11 +220,35 @@ blockColor.addEventListener('input', () => {
   if (ck === 'colors') { const rest = String(b.node.attrs.colors ?? '').split(',').map((c) => c.trim()).filter(Boolean).slice(1); setBlockAttrs({ colors: [blockColor.value, ...rest].join(',') }); }
   else setBlockAttrs({ [ck]: blockColor.value });
 });
+// apresentação: imagens dos slides vão para a biblioteca de mídia (mesmo envio das outras imagens)
+const deckHooks = {
+  pickImage: () => new Promise<{ src: string; alt: string } | null>((resolve) => {
+    const input = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/avif,image/gif' });
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return resolve(null);
+      const alt = prompt('Descreva a imagem (texto alternativo):', '') ?? '';
+      try { setState('Enviando imagem…'); const media = await sendFile(await prepareFile(file), { alt, caption: '' }); setState('Imagem enviada'); resolve({ src: media.url, alt }); }
+      catch (err) { setState((err as Error).message, 'error'); resolve(null); }
+    });
+    input.click();
+  }),
+};
+async function insertDeck() {
+  const { from } = editor.state.selection;
+  const deck = await openDeckEditor(undefined, deckHooks);
+  if (deck) editor.chain().focus().setTextSelection(from).insertContent({ type: 'slides', attrs: { deck, width: '', align: 'center' } }).run();
+}
 async function editBlock() {
   const b = selectedBlock();
   if (!b || b.node.type.name === 'image') return false;
   const kind = b.node.type.name as Block;
-  const attrs = await openBlockDialog(kind, b.node.attrs);
+  if (kind === 'slides') {
+    const deck = await openDeckEditor(b.node.attrs.deck, deckHooks);
+    if (deck) editor.chain().focus().setNodeSelection(b.pos).updateAttributes('slides', { deck }).run();
+    return true;
+  }
+  const attrs = await openBlockDialog(kind as Exclude<Block, 'slides'>, b.node.attrs);
   if (attrs) editor.chain().focus().setNodeSelection(b.pos).updateAttributes(kind, attrs).run();
   return true;
 }
@@ -231,6 +261,31 @@ editor.view.dom.addEventListener('dblclick', (e) => {
   void editBlock();
 });
 editor.view.dom.addEventListener('keydown', (e) => { const n = (editor.state.selection as any).node; if (e.key === 'Enter' && n && BLOCKS.includes(n.type.name)) { e.preventDefault(); void editBlock(); } });
+
+// ---------- tabela: selecionar inteira e mover entre os blocos ----------
+function tableAt() {
+  const sel = editor.state.selection as any;
+  if (sel.node?.type.name === 'table') return { pos: sel.from as number, node: sel.node };
+  const { $from } = editor.state.selection;
+  for (let d = $from.depth; d > 0; d--) if ($from.node(d).type.name === 'table') return { pos: $from.before(d), node: $from.node(d) };
+  return null;
+}
+/** Troca a tabela de lugar com o bloco de cima (−1) ou de baixo (+1), como arrastar no Word. */
+function moveTable(dir: -1 | 1) {
+  const t = tableAt();
+  if (!t) return;
+  const $pos = editor.state.doc.resolve(t.pos);
+  const parent = $pos.parent, index = $pos.index();
+  const other = index + dir;
+  if (other < 0 || other >= parent.childCount) return;
+  const sib = parent.child(other);
+  editor.chain().focus().command(({ tr }) => {
+    if (dir < 0) { const from = t.pos - sib.nodeSize; tr.delete(t.pos, t.pos + t.node.nodeSize); tr.insert(from, t.node); return true; }
+    tr.delete(t.pos, t.pos + t.node.nodeSize); tr.insert(t.pos + sib.nodeSize, t.node); return true;
+  }).run();
+  const np = dir < 0 ? t.pos - sib.nodeSize : t.pos + sib.nodeSize;
+  editor.commands.setNodeSelection(np);
+}
 
 // ---------- tabela: escolher linhas × colunas (grade como no Word ou números) ----------
 const picker = $('#tablePicker'), grid = $('#tableGrid'), rowsIn = $<HTMLInputElement>('#tableRows'), colsIn = $<HTMLInputElement>('#tableCols');

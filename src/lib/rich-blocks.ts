@@ -21,7 +21,7 @@ export const SITE_THEME: SvgTheme = {
   palette: ['#FBBF00', '#F2F2EE', '#A6A6A0', '#8A6A00', '#5C5C58', '#FFE08A'],
 };
 
-export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'circle'] as const;
+export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as const;
 export type BlockName = (typeof BLOCK_NAMES)[number];
 const NAMES = BLOCK_NAMES.join('|');
 export const BLOCK_RE = new RegExp(`^ {0,3}:::(${NAMES})(?:\\s+\\{([^}]*)\\})?\\s*:::(?:\\n|$)`);
@@ -140,6 +140,73 @@ export function pictureHtml(a: Partial<PictureAttrs>) {
   return `<figure class="lab-figure" style="${box(a)}"><img src="${esc(src)}" alt="${esc(a.alt ?? '')}" loading="lazy" decoding="async"></figure>`;
 }
 
+// ---------------------------------------------------------------- apresentação (slides passáveis dentro do trabalho)
+// Cada slide é um quadro 16:9 com itens posicionados em % (título em Anton, texto em Arial, imagem e forma).
+// O tamanho da letra é em % da largura do slide (cqw): o slide inteiro escala junto, do celular à tela grande.
+export interface SlideItem { id: string; type: 'title' | 'text' | 'image' | 'shape'; x: number; y: number; w: number; h: number; text?: string; src?: string; alt?: string; kind?: string; fill?: string; color?: string; size?: number; align?: 'left' | 'center' | 'right'; bold?: boolean }
+export interface Slide { id: string; bg?: string; items: SlideItem[] }
+export interface Deck { ratio?: '16:9' | '4:3'; slides: Slide[] }
+let seq = 0;
+export const newId = (p = 'i') => `${p}${Date.now().toString(36)}${(seq++).toString(36)}`;
+export const slideTemplate = (kind: 'cover' | 'content' | 'image' | 'blank' = 'content'): Slide => {
+  const T = (text: string, y: number, h: number, size: number, align: SlideItem['align'] = 'left'): SlideItem => ({ id: newId(), type: 'title', x: 6, y, w: 88, h, text, size, color: '#F2F2EE', align });
+  const X = (text: string, x: number, y: number, w: number, h: number, size = 2.4, align: SlideItem['align'] = 'left'): SlideItem => ({ id: newId(), type: 'text', x, y, w, h, text, size, color: '#A6A6A0', align });
+  if (kind === 'cover') return { id: newId('s'), bg: '#000000', items: [{ id: newId(), type: 'shape', kind: 'RECTANGLE', x: 6, y: 30, w: 6, h: 1.2, fill: '#FBBF00' }, T('Título da apresentação', 34, 22, 7.5), X('Subtítulo ou autor', 6, 62, 88, 10, 2.6)] };
+  if (kind === 'image') return { id: newId('s'), bg: '#000000', items: [T('Título', 8, 14, 4.6), { id: newId(), type: 'image', x: 6, y: 26, w: 52, h: 64, src: '', alt: '' }, X('- Ponto principal\n- Outro ponto', 62, 28, 32, 60)] };
+  if (kind === 'blank') return { id: newId('s'), bg: '#000000', items: [] };
+  return { id: newId('s'), bg: '#000000', items: [T('Título do slide', 8, 14, 4.6), X('- Primeiro ponto\n- Segundo ponto\n- Terceiro ponto', 6, 28, 88, 62, 2.6)] };
+};
+export const DECK_DEFAULT = (): Deck => ({ ratio: '16:9', slides: [slideTemplate('cover'), slideTemplate('content')] });
+export function parseDeck(v: unknown): Deck {
+  try { const d = typeof v === 'string' ? JSON.parse(v) : v; if (d && Array.isArray((d as Deck).slides)) return d as Deck; } catch { /* vazio */ }
+  return { ratio: '16:9', slides: [] };
+}
+const num = (v: unknown, d: number) => (Number.isFinite(Number(v)) ? Number(v) : d);
+const textHtml = (t: string) => {
+  const lines = esc(t).split('\n');
+  const bullets = lines.filter((l) => /^\s*[-•]\s+/.test(l));
+  if (bullets.length && bullets.length === lines.filter((l) => l.trim()).length) return `<ul>${lines.filter((l) => l.trim()).map((l) => `<li>${l.replace(/^\s*[-•]\s+/, '')}</li>`).join('')}</ul>`;
+  return lines.map((l) => (/^\s*[-•]\s+/.test(l) ? `• ${l.replace(/^\s*[-•]\s+/, '')}` : l)).join('<br>');
+};
+/** Um item do slide em HTML (posição e tamanho em %). */
+export function slideItemHtml(it: SlideItem) {
+  const pos = `left:${num(it.x, 0)}%;top:${num(it.y, 0)}%;width:${num(it.w, 20)}%;height:${num(it.h, 10)}%`;
+  const font = `font-size:${num(it.size, it.type === 'title' ? 4.6 : 2.4)}cqw;color:${color(it.color, it.type === 'title' ? '#F2F2EE' : '#A6A6A0')};text-align:${it.align ?? 'left'}${it.bold ? ';font-weight:700' : ''}`;
+  if (it.type === 'title') return `<h3 class="lab-si lab-si-title" data-item="${esc(it.id)}" style="${pos};${font}">${esc(it.text ?? '')}</h3>`;
+  if (it.type === 'text') return `<div class="lab-si lab-si-text" data-item="${esc(it.id)}" style="${pos};${font}">${textHtml(it.text ?? '')}</div>`;
+  if (it.type === 'image') return it.src && /^(https?:|\/|data:image\/)/.test(it.src) ? `<img class="lab-si lab-si-img" data-item="${esc(it.id)}" style="${pos}" src="${esc(it.src)}" alt="${esc(it.alt ?? '')}" loading="lazy" decoding="async">` : `<div class="lab-si lab-si-img lab-si-empty" data-item="${esc(it.id)}" style="${pos}">Imagem</div>`;
+  const kind = shapeKind(it.kind);
+  return `<div class="lab-si lab-si-shape" data-item="${esc(it.id)}" style="${pos}" aria-hidden="true"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${shapeSvg({ shapeType: kind }, 100, 100, { fill: color(it.fill, '#FBBF00') })}</svg>${it.text ? `<span style="${font}">${esc(it.text)}</span>` : ''}</div>`;
+}
+export function slideHtml(sl: Slide, i: number, total: number, ratio = '16:9') {
+  return `<div class="lab-slide" role="group" aria-roledescription="slide" aria-label="${i + 1} de ${total}" style="background:${color(sl.bg, '#000000')};aspect-ratio:${ratio.replace(':', '/')}">${(sl.items ?? []).map(slideItemHtml).join('')}</div>`;
+}
+export interface SlidesAttrs { deck: string; width: string; align: string }
+export function slidesHtml(a: Partial<SlidesAttrs>) {
+  const d = parseDeck(a.deck);
+  const n = d.slides.length;
+  if (!n) return `<section class="lab-deck lab-chart-empty" style="${box(a)}"><p>Apresentação sem slides.</p></section>`;
+  return `<section class="lab-deck" data-deck aria-roledescription="apresentação" aria-label="Apresentação com ${n} slides" style="${box(a)}">`
+    + `<div class="lab-deck-track" tabindex="0">${d.slides.map((sl, i) => slideHtml(sl, i, n, d.ratio)).join('')}</div>`
+    + (n > 1 ? `<div class="lab-deck-nav"><button type="button" data-deck-prev aria-label="Slide anterior">Anterior</button><span data-deck-count aria-live="polite">1 / ${n}</span><button type="button" data-deck-next aria-label="Próximo slide">Próximo</button></div>` : '')
+    + `</section>`;
+}
+/** Liga os botões e o contador de uma apresentação já na página (site e editor). */
+export function wireDeck(root: ParentNode) {
+  for (const deck of root.querySelectorAll<HTMLElement>('[data-deck]')) {
+    if (deck.dataset.wired) continue;
+    deck.dataset.wired = '1';
+    const track = deck.querySelector<HTMLElement>('.lab-deck-track')!, count = deck.querySelector<HTMLElement>('[data-deck-count]');
+    const total = track.children.length;
+    const at = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    const go = (i: number) => track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' });
+    deck.querySelector('[data-deck-prev]')?.addEventListener('click', () => go(at() - 1));
+    deck.querySelector('[data-deck-next]')?.addEventListener('click', () => go(at() + 1));
+    track.addEventListener('scroll', () => { if (count) count.textContent = `${at() + 1} / ${total}`; }, { passive: true });
+    track.addEventListener('keydown', (ev) => { if (ev.key === 'ArrowRight') { ev.preventDefault(); go(at() + 1); } if (ev.key === 'ArrowLeft') { ev.preventDefault(); go(at() - 1); } });
+  }
+}
+
 /** Qualquer bloco → HTML (usado pelo site e pela pré-visualização do editor). */
 export function blockHtml(name: BlockName, attrs: Record<string, string>) {
   if (name === 'circle') return circleHtml(parseCircleAttrs(Object.entries(attrs).map(([k, v]) => `${k}="${String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`).join(' ')));
@@ -147,6 +214,7 @@ export function blockHtml(name: BlockName, attrs: Record<string, string>) {
   if (name === 'chart') return chartHtml(attrs);
   if (name === 'diagram') return diagramHtml(attrs);
   if (name === 'picture') return pictureHtml(attrs);
+  if (name === 'slides') return slidesHtml(attrs);
   return mathHtml(attrs);
 }
 
