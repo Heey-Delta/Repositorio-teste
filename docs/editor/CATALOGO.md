@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 180 prontas · 🟡 7 parciais · ⬜ 73 a fazer
+**260 funcionalidades** · ✅ 184 prontas · 🟡 6 parciais · ⬜ 70 a fazer
 
 ## Resumo por categoria
 
@@ -11,11 +11,11 @@
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 30 | 0 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
-| 04 | Inserção de elementos | Adicionar componentes | 14 | 2 | 0 |
+| 04 | Inserção de elementos | Adicionar componentes | 15 | 1 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 15 | 1 | 0 |
-| 08 | Visualização de dados | Representar informações | 12 | 0 | 3 |
+| 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 0 | 0 | 13 |
@@ -140,7 +140,7 @@
 | ✅ | F04.04 | Linhas e conectores | CONTENT | `INSERT_CONTENT` | lineType, start, end | Linha reta, cotovelo, curva ou conector entre objetos. |
 | ✅ | F04.05 | Tabelas | TABLE | `INSERT_CONTENT` | rows, columns \| values | Tabela vazia ou com valores (aceita fórmulas). |
 | ✅ | F04.06 | Gráficos | CHART | `INSERT_CONTENT` `CREATE_CHART` | chartType, source | Gráfico ligado a uma fonte de dados. |
-| 🟡 | F04.07 | Diagramas | DIAGRAM | `INSERT_CONTENT` | diagramType, items, connections | Fluxograma, organograma, processo, mapa mental. Motor de layout na Etapa 06. |
+| ✅ | F04.07 | Diagramas | DIAGRAM | `INSERT_CONTENT` | diagramType, items, connections \| outline | Fluxograma, organograma, processo, mapa mental, ciclo, Venn. Layout automático ao inserir (Etapa 06). |
 | ✅ | F04.08 | Hiperlinks | CONTENT | `INSERT_CONTENT` | url \| targetId, text | Link externo ou para um elemento do documento. |
 | ✅ | F04.09 | Símbolos | CONTENT | `INSERT_CONTENT` | char | Caractere especial. |
 | 🟡 | F04.10 | Equações | CONTENT | `INSERT_CONTENT` | latex, display | Equação em LaTeX. Desenho da equação na interface (Etapa 15). |
@@ -229,9 +229,9 @@
 | ✅ | F08.07 | Editar legendas | CHART | `SET_CHART_OPTION` |  | option: legend. |
 | ✅ | F08.08 | Editar eixos | CHART | `SET_CHART_OPTION` |  | option: axes (só tipos com eixos). |
 | ✅ | F08.09 | Inserir rótulos | CHART | `SET_CHART_OPTION` |  | option: labels. |
-| ⬜ | F08.10 | Criar diagramas | DIAGRAM | `DIAGRAM_ADD_ITEM` `DIAGRAM_LAYOUT` |  | Itens, conexões e layout automático. Depende de F04.07. Etapa 06. |
-| ⬜ | F08.11 | Criar fluxogramas | DIAGRAM | `DIAGRAM_LAYOUT` | diagramType: FLOWCHART | Processo, decisão, início/fim, em camadas. Depende de F08.10. Etapa 06. |
-| ⬜ | F08.12 | Criar organogramas | DIAGRAM | `DIAGRAM_LAYOUT` | diagramType: ORGCHART | Árvore hierárquica. Depende de F08.10. Etapa 06. |
+| ✅ | F08.10 | Criar diagramas | DIAGRAM | `DIAGRAM_ADD_ITEM` `DIAGRAM_CONNECT` `DIAGRAM_LAYOUT` | algorithm: TREE\|LAYERED\|RADIAL\|LINEAR\|CYCLE\|VENN, direction | Itens, conexões e layout automático. Depende de F04.07. Também promover/rebaixar, mover, tópicos ↔ diagrama, troca de tipo, modo manual (Etapa 06). |
+| ✅ | F08.11 | Criar fluxogramas | DIAGRAM | `DIAGRAM_ADD_ITEM` `DIAGRAM_CONNECT` `DIAGRAM_LAYOUT` | diagramType: FLOWCHART, kind, connectFrom, connectionLabel | Processo, decisão, início/fim, em camadas. Depende de F08.10. Camadas pelo caminho mais longo, retornos não quebram (Etapa 06). |
+| ✅ | F08.12 | Criar organogramas | DIAGRAM | `DIAGRAM_FROM_TEXT` `DIAGRAM_PROMOTE` `DIAGRAM_DEMOTE` `DIAGRAM_LAYOUT` | diagramType: ORGCHART, parentId | Árvore hierárquica. Depende de F08.10. Pai centrado sobre os filhos (Etapa 06). |
 | ✅ | F08.13 | Criar visualizações comparativas | CHART | `CREATE_CHART` | series[].axis, chartType: COMBO | Várias séries, eixo secundário e gráfico combinado. |
 | ✅ | F08.14 | Aplicar formatação condicional | TABLE | `ADD_CONDITIONAL_FORMAT` `CONDITIONAL_STYLES` | range, rule, style | Formatação conforme o valor (maior que, entre, texto, duplicados). Também maiores/menores, média, erros, vazios, por fórmula; prioridade e parar se verdadeiro (Etapa 05). |
 | ✅ | F08.15 | Criar regras visuais | TABLE | `ADD_CONDITIONAL_FORMAT` | rule: COLOR_SCALE\|DATA_BAR\|ICON_SET | Escalas de cor, barras de dados e ícones. Depende de F08.14. Etapa 05. |

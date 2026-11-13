@@ -9,6 +9,7 @@ import { createNode } from './basic.ts';
 import { targetsOf } from './selection.ts';
 import { buildTableData, recalcTable, validateTableData } from './table.ts';
 import { validateChartData } from '../charts/chart.ts';
+import { itemsFromOutline, layoutDiagram, validateDiagram } from './diagram.ts';
 import { clone, fail, merge } from '../util.ts';
 
 type Built = { data: Record<string, any>; layout?: Layout };
@@ -79,16 +80,8 @@ export const CONTENT: Record<ContentType, ContentSpec> = {
   },
   DIAGRAM: {
     size: [560, 360],
-    build: (i, e) => ({ data: { diagramType: i.diagramType ?? 'FLOWCHART', items: withIds(e, i.items, 'DITEM'), connections: withIds(e, i.connections, 'DCON') } }),
-    validate: (d) => {
-      oneOf(d.diagramType, ['FLOWCHART', 'ORGCHART', 'PROCESS', 'MINDMAP', 'HIERARCHY', 'CYCLE', 'VENN'], 'Diagrama');
-      const ids = new Set(d.items.map((x: any) => x.id));
-      for (const it of d.items) {
-        if (typeof it.label !== 'string') fail('VALIDATION', 'Todo item do diagrama precisa de um texto (label).');
-        if (it.parentId && !ids.has(it.parentId)) fail('VALIDATION', `Item ${it.id} aponta para um pai que não existe.`);
-      }
-      for (const c of d.connections) if (!ids.has(c.from) || !ids.has(c.to)) fail('VALIDATION', `A conexão ${c.id} liga itens que não existem.`);
-    },
+    build: (i, e) => ({ data: { diagramType: i.diagramType ?? 'FLOWCHART', items: i.outline ? itemsFromOutline(e, String(i.outline)) : withIds(e, i.items, 'DITEM'), connections: withIds(e, i.connections, 'DCON'), ...(i.layoutOptions ? { layoutOptions: i.layoutOptions } : {}) } }),
+    validate: (d) => { validateDiagram(d); layoutDiagram(d); },
   },
   LINK: {
     size: [240, 30],

@@ -19,6 +19,7 @@ import { pageHandlers } from './ops/page.ts';
 import { referenceHandlers } from './ops/reference.ts';
 import { conditionalHandlers } from './ops/conditional.ts';
 import { templateHandlers } from './ops/template.ts';
+import { diagramHandlers } from './ops/diagram.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -28,6 +29,7 @@ export { createDocument, DEFAULT_THEME } from './document.ts';
 export { EditorError } from './util.ts';
 export { documentFromTemplate, MemoryTemplateLibrary } from './ops/template.ts';
 export type { Template, TemplateLibrary } from './ops/template.ts';
+export { layoutDiagram, itemsFromOutline, outlineFromItems } from './ops/diagram.ts';
 
 export const MODULES: Record<string, Record<string, Handler>> = {
   basic: basicHandlers,
@@ -44,6 +46,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   reference: referenceHandlers,
   conditional: conditionalHandlers,
   template: templateHandlers,
+  diagram: diagramHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
