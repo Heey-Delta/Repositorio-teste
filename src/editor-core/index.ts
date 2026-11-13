@@ -21,6 +21,7 @@ import { conditionalHandlers } from './ops/conditional.ts';
 import { templateHandlers } from './ops/template.ts';
 import { diagramHandlers } from './ops/diagram.ts';
 import { animationHandlers } from './ops/animation.ts';
+import { reviewHandlers } from './ops/review.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -31,6 +32,8 @@ export { EditorError } from './util.ts';
 export { documentFromTemplate, MemoryTemplateLibrary } from './ops/template.ts';
 export type { Template, TemplateLibrary } from './ops/template.ts';
 export { motionPath } from './ops/animation.ts';
+export { review, documentStats, translateContent, contrastRatio, COMMON_MISSPELLINGS } from './ops/review.ts';
+export type { Issue, SpellProvider, TranslateProvider } from './ops/review.ts';
 export { layoutDiagram, itemsFromOutline, outlineFromItems } from './ops/diagram.ts';
 
 export const MODULES: Record<string, Record<string, Handler>> = {
@@ -50,6 +53,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   template: templateHandlers,
   diagram: diagramHandlers,
   animation: animationHandlers,
+  review: reviewHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {

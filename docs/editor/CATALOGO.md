@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 197 prontas · 🟡 6 parciais · ⬜ 57 a fazer
+**260 funcionalidades** · ✅ 206 prontas · 🟡 5 parciais · ⬜ 49 a fazer
 
 ## Resumo por categoria
 
@@ -19,7 +19,7 @@
 | 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
-| 12 | Revisão e validação | Verificar conteúdo | 4 | 1 | 8 |
+| 12 | Revisão e validação | Verificar conteúdo | 13 | 0 | 0 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 0 | 0 | 11 |
 | 14 | Histórico e recuperação | Preservar alterações | 5 | 1 | 3 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
@@ -298,19 +298,19 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F12.01 | Verificar ortografia | REVIEW | `CHECK_SPELLING` | scope, language | Palavras fora do dicionário pt-BR, com sugestões. Etapa 08. |
-| ⬜ | F12.02 | Verificar gramática | REVIEW | `CHECK_GRAMMAR` | scope | Regras: espaços, pontuação, repetições, concordância comum. Etapa 08. |
-| ⬜ | F12.03 | Corrigir erros | REVIEW | `APPLY_SUGGESTION` | issueId, suggestion | Aplica a sugestão escolhida. Etapa 08. |
-| ⬜ | F12.04 | Sugerir melhorias | REVIEW | `CHECK_STYLE` | scope | Frases longas, voz passiva, palavras repetidas. Etapa 08. |
-| ⬜ | F12.05 | Traduzir conteúdo | REVIEW | `TRANSLATE` | targetIds, to | Tradução por provedor configurável. Etapa 08 (provedor externo). |
-| ⬜ | F12.06 | Localizar problemas | REVIEW | `REVIEW_DOCUMENT` |  | Relatório único: ortografia, gramática, fórmulas, acessibilidade, consistência. Depende de F12.01, F12.02, F12.08, F12.13. Etapa 08. |
-| ⬜ | F12.07 | Verificar consistência | REVIEW | `CHECK_CONSISTENCY` |  | Fontes e estilos misturados, termos escritos de formas diferentes, referências quebradas. Etapa 08. |
+| ✅ | F12.01 | Verificar ortografia | REVIEW | `CHECK_SPELLING` `ADD_TO_DICTIONARY` | scope, language | Palavras fora do dicionário pt-BR, com sugestões. Erros comuns embutidos; dicionário completo por provedor (services.spellcheck); dicionário do documento (Etapa 08). |
+| ✅ | F12.02 | Verificar gramática | REVIEW | `CHECK_GRAMMAR` | scope | Regras: espaços, pontuação, repetições, concordância comum. Etapa 08. |
+| ✅ | F12.03 | Corrigir erros | REVIEW | `APPLY_SUGGESTION` `APPLY_ALL_SUGGESTIONS` `IGNORE_ISSUE` | issueId, suggestion \| index | Aplica a sugestão escolhida. Também corrigir todos de uma regra e ignorar (Etapa 08). |
+| ✅ | F12.04 | Sugerir melhorias | REVIEW | `CHECK_STYLE` | scope | Frases longas, voz passiva, palavras repetidas. Etapa 08. |
+| ✅ | F12.05 | Traduzir conteúdo | REVIEW | `TRANSLATION_SEGMENTS` `APPLY_TRANSLATION` | targetIds, to | Tradução por provedor configurável. translateContent(): provedor assíncrono (services.translate), aplicado numa transação, mantendo a formatação (Etapa 08). |
+| ✅ | F12.06 | Localizar problemas | REVIEW | `REVIEW_DOCUMENT` |  | Relatório único: ortografia, gramática, fórmulas, acessibilidade, consistência. Depende de F12.01, F12.02, F12.08, F12.13. Etapa 08. |
+| ✅ | F12.07 | Verificar consistência | REVIEW | `CHECK_CONSISTENCY` |  | Fontes e estilos misturados, termos escritos de formas diferentes, referências quebradas. Etapa 08. |
 | ✅ | F12.08 | Identificar erros em fórmulas | FORMULA | `FORMULA_ERRORS` |  | Lista células com erro. |
 | ✅ | F12.09 | Validar dados | TABLE | `SET_VALIDATION` |  | Regras de entrada. |
 | ✅ | F12.10 | Contar palavras | TEXT | `TEXT_STATS` |  | Palavras do documento ou trecho. |
 | ✅ | F12.11 | Contar caracteres | TEXT | `TEXT_STATS` |  | Com e sem espaços. |
-| 🟡 | F12.12 | Gerar estatísticas | TEXT | `TEXT_STATS` `DOCUMENT_STATS` |  | Parágrafos, páginas, slides, tempo de leitura, elementos por tipo. DOCUMENT_STATS na Etapa 08. |
-| ⬜ | F12.13 | Verificar acessibilidade | REVIEW | `CHECK_ACCESSIBILITY` |  | Texto alternativo, contraste, ordem de títulos, tabelas com cabeçalho, links descritivos. Etapa 08. |
+| ✅ | F12.12 | Gerar estatísticas | TEXT | `TEXT_STATS` `DOCUMENT_STATS` |  | Parágrafos, páginas, slides, tempo de leitura, elementos por tipo. Também frases, legibilidade (Flesch PT) e tempo de fala (Etapa 08). |
+| ✅ | F12.13 | Verificar acessibilidade | REVIEW | `CHECK_ACCESSIBILITY` |  | Texto alternativo, contraste, ordem de títulos, tabelas com cabeçalho, links descritivos. Etapa 08. |
 
 ## 13. Comentários e colaboração
 

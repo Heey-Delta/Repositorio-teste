@@ -46,7 +46,7 @@ export const CONTENT: Record<ContentType, ContentSpec> = {
     build: (i, e) => {
       const a = e.doc.assets[i.assetId];
       const w = a?.width ?? 400, h = a?.height ?? 300, k = Math.min(1, 480 / w);
-      return { data: { assetId: i.assetId, alt: i.alt ?? '', crop: i.crop ?? null }, layout: { width: Math.round(w * k), height: Math.round(h * k), lockAspectRatio: true } };
+      return { data: { assetId: i.assetId, alt: i.alt ?? '', crop: i.crop ?? null, ...(i.decorative ? { decorative: true } : {}) }, layout: { width: Math.round(w * k), height: Math.round(h * k), lockAspectRatio: true } };
     },
     validate: (d, e) => { assetOf(e, d.assetId, ['IMAGE']); if (typeof d.alt !== 'string') fail('VALIDATION', 'Descreva a imagem (alt) para leitores de tela.'); },
   },
