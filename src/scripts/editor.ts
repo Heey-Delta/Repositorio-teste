@@ -7,6 +7,7 @@ import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
 import { RichBlocks, openBlockDialog } from './editor-blocks';
+import { CHART_KINDS, DIAGRAM_KINDS, SHAPE_KINDS } from '../lib/rich-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
 
 type Dep = { id: number; slug: string; name: string; code: string };
@@ -48,6 +49,13 @@ const editor = new Editor({
   contentType: 'markdown',
   onUpdate: () => markDirty(),
   onTransaction: () => syncToolbar(),
+  // imagem clicada vira bloco "picture" (mesma aparência), que tem alças de tamanho e alinhamento
+  onSelectionUpdate: ({ editor: ed }) => {
+    const sel = ed.state.selection as any;
+    if (sel.node?.type.name !== 'image' || !ed.schema.nodes.picture) return;
+    const { from } = sel, n = sel.node;
+    queueMicrotask(() => ed.chain().command(({ tr }) => { tr.replaceWith(from, from + n.nodeSize, ed.schema.nodes.picture.create({ src: n.attrs.src, alt: n.attrs.alt ?? '', width: '', align: 'center' })); return true; }).setNodeSelection(from).run());
+  },
 });
 
 const commands: Record<string, () => void> = {
@@ -61,17 +69,28 @@ const commands: Record<string, () => void> = {
   code: () => editor.chain().focus().toggleCodeBlock().run(),
   hr: () => editor.chain().focus().setHorizontalRule().run(),
   image: () => openMedia('inline'),
-  table: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-  circle: () => insertBlock('circle'),
+  table: () => toggleTablePicker(),
+  shape: () => insertBlock('shape'),
   chart: () => insertBlock('chart'),
   diagram: () => insertBlock('diagram'),
   math: () => insertBlock('math'),
+  rowBefore: () => editor.chain().focus().addRowBefore().run(),
+  colBefore: () => editor.chain().focus().addColumnBefore().run(),
   rowAdd: () => editor.chain().focus().addRowAfter().run(),
   colAdd: () => editor.chain().focus().addColumnAfter().run(),
   rowDel: () => editor.chain().focus().deleteRow().run(),
   colDel: () => editor.chain().focus().deleteColumn().run(),
   headerRow: () => editor.chain().focus().toggleHeaderRow().run(),
   tableDel: () => editor.chain().focus().deleteTable().run(),
+  blockEdit: () => { void editBlock(); },
+  alignLeft: () => setBlockAttrs({ align: 'left' }),
+  alignCenter: () => setBlockAttrs({ align: 'center' }),
+  alignRight: () => setBlockAttrs({ align: 'right' }),
+  sizeDown: () => scaleBlock(0.8),
+  sizeUp: () => scaleBlock(1.25),
+  sizeReset: () => setBlockAttrs(selectedBlock()?.node.type.name === 'shape' ? { width: '720', height: '' } : { width: '' }),
+  blockDup: () => { const b = selectedBlock(); if (b) editor.chain().focus().insertContentAt(b.pos + b.node.nodeSize, b.node.toJSON()).run(); },
+  blockDel: () => editor.chain().focus().deleteSelection().run(),
   undo: () => editor.chain().focus().undo().run(),
   redo: () => editor.chain().focus().redo().run(),
   link: () => {
@@ -93,21 +112,84 @@ toolButtons.forEach((b) => b.addEventListener('click', () => commands[b.dataset.
 function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
   $('#tableTools').hidden = !editor.isActive('table');
+  syncBlockTools();
 }
-// gráfico, diagrama, equação e círculo: inserir pela janela; duplo clique (ou Enter quando selecionado) edita
-const BLOCKS = ['chart', 'diagram', 'math', 'circle'] as const;
-async function insertBlock(kind: (typeof BLOCKS)[number]) {
+
+// ---------- blocos: forma, gráfico, diagrama, equação, imagem ----------
+// inserir pela janela; duplo clique (ou Enter quando selecionado) edita; selecionado mostra as alças e a barra do bloco
+const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'circle'] as const;
+type Block = (typeof BLOCKS)[number];
+async function insertBlock(kind: Block) {
   const { from } = editor.state.selection;
   const attrs = await openBlockDialog(kind);
   if (attrs) editor.chain().focus().setTextSelection(from).insertContent({ type: kind, attrs }).run();
 }
-async function editBlock() {
+/** Bloco (ou imagem) selecionado. A imagem comum vira bloco "picture" ao ganhar tamanho ou alinhamento. */
+function selectedBlock() {
   const sel = editor.state.selection as any;
-  const kind = sel.node?.type.name;
-  if (!BLOCKS.includes(kind)) return false;
-  const pos = sel.from;
-  const attrs = await openBlockDialog(kind, sel.node.attrs);
-  if (attrs) editor.chain().focus().setNodeSelection(pos).updateAttributes(kind, attrs).run();
+  const node = sel.node;
+  if (!node || !(BLOCKS.includes(node.type.name) || node.type.name === 'image')) return null;
+  return { node, pos: sel.from as number };
+}
+function setBlockAttrs(patch: Record<string, string>) {
+  const b = selectedBlock();
+  if (!b) return;
+  let { node } = b;
+  if (node.type.name === 'image') {
+    const el = editor.view.nodeDOM(b.pos) as HTMLElement | null;
+    const w = el?.getBoundingClientRect().width;
+    const attrs = { src: node.attrs.src, alt: node.attrs.alt ?? '', width: w ? String(Math.round(w)) : '', align: 'center', ...patch };
+    editor.chain().focus().command(({ tr }) => { tr.replaceWith(b.pos, b.pos + node.nodeSize, editor.schema.nodes.picture.create(attrs)); return true; }).setNodeSelection(b.pos).run();
+    return;
+  }
+  editor.chain().focus().command(({ tr }) => { tr.setNodeMarkup(b.pos, undefined, { ...node.attrs, ...patch }); return true; }).setNodeSelection(b.pos).run();
+}
+function scaleBlock(f: number) {
+  const b = selectedBlock();
+  if (!b) return;
+  const el = (editor.view.nodeDOM(b.pos) as HTMLElement | null);
+  const shown = (el?.querySelector('.rich-body > *') ?? el) as HTMLElement | null;
+  const w0 = Number(b.node.attrs.width) || shown?.getBoundingClientRect().width || 480;
+  const w = String(Math.round(Math.max(24, Math.min(1200, w0 * f))));
+  if (b.node.type.name === 'circle') { setBlockAttrs({ size: String(Math.round(Math.max(60, Math.min(400, Number(b.node.attrs.size || 160) * f)))) }); return; }
+  const h0 = Number(b.node.attrs.height);
+  setBlockAttrs(b.node.type.name === 'shape' && h0 ? { width: w, height: String(Math.round(h0 * f)) } : { width: w });
+}
+const blockType = $<HTMLSelectElement>('#blockType'), blockColor = $<HTMLInputElement>('#blockColor');
+const TYPE_OPTIONS: Partial<Record<string, { key: string; options: [string, string][] }>> = {
+  shape: { key: 'kind', options: SHAPE_KINDS }, chart: { key: 'type', options: CHART_KINDS }, diagram: { key: 'type', options: DIAGRAM_KINDS },
+};
+const COLOR_KEY: Partial<Record<string, string>> = { shape: 'fill', chart: 'colors', circle: 'color' };
+let shownType = '';
+function syncBlockTools() {
+  const b = selectedBlock();
+  $('#blockTools').hidden = !b;
+  if (!b) return;
+  const name = b.node.type.name as string;
+  const t = TYPE_OPTIONS[name];
+  $('#blockTypeWrap').hidden = !t;
+  if (t) {
+    if (shownType !== name) { blockType.replaceChildren(...t.options.map(([v, l]) => new Option(l, v))); shownType = name; }
+    blockType.value = b.node.attrs[t.key];
+  }
+  const ck = COLOR_KEY[name];
+  $('#blockColorWrap').hidden = !ck;
+  if (ck) { const c = String(b.node.attrs[ck] ?? '').split(',')[0].trim(); blockColor.value = /^#[0-9a-f]{6}$/i.test(c) ? c : '#fbbf00'; }
+  for (const btn of toolButtons) if (['blockEdit'].includes(btn.dataset.cmd!)) btn.hidden = name === 'image';
+}
+blockType.addEventListener('change', () => { const b = selectedBlock(); const t = b && TYPE_OPTIONS[b.node.type.name]; if (t) setBlockAttrs({ [t.key]: blockType.value }); });
+blockColor.addEventListener('input', () => {
+  const b = selectedBlock(); const ck = b && COLOR_KEY[b.node.type.name];
+  if (!b || !ck) return;
+  if (ck === 'colors') { const rest = String(b.node.attrs.colors ?? '').split(',').map((c) => c.trim()).filter(Boolean).slice(1); setBlockAttrs({ colors: [blockColor.value, ...rest].join(',') }); }
+  else setBlockAttrs({ [ck]: blockColor.value });
+});
+async function editBlock() {
+  const b = selectedBlock();
+  if (!b || b.node.type.name === 'image') return false;
+  const kind = b.node.type.name as Block;
+  const attrs = await openBlockDialog(kind, b.node.attrs);
+  if (attrs) editor.chain().focus().setNodeSelection(b.pos).updateAttributes(kind, attrs).run();
   return true;
 }
 editor.view.dom.addEventListener('dblclick', (e) => {
@@ -119,6 +201,41 @@ editor.view.dom.addEventListener('dblclick', (e) => {
   void editBlock();
 });
 editor.view.dom.addEventListener('keydown', (e) => { const n = (editor.state.selection as any).node; if (e.key === 'Enter' && n && BLOCKS.includes(n.type.name)) { e.preventDefault(); void editBlock(); } });
+
+// ---------- tabela: escolher linhas × colunas (grade como no Word ou números) ----------
+const picker = $('#tablePicker'), grid = $('#tableGrid'), rowsIn = $<HTMLInputElement>('#tableRows'), colsIn = $<HTMLInputElement>('#tableCols');
+const GRID_R = 8, GRID_C = 10;
+for (let r = 1; r <= GRID_R; r++) for (let c = 1; c <= GRID_C; c++) {
+  const cell = document.createElement('span');
+  cell.dataset.r = String(r); cell.dataset.c = String(c);
+  grid.append(cell);
+}
+function paintGrid(r: number, c: number) {
+  for (const cell of grid.children as HTMLCollectionOf<HTMLElement>) cell.toggleAttribute('data-on', Number(cell.dataset.r) <= r && Number(cell.dataset.c) <= c);
+  $('#tablePickerLabel').textContent = `${r} × ${c}`;
+}
+grid.addEventListener('pointerover', (e) => { const t = e.target as HTMLElement; if (t.dataset.r) { rowsIn.value = t.dataset.r; colsIn.value = t.dataset.c!; paintGrid(+t.dataset.r, +t.dataset.c!); } });
+grid.addEventListener('click', (e) => { const t = e.target as HTMLElement; if (t.dataset.r) insertTable(+t.dataset.r, +t.dataset.c!); });
+[rowsIn, colsIn].forEach((i) => i.addEventListener('input', () => paintGrid(+rowsIn.value || 0, +colsIn.value || 0)));
+$('#tableInsert').addEventListener('click', () => insertTable(+rowsIn.value, +colsIn.value));
+picker.addEventListener('keydown', (e) => { if (e.key === 'Escape') { picker.hidden = true; editor.commands.focus(); } if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') { e.preventDefault(); insertTable(+rowsIn.value, +colsIn.value); } });
+function insertTable(rows: number, cols: number) {
+  rows = Math.min(100, Math.max(1, Math.round(rows) || 1)); cols = Math.min(20, Math.max(1, Math.round(cols) || 1));
+  picker.hidden = true;
+  editor.chain().focus().insertTable({ rows, cols, withHeaderRow: $<HTMLInputElement>('#tableHeader').checked }).run();
+}
+function toggleTablePicker() {
+  if (!picker.hidden) { picker.hidden = true; return; }
+  const btn = document.querySelector<HTMLElement>('#toolbar [data-cmd="table"]')!;
+  const head = picker.offsetParent as HTMLElement | null ?? document.body;
+  picker.hidden = false;
+  const hb = (picker.offsetParent as HTMLElement ?? head).getBoundingClientRect(), bb = btn.getBoundingClientRect();
+  picker.style.top = `${bb.bottom - hb.top + 4}px`;
+  picker.style.left = `${Math.max(8, Math.min(bb.left - hb.left, hb.width - picker.offsetWidth - 8))}px`;
+  paintGrid(+rowsIn.value || 3, +colsIn.value || 3);
+  (grid.firstElementChild as HTMLElement | null)?.focus();
+}
+document.addEventListener('pointerdown', (e) => { if (!picker.hidden && !picker.contains(e.target as Node) && !(e.target as HTMLElement).closest('[data-cmd="table"]')) picker.hidden = true; });
 
 // ---------- título, resumo e contadores ----------
 // o endereço acompanha o título só em publicação nova: depois de salva, muda apenas se for editado à mão

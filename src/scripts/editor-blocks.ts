@@ -1,16 +1,23 @@
-// Blocos extras do editor de publicações: gráfico, diagrama, equação e círculo (a tabela vem do TableKit).
-// Cada bloco é um nó "atômico": aparece desenhado igual ao site (src/lib/rich-blocks.ts), vira uma linha
-// ":::nome {atributos} :::" no Markdown e abre a janela de edição com duplo clique (ou Enter quando selecionado).
+// Blocos extras do editor de publicações: forma, gráfico, diagrama, equação, imagem com tamanho e o círculo antigo
+// (a tabela vem do TableKit). Cada bloco é um nó "atômico": aparece desenhado igual ao site (src/lib/rich-blocks.ts),
+// vira uma linha ":::nome {atributos} :::" no Markdown e abre a janela de edição com duplo clique (ou Enter).
+// Selecionado, mostra as alças nos cantos e nas laterais (como no Word/PowerPoint): arrastar muda largura e altura.
 import { Node as TiptapNode, createAtomBlockMarkdownSpec } from '@tiptap/core';
-import { blockHtml, parseAttrs, serializeAttrs, type BlockName } from '../lib/rich-blocks.ts';
+import { blockHtml, parseAttrs, serializeAttrs, SHAPE_DEFAULT, type BlockName } from '../lib/rich-blocks.ts';
 import { openBlockDialog } from '../editor-ui/block-dialog.ts';
 
-const DEFAULTS: Record<BlockName, Record<string, string>> = {
-  chart: { type: 'COLUMN', title: '', data: '' },
-  diagram: { type: 'ORGCHART', outline: '' },
-  math: { tex: '' },
+const SIZE = { width: '', align: 'center' };
+export const DEFAULTS: Record<BlockName, Record<string, string>> = {
+  shape: { ...SHAPE_DEFAULT },
+  chart: { type: 'COLUMN', title: '', data: '', colors: '', ...SIZE },
+  diagram: { type: 'ORGCHART', outline: '', ...SIZE },
+  math: { tex: '', ...SIZE },
+  picture: { src: '', alt: '', ...SIZE },
   circle: { text: '', color: '#FBBF00', size: '160' },
 };
+/** Blocos com altura própria (as alças de cima/baixo mexem na altura); os demais mantêm a proporção. */
+const FREE_HEIGHT = new Set<BlockName>(['shape']);
+const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
 
 function makeBlock(name: BlockName) {
   return TiptapNode.create({
@@ -25,18 +32,85 @@ function makeBlock(name: BlockName) {
       return ['div', { 'data-block': name, 'data-attrs': JSON.stringify(node.attrs) }];
     },
     addNodeView() {
-      return ({ node }) => {
+      return ({ node, editor, getPos }) => {
+        let attrs = node.attrs as Record<string, string>;
         const dom = document.createElement('div');
         dom.dataset.block = name;
         dom.className = 'rich-block';
         dom.contentEditable = 'false';
         dom.title = 'Duplo clique para editar';
-        const draw = (attrs: Record<string, string>) => { try { dom.innerHTML = blockHtml(name, attrs); } catch (x) { dom.textContent = (x as Error).message; } };
-        draw(node.attrs as Record<string, string>);
+        const body = document.createElement('div');
+        body.className = 'rich-body';
+        const frame = document.createElement('div');
+        frame.className = 'rich-frame';
+        frame.setAttribute('aria-hidden', 'true');
+        const draw = () => {
+          try { body.innerHTML = blockHtml(name, attrs); } catch (x) { body.textContent = (x as Error).message; }
+          placeFrame();
+        };
+        // a moldura acompanha o elemento desenhado (que pode estar alinhado à esquerda, ao centro ou à direita)
+        const placeFrame = () => {
+          const el = body.firstElementChild as HTMLElement | null;
+          if (!el) return;
+          frame.style.left = `${el.offsetLeft}px`; frame.style.top = `${el.offsetTop}px`;
+          frame.style.width = `${el.offsetWidth}px`; frame.style.height = `${el.offsetHeight}px`;
+        };
+        if (name !== 'circle') {
+          for (const h of HANDLES) {
+            if (!FREE_HEIGHT.has(name) && (h === 'n' || h === 's')) continue;
+            const dot = document.createElement('span');
+            dot.className = `rich-handle rich-${h}`;
+            dot.dataset.handle = h;
+            frame.append(dot);
+          }
+          frame.addEventListener('pointerdown', (e) => startResize(e));
+        }
+        function startResize(e: PointerEvent) {
+          const h = (e.target as HTMLElement).dataset.handle;
+          const el = body.firstElementChild as HTMLElement | null;
+          if (!h || !el) return;
+          e.preventDefault(); e.stopPropagation();
+          const startX = e.clientX, startY = e.clientY, w0 = el.offsetWidth, h0 = el.offsetHeight;
+          const max = dom.clientWidth;
+          // centralizado cresce para os dois lados: o arrasto conta em dobro
+          const k = attrs.align === 'left' || attrs.align === 'right' ? 1 : 2;
+          const dirX = h.includes('w') ? -1 : h.includes('e') ? 1 : 0;
+          const dirY = h.includes('n') ? -1 : h.includes('s') ? 1 : 0;
+          let next: Record<string, string> = {};
+          const move = (ev: PointerEvent) => {
+            let w = Math.round(Math.min(max, Math.max(24, w0 + dirX * (ev.clientX - startX) * k)));
+            let hh = Math.round(Math.max(8, h0 + dirY * (ev.clientY - startY)));
+            if (!dirX) w = w0;
+            if (!FREE_HEIGHT.has(name) && !dirX) return;
+            if (FREE_HEIGHT.has(name) && ev.shiftKey && dirX && dirY) hh = Math.round(w * (h0 / w0)); // Shift mantém a proporção
+            next = FREE_HEIGHT.has(name) ? { width: String(w), height: String(dirY ? hh : h0) } : { width: String(w) };
+            attrs = { ...attrs, ...next };
+            draw();
+          };
+          const up = () => {
+            window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+            dom.classList.remove('resizing');
+            const pos = typeof getPos === 'function' ? getPos() : null;
+            if (pos == null || !Object.keys(next).length) return;
+            editor.chain().focus().command(({ tr }) => { tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...attrs }); return true; }).setNodeSelection(pos).run();
+          };
+          dom.classList.add('resizing');
+          window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+        }
+        dom.append(body, frame);
+        draw();
+        const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(placeFrame) : null;
+        ro?.observe(dom);
+        // imagens e fontes carregam depois: reposiciona a moldura
+        dom.addEventListener('load', placeFrame, true);
         return {
           dom,
-          update: (n) => { if (n.type.name !== name) return false; draw(n.attrs as Record<string, string>); return true; },
+          update: (n) => { if (n.type.name !== name) return false; node = n; attrs = n.attrs as Record<string, string>; draw(); return true; },
+          selectNode: () => { dom.classList.add('ProseMirror-selectednode'); placeFrame(); },
+          deselectNode: () => dom.classList.remove('ProseMirror-selectednode'),
+          stopEvent: (e) => (e.target as HTMLElement).classList?.contains('rich-handle') ?? false,
           ignoreMutation: () => true,
+          destroy: () => ro?.disconnect(),
         };
       };
     },
@@ -44,5 +118,5 @@ function makeBlock(name: BlockName) {
   });
 }
 
-export const RichBlocks = (['chart', 'diagram', 'math', 'circle'] as BlockName[]).map(makeBlock);
+export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'circle'] as BlockName[]).map(makeBlock);
 export { openBlockDialog };

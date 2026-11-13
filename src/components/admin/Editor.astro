@@ -37,15 +37,21 @@ const tools = [
   ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
   ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
   ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
-  ['math', 'Inserir equação', 'Equação'], ['circle', 'Inserir círculo de destaque', 'Círculo'],
+  ['math', 'Inserir equação', 'Equação'], ['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'],
   ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 // aparecem só com o cursor dentro de uma tabela
 const tableTools = [
-  ['rowAdd', 'Adicionar linha abaixo', '+ Linha'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna'],
-  ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableDel', 'Apagar tabela', '✕ Tabela'],
+  ['rowBefore', 'Adicionar linha acima', '+ Linha acima'], ['colBefore', 'Adicionar coluna à esquerda', '+ Coluna à esquerda'],
+  ['rowAdd', 'Adicionar linha abaixo', '+ Linha abaixo'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna à direita'],
+  ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableDel', 'Apagar tabela', 'Excluir tabela'],
 ];
-const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'circle', 'image'];
+// aparecem com uma forma, gráfico, diagrama, equação ou imagem selecionados
+const blockTools = [
+  ['blockEdit', 'Editar dados e aparência', 'Editar'], ['alignLeft', 'Alinhar à esquerda', 'Esquerda'], ['alignCenter', 'Centralizar', 'Centro'], ['alignRight', 'Alinhar à direita', 'Direita'],
+  ['sizeDown', 'Diminuir', 'Menor'], ['sizeUp', 'Aumentar', 'Maior'], ['sizeReset', 'Largura do texto', 'Largura total'], ['blockDup', 'Duplicar', 'Duplicar'], ['blockDel', 'Excluir', 'Excluir'],
+];
+const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'image'];
 ---
 <Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
@@ -72,6 +78,29 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'm
             class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
         ))}
       </span>
+      <span id="blockTools" hidden class="contents">
+        <span class="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden="true"></span>
+        <label id="blockTypeWrap" class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Tipo
+          <select id="blockType" class="h-8 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink focus-visible:border-accent"></select>
+        </label>
+        <label id="blockColorWrap" class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Cor
+          <input id="blockColor" type="color" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
+        </label>
+        {blockTools.map(([cmd, name, glyph]) => (
+          <button type="button" data-cmd={cmd} aria-label={name} title={name}
+            class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
+        ))}
+      </span>
+    </div>
+    <div id="tablePicker" hidden role="dialog" aria-label="Tamanho da tabela" class="absolute z-50 rounded-[8px] border border-line bg-bg p-3 shadow-[0_8px_24px_rgb(0_0_0/.6)]">
+      <p id="tablePickerLabel" class="m-0 mb-2 text-[13px] text-muted">Escolha linhas × colunas</p>
+      <div id="tableGrid" class="grid gap-[3px]" style="grid-template-columns:repeat(10,18px)"></div>
+      <div class="mt-3 flex items-end gap-2 border-t border-line pt-3">
+        <label class="flex flex-col gap-1 text-[12px] text-muted">Linhas<input id="tableRows" type="number" min="1" max="100" value="3" class="h-9 w-16 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink"></label>
+        <label class="flex flex-col gap-1 text-[12px] text-muted">Colunas<input id="tableCols" type="number" min="1" max="20" value="3" class="h-9 w-16 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink"></label>
+        <label class="flex min-h-9 items-center gap-1.5 text-[12px] text-muted"><input id="tableHeader" type="checkbox" checked class="size-4 accent-[var(--accent)]">Cabeçalho</label>
+        <button type="button" id="tableInsert" class="ml-auto min-h-9 cursor-pointer rounded-[6px] bg-accent px-3 text-[13px] font-bold text-black hover:brightness-110">Inserir</button>
+      </div>
     </div>
   </header>
 
@@ -339,8 +368,20 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'm
   #body .ProseMirror .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: var(--accent); pointer-events: none; }
   #body .ProseMirror td, #body .ProseMirror th { position: relative; }
   #body .ProseMirror .rich-block { cursor: pointer; }
-  #body .ProseMirror .rich-block.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
-  #tableTools[hidden] { display: none; }
+  #tableTools[hidden], #blockTools[hidden], #tablePicker[hidden], #blockTools label[hidden] { display: none; }
+  #tableGrid span { width: 18px; height: 18px; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
+  #tableGrid span[data-on] { background: rgb(251 191 0 / .35); border-color: var(--accent); }
+  #body .ProseMirror .rich-block { position: relative; }
+  #body .ProseMirror .rich-frame { position: absolute; pointer-events: none; display: none; }
+  #body .ProseMirror .rich-block.ProseMirror-selectednode { outline: none; }
+  #body .ProseMirror .rich-block.ProseMirror-selectednode .rich-frame { display: block; outline: 1px solid var(--accent); }
+  #body .ProseMirror .rich-handle { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); pointer-events: auto; touch-action: none; }
+  #body .ProseMirror .rich-nw { left: 0; top: 0; cursor: nwse-resize; } #body .ProseMirror .rich-n { left: 50%; top: 0; cursor: ns-resize; }
+  #body .ProseMirror .rich-ne { left: 100%; top: 0; cursor: nesw-resize; } #body .ProseMirror .rich-e { left: 100%; top: 50%; cursor: ew-resize; }
+  #body .ProseMirror .rich-se { left: 100%; top: 100%; cursor: nwse-resize; } #body .ProseMirror .rich-s { left: 50%; top: 100%; cursor: ns-resize; }
+  #body .ProseMirror .rich-sw { left: 0; top: 100%; cursor: nesw-resize; } #body .ProseMirror .rich-w { left: 0; top: 50%; cursor: ew-resize; }
+  #body .ProseMirror .rich-block.resizing { cursor: grabbing; user-select: none; }
+  @media (pointer: coarse) { #body .ProseMirror .rich-handle { width: 20px; height: 20px; margin: -10px 0 0 -10px; } }
   #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; }
   #saveState[data-tone="dirty"] { color: var(--ink); }
 </style>

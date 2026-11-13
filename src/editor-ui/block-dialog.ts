@@ -1,9 +1,36 @@
-// Janela para criar/editar gráfico, diagrama, equação ou círculo, com pré-visualização ao vivo.
+// Janela para criar/editar forma, gráfico, diagrama, equação, imagem ou círculo, com pré-visualização ao vivo.
 // Usada pelo editor de Publicações (Tiptap) e pelo editor de Documentos.
-import { blockHtml, CHART_DEFAULT, CHART_KINDS, DIAGRAM_DEFAULT, DIAGRAM_KINDS, type BlockName } from '../lib/rich-blocks.ts';
+import { ALIGNS, blockHtml, CHART_DEFAULT, CHART_KINDS, DIAGRAM_DEFAULT, DIAGRAM_KINDS, SHAPE_DEFAULT, SHAPE_KINDS, type BlockName } from '../lib/rich-blocks.ts';
 
 type Field = { key: string; label: string; kind: 'text' | 'textarea' | 'select' | 'color' | 'number'; options?: [string, string][]; hint?: string; rows?: number };
+const SIZE: Field[] = [
+  { key: 'width', label: 'Largura (px)', kind: 'number', hint: 'Vazio = largura do texto. Também dá para arrastar as alças no editor.' },
+  { key: 'align', label: 'Alinhamento', kind: 'select', options: ALIGNS },
+];
 const FIELDS: Record<BlockName, { title: string; fields: Field[]; defaults: Record<string, string> }> = {
+  shape: {
+    title: 'Forma',
+    defaults: { ...SHAPE_DEFAULT },
+    fields: [
+      { key: 'kind', label: 'Forma', kind: 'select', options: SHAPE_KINDS },
+      { key: 'text', label: 'Texto dentro', kind: 'text' },
+      { key: 'fill', label: 'Preenchimento', kind: 'color' },
+      { key: 'stroke', label: 'Contorno', kind: 'color', hint: 'Deixe igual ao preenchimento para não ter contorno.' },
+      { key: 'textColor', label: 'Cor do texto', kind: 'color' },
+      { key: 'width', label: 'Largura (px)', kind: 'number' },
+      { key: 'height', label: 'Altura (px)', kind: 'number' },
+      { key: 'align', label: 'Alinhamento', kind: 'select', options: ALIGNS },
+    ],
+  },
+  picture: {
+    title: 'Imagem',
+    defaults: { src: '', alt: '', width: '480', align: 'center' },
+    fields: [
+      { key: 'src', label: 'Endereço da imagem', kind: 'text' },
+      { key: 'alt', label: 'Descrição (texto alternativo)', kind: 'text' },
+      ...SIZE,
+    ],
+  },
   chart: {
     title: 'Gráfico',
     defaults: { ...CHART_DEFAULT },
@@ -11,6 +38,8 @@ const FIELDS: Record<BlockName, { title: string; fields: Field[]; defaults: Reco
       { key: 'type', label: 'Tipo', kind: 'select', options: CHART_KINDS },
       { key: 'title', label: 'Título', kind: 'text' },
       { key: 'data', label: 'Dados', kind: 'textarea', rows: 7, hint: 'Uma linha por item, colunas separadas por ";". A primeira linha tem os nomes das séries; a primeira coluna, as categorias. Dá para colar do Excel.' },
+      { key: 'colors', label: 'Cores das séries', kind: 'text', hint: 'Opcional. Ex.: #FBBF00, #F2F2EE, #5C5C58' },
+      ...SIZE,
     ],
   },
   diagram: {
@@ -19,12 +48,13 @@ const FIELDS: Record<BlockName, { title: string; fields: Field[]; defaults: Reco
     fields: [
       { key: 'type', label: 'Tipo', kind: 'select', options: DIAGRAM_KINDS },
       { key: 'outline', label: 'Tópicos', kind: 'textarea', rows: 9, hint: 'Um tópico por linha. Recue com 2 espaços (ou "-") para pôr um tópico dentro do outro.' },
+      ...SIZE,
     ],
   },
   math: {
     title: 'Equação',
     defaults: { tex: 'E = mc^2' },
-    fields: [{ key: 'tex', label: 'Equação (LaTeX)', kind: 'textarea', rows: 3, hint: 'Ex.: \\frac{a}{b}, x^2, \\sqrt{x}, \\sum_{i=1}^{n} i, \\alpha' }],
+    fields: [{ key: 'tex', label: 'Equação (LaTeX)', kind: 'textarea', rows: 3, hint: 'Ex.: \\frac{a}{b}, x^2, \\sqrt{x}, \\sum_{i=1}^{n} i, \\alpha' }, SIZE[1]],
   },
   circle: {
     title: 'Círculo de destaque',
@@ -80,9 +110,9 @@ export function openBlockDialog(kind: BlockName, current?: Record<string, unknow
     let el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     if (f.kind === 'select') { el = document.createElement('select'); for (const [v, l] of f.options!) el.append(new Option(l, v)); }
     else if (f.kind === 'textarea') { el = document.createElement('textarea'); (el as HTMLTextAreaElement).rows = f.rows ?? 4; el.spellcheck = false; }
-    else { el = document.createElement('input'); (el as HTMLInputElement).type = f.kind === 'number' ? 'number' : f.kind === 'color' ? 'color' : 'text'; if (f.kind === 'number') { (el as HTMLInputElement).min = '60'; (el as HTMLInputElement).max = '400'; } }
+    else { el = document.createElement('input'); (el as HTMLInputElement).type = f.kind === 'number' ? 'number' : f.kind === 'color' ? 'color' : 'text'; if (f.kind === 'number') { (el as HTMLInputElement).min = '10'; (el as HTMLInputElement).max = '1200'; } }
     el.name = f.key;
-    el.value = f.kind === 'color' ? (/^#[0-9a-f]{6}$/i.test(values[f.key]) ? values[f.key] : '#FBBF00') : values[f.key] ?? '';
+    el.value = f.kind === 'color' ? (/^#[0-9a-f]{6}$/i.test(values[f.key]) ? values[f.key] : f.key === 'textColor' ? '#000000' : values.fill || '#FBBF00') : values[f.key] ?? '';
     el.addEventListener('input', () => { values[f.key] = el.value; draw(); });
     label.append(el);
     if (f.hint) { const s = document.createElement('small'); s.textContent = f.hint; label.append(s); }

@@ -95,7 +95,12 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .lab-prose th { background: #111; font-weight: 700; }
 .lab-prose td p, .lab-prose th p { margin: 0; }
 .lab-circle { width: var(--s, 160px); height: var(--s, 160px); max-width: 100%; aspect-ratio: 1; margin-inline: auto; border-radius: 50%; background: var(--c, var(--accent)); display: grid; place-items: center; text-align: center; font-family: var(--font-display); font-size: calc(var(--s, 160px) / 5); line-height: 1; padding: 12px; box-sizing: border-box; overflow-wrap: anywhere; }
-.lab-chart, .lab-diagram { margin-inline: 0; border: 1px solid var(--line); padding: 12px; overflow-x: auto; }
+.lab-chart, .lab-diagram { margin-block: 0; border: 1px solid var(--line); padding: 12px; overflow-x: auto; }
 .lab-chart svg, .lab-diagram svg { display: block; max-width: 100%; height: auto; margin-inline: auto; }
 .lab-chart-empty { color: var(--muted); text-align: center; font-size: 14px; }
 .lab-math { overflow-x: auto; text-align: center; font-size: 1.25em; }
+.lab-shape { position: relative; width: 100%; box-sizing: border-box; display: grid; place-items: center; }
+.lab-shape svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.lab-shape span { position: relative; padding: 8%; text-align: center; font-family: var(--font-display); font-size: min(var(--fs, 32px), 64px); line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; }
+.lab-figure { margin-block: 0; }
+.lab-figure img { display: block; width: 100%; height: auto; }
