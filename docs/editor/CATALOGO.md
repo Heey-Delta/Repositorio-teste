@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 206 prontas · 🟡 5 parciais · ⬜ 49 a fazer
+**260 funcionalidades** · ✅ 217 prontas · 🟡 5 parciais · ⬜ 38 a fazer
 
 ## Resumo por categoria
 
@@ -20,7 +20,7 @@
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
 | 12 | Revisão e validação | Verificar conteúdo | 13 | 0 | 0 |
-| 13 | Comentários e colaboração | Trabalhar em conjunto | 0 | 0 | 11 |
+| 13 | Comentários e colaboração | Trabalhar em conjunto | 11 | 0 | 0 |
 | 14 | Histórico e recuperação | Preservar alterações | 5 | 1 | 3 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 0 | 0 | 12 |
@@ -316,17 +316,17 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F13.01 | Inserir comentários | COLLAB | `ADD_COMMENT` | targetId, range?, text | Comentário ancorado num elemento, trecho ou célula. Etapa 09. |
-| ⬜ | F13.02 | Responder comentários | COLLAB | `REPLY_COMMENT` | commentId, text | Resposta no mesmo fio. Depende de F13.01. Etapa 09. |
-| ⬜ | F13.03 | Editar comentários | COLLAB | `EDIT_COMMENT` | commentId, text | Só o autor. Depende de F13.01. Etapa 09. |
-| ⬜ | F13.04 | Excluir comentários | COLLAB | `DELETE_COMMENT` | commentId | Autor ou dono. Depende de F13.01. Etapa 09. |
-| ⬜ | F13.05 | Resolver comentários | COLLAB | `RESOLVE_COMMENT` `REOPEN_COMMENT` | commentId | Fecha/reabre o fio. Depende de F13.01. Etapa 09. |
-| ⬜ | F13.06 | Mencionar usuários | COLLAB | `ADD_COMMENT` | mentions | @nome no comentário notifica a pessoa. Depende de F13.01. Etapa 09. |
-| ⬜ | F13.07 | Compartilhar arquivos | COLLAB | `SHARE` | userId\|email, role | Convida pessoas com um papel. Depende de F13.08. Etapa 09 (+ Etapa 14). |
-| ⬜ | F13.08 | Definir permissões | COLLAB | `SET_PERMISSION` | userId, role | Papéis: dono, editor, comentador, leitor; o motor bloqueia o que o papel não permite. Etapa 09. |
-| ⬜ | F13.09 | Editar simultaneamente | COLLAB | `APPLY_REMOTE` | operations, baseVersion | Recebe operações de outros editores e aplica sem conflito. Etapa 09 (+ servidor na Etapa 14). |
-| ⬜ | F13.10 | Visualizar alterações de colaboradores | COLLAB | `SET_PRESENCE` `LIST_PRESENCE` | userId, selection | Quem está no documento e o que selecionou. Etapa 09. |
-| ⬜ | F13.11 | Controlar alterações | COLLAB | `SET_TRACK_CHANGES` `ACCEPT_CHANGE` `REJECT_CHANGE` | changeId | Modo revisão: cada alteração tem autor e pode ser aceita ou rejeitada. Etapa 09. |
+| ✅ | F13.01 | Inserir comentários | COLLAB | `ADD_COMMENT` | targetId, range?, text | Comentário ancorado num elemento, trecho ou célula. Etapa 09. |
+| ✅ | F13.02 | Responder comentários | COLLAB | `REPLY_COMMENT` | commentId, text | Resposta no mesmo fio. Depende de F13.01. Etapa 09. |
+| ✅ | F13.03 | Editar comentários | COLLAB | `EDIT_COMMENT` | commentId, text | Só o autor. Depende de F13.01. Etapa 09. |
+| ✅ | F13.04 | Excluir comentários | COLLAB | `DELETE_COMMENT` | commentId | Autor ou dono. Depende de F13.01. Etapa 09. |
+| ✅ | F13.05 | Resolver comentários | COLLAB | `RESOLVE_COMMENT` `REOPEN_COMMENT` | commentId | Fecha/reabre o fio. Depende de F13.01. Etapa 09. |
+| ✅ | F13.06 | Mencionar usuários | COLLAB | `ADD_COMMENT` | mentions | @nome no comentário notifica a pessoa. Depende de F13.01. Etapa 09. |
+| ✅ | F13.07 | Compartilhar arquivos | COLLAB | `SHARE` `UNSHARE` `SET_LINK_ACCESS` `LIST_MEMBERS` | userId\|email, role | Convida pessoas com um papel. Depende de F13.08. Envio de convite por e-mail na Etapa 14. |
+| ✅ | F13.08 | Definir permissões | COLLAB | `SET_PERMISSION` | userId, role | Papéis: dono, editor, comentador, leitor; o motor bloqueia o que o papel não permite. Etapa 09. |
+| ✅ | F13.09 | Editar simultaneamente | COLLAB | `APPLY_REMOTE` | transactions[] | Recebe operações de outros editores e aplica sem conflito. Mesclagem em três vias por campo e por lista de filhos; SyncSession; desfazer preserva o trabalho dos outros. Servidor (ordem/transmissão) na Etapa 14. |
+| ✅ | F13.10 | Visualizar alterações de colaboradores | COLLAB | `SET_PRESENCE` `LIST_PRESENCE` | userId, selection | Quem está no documento e o que selecionou. Etapa 09. |
+| ✅ | F13.11 | Controlar alterações | COLLAB | `SET_TRACK_CHANGES` `LIST_CHANGES` `ACCEPT_CHANGE` `REJECT_CHANGE` | changeId | Modo revisão: cada alteração tem autor e pode ser aceita ou rejeitada. Etapa 09. |
 
 ## 14. Histórico e recuperação
 

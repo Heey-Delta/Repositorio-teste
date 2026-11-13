@@ -104,6 +104,8 @@ export function removeSubtree(e: Engine, id: string) {
   for (const did of doomed) { const b = box(e.doc.nodes[did]); centers.set(did, { x: b.x + b.width / 2, y: b.y + b.height / 2 }); }
   if (n.parentId) detach(e, id);
   for (const did of [...doomed].reverse()) e.del('nodes', did);
+  // comentários do que foi apagado ficam soltos (continuam visíveis na lista, sem âncora)
+  for (const t of Object.values(e.doc.comments ?? {})) if (doomed.has(t.anchor.targetId) && !t.anchor.detached) e.touch('comments', t.id).anchor.detached = true;
   // referências quebradas: conector vira ponto solto; gráfico/legenda/link marcam a fonte como perdida
   for (const other of Object.values(e.doc.nodes)) {
     const slots = referenceSlots(other).filter((s) => doomed.has(s.get()!));

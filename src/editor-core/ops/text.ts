@@ -6,6 +6,7 @@ import type { EditorNode } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
 import { validateProps } from './format.ts';
 import { clone, equal, fail, merge } from '../util.ts';
+import { shiftAnchors } from '../anchors.ts';
 
 export interface Run { id: string; text: string; format: Record<string, unknown> }
 
@@ -59,6 +60,7 @@ export function insertText(e: Engine, n: EditorNode, offset: number, text: strin
   const inherit = (runs[i - 1] ?? runs[i] ?? { format: {} }).format;   // herda a formatação de quem está antes do cursor
   runs.splice(i, 0, { id: e.newId('RUN'), text, format: format ? merge(inherit, format) : { ...inherit } });
   n.data.runs = normalize(e, runs);
+  shiftAnchors(e, n.id, at, text.length);
 }
 
 export function deleteText(e: Engine, n: EditorNode, start: number, end: number) {
@@ -68,6 +70,7 @@ export function deleteText(e: Engine, n: EditorNode, start: number, end: number)
   const fmt = runs[a]?.format ?? runs[a - 1]?.format ?? {};
   runs.splice(a, b - a);
   n.data.runs = normalize(e, runs.length ? runs : [{ id: e.newId('RUN'), text: '', format: fmt }]);
+  shiftAnchors(e, n.id, s, s - en);
 }
 
 const caseOf = (mode: string, t: string) => {

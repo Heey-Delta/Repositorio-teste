@@ -53,6 +53,7 @@ export const templateHandlers: Record<string, Handler> = {
     const name = String(op.payload?.name ?? '').trim();
     if (!name) fail('VALIDATION', 'Dê um nome ao modelo.');
     const doc = clone(e.doc);
+    doc.comments = {}; doc.revisions = {};   // modelo não leva conversa nem revisões
     if (op.payload?.keepContent === false) {   // só identidade: tema, estilos, página e a estrutura vazia
       const root = doc.nodes[doc.document.rootId];
       const keep = new Set([root.id, ...root.children.filter((c) => ['BLOCK', 'SURFACE', 'REGION'].includes(doc.nodes[c].type))]);

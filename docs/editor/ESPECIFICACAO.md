@@ -71,7 +71,7 @@ Cada item de cada categoria está no catálogo com identificador `Fcc.ii` (ex.: 
 | | GRID · GUIDE | `settings.grid`, `settings.guides` |
 | | LAYER | `layout.zIndex` (ordem visual entre irmãos) |
 | Animação | ANIM · TRANS · TRIGGER | `slide.data.animations[]` (ordem = sequência), `slide.data.transition` (`ops/animation.ts`) |
-| Revisão/colaboração | COMMENT · USER · PERM · PRESENCE · ISSUE | Etapas 08 e 09 |
+| Revisão/colaboração | COMMENT · USER · PERM · PRESENCE · ISSUE | `doc.comments` (fios), `doc.revisions` (controle de alterações), `settings.permissions`, `engine.user`, presença em memória (`ops/collab.ts`); problemas da revisão calculados (`ops/review.ts`) |
 | | CHANGE | `Transaction` (antes/depois por item) |
 | | VERSION | `engine.snapshots` (banco na Etapa 14) |
 | Controle e execução | ACTION | `Operation` (o que entra) e `Transaction` (o que ficou registrado) |
@@ -134,7 +134,7 @@ Cada passo usa o anterior. ✅ concluído · 🔨 em andamento · ⬜ a fazer.
 | ✅ 06 | Motor de diagramas (fluxograma, organograma, layout automático, conectores) | F04.07, F08.10–12 |
 | ✅ 07 | Animações e transições (linha do tempo e reprodução) | F11 |
 | ✅ 08 | Revisão: ortografia, gramática, sugestões, tradução, consistência, acessibilidade, estatísticas | F12 |
-| ⬜ 09 | Comentários, permissões, presença, controle de alterações, edição simultânea | F13 |
+| ✅ 09 | Comentários, permissões, presença, controle de alterações, edição simultânea | F13 |
 | ⬜ 10 | Comparar versões e recuperação | F14.06, F14.08 |
 | ⬜ 11 | Importação e exportação (JSON, TXT, MD, HTML, CSV, SVG, DOCX, XLSX, PPTX, PDF), impressão | F16 |
 | ⬜ 12 | Automação: macros, scripts, automações por evento, atalhos, extensões, webhooks, funções do usuário | F17, F07.10 |

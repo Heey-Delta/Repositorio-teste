@@ -21,7 +21,10 @@ Testes: `npm run test:editor` (36 testes, `node --test`). Tipos: `npm run check:
 | `ASSETS` | `doc.assets` | referências a arquivos (o arquivo fica no armazenamento, ex.: Vercel Blob) |
 | `STYLES` / temas | `doc.styles`, `doc.themes` | estilos reutilizáveis e temas globais |
 | `EDITOR_STATE` | `engine.state` | seleção, área de transferência, superfície ativa, modo, zoom (não é salvo) |
-| `HISTORY` | `engine.history` | transações com antes/depois de cada item alterado; versões completas em `engine.snapshots` |
+| `HISTORY` | `engine.history` | transações com antes/depois de cada item alterado (e autor); versões completas em `engine.snapshots` |
+| `COMMENTS` | `doc.comments` | fios de comentários ancorados num elemento, trecho de texto ou célula |
+| `REVISIONS` | `doc.revisions` | alterações do modo revisão (autor + antes/depois), para aceitar ou rejeitar |
+| Permissões | `doc.document.settings.permissions` | dono, membros com papel, acesso por link |
 
 Uma superfície para cada aplicação, no mesmo formato:
 
@@ -47,6 +50,14 @@ Planilha      SECTION → SURFACE (SHEET, células esparsas: data.cells['A1'])
 | Tabelas e planilhas | `ops/table.ts` | `SET_CELL` · `SET_CELLS` · `SET_FORMULA` · `GET_CELL` · `GET_RANGE` · `CLEAR_CELL` · `INSERT_ROW` · `DELETE_ROW` · `INSERT_COLUMN` · `DELETE_COLUMN` · `MERGE_CELLS` · `SPLIT_CELLS` · `RESIZE_ROW` · `RESIZE_COLUMN` · `DISTRIBUTE_*` · `SORT` · `FILTER` · `CLEAR_FILTER` · `FILTERED_ROWS` · `SET_VALIDATION` · `FORMAT_CELLS` · `COPY_FORMULA` · `FILL` · `DEFINE_NAME` · `DELETE_NAME` · `RECALCULATE` · `FORMULA_ERRORS` · `TEXT_TO_TABLE` · `TABLE_TO_TEXT` |
 | Fórmulas | `formula/*.ts` | lexer, parser (AST), avaliador, 59 funções (118 nomes em PT e EN), dependências, recálculo ordenado, ciclos, ajuste de referências |
 | Gráficos | `charts/chart.ts` | `CREATE_CHART` · `SET_CHART_TYPE` · `SET_DATA_SOURCE` · `UPDATE_DATA_SOURCE` · `ADD_SERIES` · `REMOVE_SERIES` · `UPDATE_SERIES` · `SET_CHART_OPTION` · `CHART_DATA` · `REFRESH_CHART` · `CHARTS_USING` |
+| Páginas | `ops/page.ts` | tamanho, orientação, margens, colunas, fundo, quebras, paginação (medição plugável), cabeçalho/rodapé por página, impressão |
+| Referências | `ops/reference.ts` | campos calculados, indicadores, referências cruzadas, notas e legendas numeradas, sumário, índice, citações e bibliografia |
+| Formatação condicional | `ops/conditional.ts` | `ADD/UPDATE/REMOVE_CONDITIONAL_FORMAT` · `CONDITIONAL_STYLES` (valor, texto, duplicados, maiores, média, fórmula, escala de cores, barras, ícones) |
+| Modelos e layouts | `ops/template.ts` | `CREATE/LIST/DELETE/APPLY_TEMPLATE` · `SAVE/LIST/DELETE/APPLY_LAYOUT` · `documentFromTemplate` |
+| Diagramas | `ops/diagram.ts` | itens, ligações, layout automático (árvore, camadas, radial, linear, ciclo, Venn), traçado dos conectores, tópicos ↔ diagrama |
+| Animações | `ops/animation.ts` | entrada/ênfase/saída/trajetória, gatilhos, sequência, transições, linha do tempo e estado por passo |
+| Revisão | `ops/review.ts` | ortografia (provedor plugável), gramática, estilo, acessibilidade, consistência, correções, tradução, estatísticas |
+| Colaboração | `ops/collab.ts` | comentários e menções, permissões por efeito, presença, controle de alterações, `APPLY_REMOTE` + `SyncSession` |
 
 ## Como usar
 
@@ -74,39 +85,22 @@ e.on('change', ({ transaction }) => { /* redesenhar o que mudou, salvar */ });
 - **Fórmula nunca vira código**: é lida por um parser próprio. Separador `;` ou `,`; casa decimal com ponto.
 - **Referências**: conector, gráfico, legenda e link apontam por ID. Copiar remapeia; excluir solta o conector e marca a fonte perdida.
 - **Recorte**: o objeto sai na hora, mas a cópia completa fica na área de transferência (e dá para desfazer).
+- **Permissão pelo efeito**: o motor olha o que a transação mudou (não o nome da operação) para decidir se o papel
+  permite — operação nova nenhuma escapa. Vale o papel de antes da operação.
+- **Mesclagem em três vias**: alterações de outros colaboradores e o desfazer local mesclam campo a campo (e listas de
+  filhos item a item); desfazer o seu trabalho não apaga o dos outros.
+- **Resultados calculados, não gravados**: formatação condicional, layout de diagrama, linha do tempo de animação e
+  problemas de revisão são recalculados a partir dos dados — nunca ficam desatualizados.
 
 ## Cobertura das 18 categorias
 
-| # | Categoria | Situação |
-| --- | --- | --- |
-| 01 | Edição de conteúdo | pronto no motor (criar, editar, selecionar, copiar/recortar/colar, colar especial, excluir, desfazer/refazer, repetir, localizar/substituir, duplicar) |
-| 02 | Formatação | pronto no motor (tipografia, parágrafo, aparência dos elementos, estilos, copiar/remover formatação) |
-| 03 | Estrutura e organização | pronto (seções, blocos, listas multinível, agrupar, reordenar, ocultar, recolher) |
-| 04 | Inserção de elementos | pronto (16 tipos com validação; cabeçalho/rodapé como REGION; campos automáticos) |
-| 05 | Manipulação de objetos | pronto (mover, redimensionar, girar, inverter, alinhar, distribuir, camadas, bloquear, grade, guias, encaixe) |
-| 06 | Tabelas e dados | pronto (tabelas e planilhas, mesclar, ordenar, filtrar, validar, listas suspensas, converter texto ↔ tabela) |
-| 07 | Cálculos e fórmulas | pronto (operadores, 59 funções, referências relativas/absolutas, entre planilhas, nomes, recálculo, erros) |
-| 08 | Visualização de dados | gráficos prontos; diagramas só como dados (motor de diagramas é a próxima etapa); formatação condicional pendente |
-| 09 | Layout e composição | posicionamento pronto; paginação, margens e impressão dependem do renderizador |
-| 10 | Temas e estilos | pronto (temas, estilos, referências ao tema); modelos (templates) pendentes |
-| 11 | Animações e transições | pendente |
-| 12 | Revisão e validação | contagem de palavras, erros de fórmula e validação de dados prontos; ortografia/gramática/tradução pendentes |
-| 13 | Comentários e colaboração | pendente |
-| 14 | Histórico e recuperação | pronto no motor (transações, versões, restaurar); salvar automaticamente depende da persistência |
-| 15 | Referências e automáticos | links, campos, notas, legendas e citações como conteúdo; sumário, índice e bibliografia pendentes |
-| 16 | Importação e exportação | pendente |
-| 17 | Automação e extensibilidade | funções personalizadas prontas (`registerFunction`); macros e extensões pendentes |
-| 18 | Visualização e navegação | estado (modo, zoom, superfície ativa) pronto; telas dependem da interface |
+A situação de cada uma das 260 funcionalidades está em `CATALOGO.md` (gerado do código). O passo a passo e o que
+falta, em `ESPECIFICACAO.md`.
 
 ## Próximas etapas (em ordem)
 
-1. **Persistência**: tabelas `documents`, `document_versions` e `document_actions` no Neon, com salvamento automático
-   a partir do evento `change`. O documento é salvo como JSON; as transações viram o histórico.
-2. **Renderizador e interface**: desenhar `NODES` (texto em fluxo, slides em posição livre, grade de planilha), barra
-   de ferramentas por aplicação e atalhos. O motor não muda: a interface só chama `execute`.
-3. **Motor de diagramas**: fluxogramas, organogramas e conexões com pontos de ancoragem.
-4. **Animações e transições**, **comentários e colaboração**, **importação/exportação** (PDF, DOCX, XLSX, PPTX, CSV),
-   **revisão** (ortografia e acessibilidade), **referências automáticas** (sumário, índice, bibliografia).
+Ver a tabela de etapas em `ESPECIFICACAO.md`: comparar versões e recuperação, importação/exportação, automação e
+extensões, visualização e navegação, persistência no banco (com o servidor de colaboração) e, por fim, a interface.
 
 Limites conhecidos desta versão: o histórico de planilhas guarda a planilha alterada inteira por transação (ótimo até
 alguns milhares de células; a próxima otimização é guardar só as células alteradas); intervalos de coluna inteira

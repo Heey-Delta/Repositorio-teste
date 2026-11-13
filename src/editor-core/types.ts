@@ -127,7 +127,24 @@ export interface DocumentModel {
   assets: Record<string, Asset>;
   styles: Record<string, Style>;
   themes: Record<string, Theme>;
+  /** fios de comentários (Etapa 09) — opcional para documentos antigos */
+  comments?: Record<string, CommentThread>;
+  /** alterações registradas no modo revisão (controle de alterações) */
+  revisions?: Record<string, Revision>;
 }
+
+export interface CommentMessage { id: string; authorId: string; authorName: string; text: string; mentions: string[]; createdAt: string; editedAt?: string }
+export interface CommentThread {
+  id: string;
+  anchor: { targetId: string; start?: number; end?: number; cell?: string; detached?: boolean; quote?: string };
+  status: 'OPEN' | 'RESOLVED';
+  messages: CommentMessage[];
+  createdAt: string;
+  resolvedBy?: string;
+  resolvedAt?: string;
+}
+export interface Revision { id: string; userId: string; userName: string; type: string; timestamp: number; status: 'PENDING'; changes: Change[] }
+export interface User { id: string; name: string; email?: string }
 
 /** Estado temporário da interface: não é salvo junto com o documento. */
 export interface EditorState {
@@ -169,7 +186,7 @@ export interface Operation {
 
 /** Uma mudança registrada no histórico: estado anterior e posterior de um item de uma coleção. */
 export interface Change {
-  collection: 'nodes' | 'styles' | 'themes' | 'assets' | 'document';
+  collection: 'nodes' | 'styles' | 'themes' | 'assets' | 'document' | 'comments' | 'revisions';
   id: string;
   before: unknown;
   after: unknown;
@@ -182,6 +199,8 @@ export interface Transaction {
   label: string;
   changes: Change[];
   timestamp: number;
+  /** quem fez (quando há usuário na sessão) */
+  userId?: string;
 }
 
 export interface HistoryState {

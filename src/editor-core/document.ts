@@ -40,7 +40,7 @@ export function createDocument(application: Application = 'DOCUMENT_EDITOR', nam
       createdAt: iso, updatedAt: iso, seq: 1,
       settings: { grid: { enabled: false, size: 10, snap: true }, guides: [], names: {} },
     },
-    nodes: {}, assets: {}, styles: {}, themes: { [DEFAULT_THEME.id]: structuredClone(DEFAULT_THEME) },
+    nodes: {}, assets: {}, styles: {}, themes: { [DEFAULT_THEME.id]: structuredClone(DEFAULT_THEME) }, comments: {}, revisions: {},
   };
   const root = emptyNode(nextId(doc, 'SECTION'), 'SECTION', null);
   root.layout = { mode: 'FLOW', direction: 'VERTICAL' };
