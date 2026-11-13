@@ -4,7 +4,8 @@
 //   "=A1+A2*2"  →  tokens: A1 · + · A2 · * · 2  →  AST: bin(+, ref A1, bin(*, ref A2, num 2))
 //
 // Precedência (igual à do Excel): referência/intervalo → sinal (-) → % → ^ → * / → + - → & → comparações.
-// Separador de argumentos: ";" (padrão brasileiro) ou ",". Casa decimal: ponto. A fórmula nunca é executada como código.
+// Separador de argumentos: ";" (padrão brasileiro) ou ",". Casa decimal: ponto ou vírgula entre dígitos (0,5).
+// Matriz constante: {1;2;3} (uma coluna) e {1\2\3} (uma linha). A fórmula nunca é executada como código.
 
 // ---------------------------------------------------------------- endereços
 
@@ -42,7 +43,9 @@ export type Ast =
   | { k: 'pct'; arg: Ast }
   | { k: 'bin'; op: string; left: Ast; right: Ast }
   /** valor já calculado (parâmetro de função do usuário); não vem do texto da fórmula */
-  | { k: 'val'; v: unknown };
+  | { k: 'val'; v: unknown }
+  /** matriz constante: {1;2;3} (linhas por ";") e {1\2\3} (colunas por "\"), como no Excel em português */
+  | { k: 'arr'; v: (number | string | boolean)[][] };
 
 export class FormulaSyntaxError extends Error {}
 
@@ -51,7 +54,7 @@ export class FormulaSyntaxError extends Error {}
 type Tok =
   | { t: 'num'; v: number } | { t: 'str'; v: string } | { t: 'bool'; v: boolean } | { t: 'err'; v: string }
   | { t: 'ref'; sheet: string | null; a: RefPart; b?: RefPart } | { t: 'name'; v: string } | { t: 'func'; v: string }
-  | { t: 'op'; v: string } | { t: '(' } | { t: ')' } | { t: 'sep' };
+  | { t: 'op'; v: string } | { t: '(' } | { t: ')' } | { t: 'sep' } | { t: 'arr'; v: (number | string | boolean)[][] };
 
 const IDENT = /^[A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_.]*/;
 const REF = /^(\$?)([A-Za-z]{1,3})(\$?)(\d+)$/;
@@ -87,8 +90,23 @@ export function tokenize(src: string): Tok[] {
       if (!e) throw new FormulaSyntaxError(`Erro desconhecido em "${s.slice(i, i + 8)}".`);
       out.push({ t: 'err', v: e }); i += e.length; continue;
     }
-    const num = /^(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/.exec(s.slice(i));
-    if (num && !/^[A-Za-z$]/.test(s[i])) { out.push({ t: 'num', v: Number(num[0]) }); i += num[0].length; continue; }
+    if (ch === '{') {
+      const end = s.indexOf('}', i);
+      if (end < 0) throw new FormulaSyntaxError('Matriz sem chave de fechamento.');
+      const rows = s.slice(i + 1, end).split(/;|\|/).map((row) => row.split(/\\|,(?!\d)/).map((cell) => {
+        const c = cell.trim();
+        if (/^".*"$/.test(c)) return c.slice(1, -1).replace(/""/g, '"');
+        if (c.toUpperCase() in BOOLS) return BOOLS[c.toUpperCase()];
+        const v = Number(c.replace(',', '.'));
+        if (c === '' || Number.isNaN(v)) throw new FormulaSyntaxError(`Valor inválido na matriz: ${c || '(vazio)'}.`);
+        return v;
+      }));
+      if (rows.some((r) => r.length !== rows[0].length)) throw new FormulaSyntaxError('As linhas da matriz precisam ter o mesmo número de colunas.');
+      out.push({ t: 'arr', v: rows }); i = end + 1; continue;
+    }
+    // número: ponto ou vírgula decimal (vírgula só entre dígitos: 0,5)
+    const num = /^(\d+(?:[.,]\d+)?|\d+\.|[.,]\d+)([eE][+-]?\d+)?/.exec(s.slice(i));
+    if (num && !/^[A-Za-z$]/.test(s[i])) { out.push({ t: 'num', v: Number(num[0].replace(',', '.')) }); i += num[0].length; continue; }
     // planilha com espaço no nome: 'Minha planilha'!A1
     let sheet: string | null = null, rest = s.slice(i);
     const quoted = /^'((?:[^']|'')+)'!/.exec(rest);
@@ -157,6 +175,7 @@ export function parse(formula: string): Ast {
       case 'str': return { k: 'str', v: t.v };
       case 'bool': return { k: 'bool', v: t.v };
       case 'err': return { k: 'err', code: t.v };
+      case 'arr': return { k: 'arr', v: t.v };
       case 'name': return { k: 'name', name: t.v };
       case 'ref': return t.b ? { k: 'range', sheet: t.sheet, start: t.a, end: t.b } : { k: 'ref', sheet: t.sheet, ...t.a };
       case '(': { const e = comparison(); if (take()?.t !== ')') throw new FormulaSyntaxError('Falta fechar parênteses.'); return e; }
@@ -199,6 +218,7 @@ export function stringify(a: Ast, sep = ';'): string {
     case 'range': return `${quoteSheet(a.sheet)}${refText(a.start)}:${refText(a.end)}`;
     case 'call': return `${a.name}(${a.args.map((x) => stringify(x, sep)).join(sep)})`;
     case 'val': return String(a.v);
+    case 'arr': return `{${a.v.map((r) => r.map((x) => (typeof x === 'string' ? `"${x.replace(/"/g, '""')}"` : typeof x === 'boolean' ? (x ? 'VERDADEIRO' : 'FALSO') : String(x))).join('\\')).join(';')}}`;
     case 'un': return `${a.op}${wrap(a.arg, 6)}`;
     case 'pct': return `${wrap(a.arg, 6)}%`;
     case 'bin': {

@@ -21,7 +21,7 @@ const TEXT_PROPS = [
 export const UNDERLINE_STYLES = ['SINGLE', 'DOUBLE', 'THICK', 'DOTTED', 'DASHED', 'WAVY', 'WORDS'];
 const BOX_PROPS = ['fill', 'stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'radius', 'shadow', 'blur', 'border', 'effects'];
 const LINE_PROPS = ['stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'arrowStart', 'arrowEnd', 'shadow'];
-const TABLE_PROPS = ['cellPadding', 'headerFill', 'bandedRows'];
+const TABLE_PROPS = ['cellPadding', 'headerFill', 'bandedRows', 'numberFormat', 'wrapText', 'textRotation'];
 
 /** Propriedades de formatação que cada tipo aceita. */
 export function allowedProps(type: NodeType): Set<string> {
@@ -117,6 +117,9 @@ export function validateProps(type: NodeType | null, props: Record<string, unkno
         if (t.leader && !['NONE', 'DOTS', 'DASHES', 'LINE'].includes(t.leader)) fail('VALIDATION', 'Preenchimento da tabulação: NONE, DOTS, DASHES ou LINE.');
       }
     }
+    if (k === 'numberFormat' && (typeof v !== 'string' || !v.trim() || v.length > 120)) fail('VALIDATION', 'Formato numérico: um código (ex.: "#.##0,00", "dd/mm/aaaa") ou um pronto (CURRENCY, PERCENT, DATE_SHORT…).');
+    if (k === 'wrapText' && typeof v !== 'boolean') fail('VALIDATION', 'Quebrar texto é sim/não.');
+    if (k === 'textRotation' && (typeof v !== 'number' || v < -90 || v > 90)) fail('VALIDATION', 'Rotação do texto: de -90 a 90 graus.');
     if (k === 'border') validateBorder(v);
     if (k === 'shadow') validateShadow(v);
     if (k === 'effects') validateEffects(v);

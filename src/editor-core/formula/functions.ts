@@ -1,7 +1,9 @@
 // Valores, erros padronizados e o registro de funções (nomes em português e inglês, uma implementação só).
 // Para acrescentar uma função: registry.register({ name, aliases, category, min, max, fn }) — sem mexer no interpretador.
+// (As demais funções ficam em functions-extra.ts.)
 // Datas seguem o padrão das planilhas: número de dias desde 30/12/1899 (a parte decimal é a hora).
 
+import { registerExtraFunctions } from './functions-extra.ts';
 export type ErrorCode = '#DIV/0!' | '#VALUE!' | '#REF!' | '#NAME?' | '#N/A' | '#NUM!' | '#NULL!' | '#CYCLE!' | '#ERROR!';
 export interface FErr { error: ErrorCode }
 export interface Matrix { matrix: Value[][] }
@@ -94,6 +96,8 @@ export interface FunctionDef {
   max: number | null;
   description?: string;
   fn: (args: Value[], ctx: FunctionContext) => Value;
+  /** Funções que só avaliam o argumento necessário (SES, PARÂMETRO, ESCOLHER): recebem cada argumento como função. */
+  lazyFn?: (args: (() => Value)[], ctx: FunctionContext) => Value;
 }
 
 export const normalizeName = (n: string) => n.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -109,14 +113,14 @@ export class FunctionRegistry {
   list() { return [...new Set(this.map.values())].map((d) => ({ name: d.name, aliases: d.aliases ?? [], category: d.category, description: d.description ?? '' })); }
 }
 
-const round = (n: number, d: number, mode: 'ROUND' | 'UP' | 'DOWN') => {
+export const round = (n: number, d: number, mode: 'ROUND' | 'UP' | 'DOWN') => {
   const k = 10 ** d, x = n * k;
   const r = mode === 'ROUND' ? Math.sign(x) * Math.round(Math.abs(x) + 1e-9) : mode === 'UP' ? Math.sign(x) * Math.ceil(Math.abs(x) - 1e-9) : Math.sign(x) * Math.floor(Math.abs(x) + 1e-9);
   return r / k;
 };
 
 /** Critério de SOMASE / CONT.SE: ">10", "<>0", "texto", "a*" (curingas). */
-function criterion(c: Value): (v: Scalar) => boolean {
+export function criterion(c: Value): (v: Scalar) => boolean {
   const s = scalar(c);
   if (typeof s === 'number' || typeof s === 'boolean') return (v) => v === s;
   const m = /^(<>|>=|<=|=|>|<)?(.*)$/.exec(String(s ?? ''))!;
@@ -134,12 +138,12 @@ function criterion(c: Value): (v: Scalar) => boolean {
   };
 }
 
-const matrixOf = (v: Value): Value[][] => (isMatrix(v) ? v.matrix : [[v]]);
-const looseEq = (a: Scalar, b: Scalar) => (typeof a === 'string' && typeof b === 'string' ? a.toLowerCase() === b.toLowerCase() : a === b);
-const lessEq = (a: Scalar, b: Scalar) => (typeof a === 'number' && typeof b === 'number' ? a <= b : String(a ?? '').toLowerCase() <= String(b ?? '').toLowerCase());
+export const matrixOf = (v: Value): Value[][] => (isMatrix(v) ? v.matrix : [[v]]);
+export const looseEq = (a: Scalar, b: Scalar) => (typeof a === 'string' && typeof b === 'string' ? a.toLowerCase() === b.toLowerCase() : a === b);
+export const lessEq = (a: Scalar, b: Scalar) => (typeof a === 'number' && typeof b === 'number' ? a <= b : String(a ?? '').toLowerCase() <= String(b ?? '').toLowerCase());
 
 /** Posição (1, 2, …) no vetor; tipo 0 = exato, 1 = maior valor ≤ procurado (lista crescente), -1 = menor ≥ (decrescente). */
-function matchIn(v: Scalar, list: Scalar[], type: number) {
+export function matchIn(v: Scalar, list: Scalar[], type: number) {
   if (type === 0) { const i = list.findIndex((x) => looseEq(x, v) || (typeof v === 'string' && criterion(v)(x))); return i < 0 ? raise('#N/A') : i + 1; }
   let found = -1;
   for (let i = 0; i < list.length; i++) {
@@ -149,26 +153,26 @@ function matchIn(v: Scalar, list: Scalar[], type: number) {
   return found < 0 ? raise('#N/A') : found + 1;
 }
 
-function pv(rate: number, nper: number, pmt: number, fv: number, type: number) {
+export function pv(rate: number, nper: number, pmt: number, fv: number, type: number) {
   if (rate === 0) return -(fv + pmt * nper);
   const f = (1 + rate) ** nper;
   return -(fv + pmt * (1 + rate * type) * (f - 1) / rate) / f;
 }
-function fv(rate: number, nper: number, pmt: number, pvv: number, type: number) {
+export function fv(rate: number, nper: number, pmt: number, pvv: number, type: number) {
   if (rate === 0) return -(pvv + pmt * nper);
   const f = (1 + rate) ** nper;
   return -(pvv * f + pmt * (1 + rate * type) * (f - 1) / rate);
 }
-function pmt(rate: number, nper: number, pvv: number, fvv: number, type: number) {
+export function pmt(rate: number, nper: number, pvv: number, fvv: number, type: number) {
   if (nper === 0) raise('#NUM!');
   if (rate === 0) return -(pvv + fvv) / nper;
   const f = (1 + rate) ** nper;
   return -(rate * (pvv * f + fvv)) / ((1 + rate * type) * (f - 1));
 }
 
-const n = (a: Value[], i: number, d?: number) => (a[i] === undefined || a[i] === '' ? (d ?? raise('#VALUE!')) : toNumber(a[i]));
-const t = (a: Value[], i: number, d = '') => (a[i] === undefined ? d : toText(a[i]));
-const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : raise('#DIV/0!'));
+export const n = (a: Value[], i: number, d?: number) => (a[i] === undefined || a[i] === '' ? (d ?? raise('#VALUE!')) : toNumber(a[i]));
+export const t = (a: Value[], i: number, d = '') => (a[i] === undefined ? d : toText(a[i]));
+export const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : raise('#DIV/0!'));
 
 export function createRegistry(): FunctionRegistry {
   const r = new FunctionRegistry();
@@ -301,5 +305,6 @@ export function createRegistry(): FunctionRegistry {
     return m[r - 1][c - 1] as Value;
   });
   add('CORRESP', ['MATCH'], 'LOOKUP', 2, 3, (a) => matchIn(scalar(a[0]), matrixOf(a[1]).flat() as Scalar[], n(a, 2, 1)));
+  registerExtraFunctions(r);   // C1: as outras ~200 (functions-extra.ts)
   return r;
 }

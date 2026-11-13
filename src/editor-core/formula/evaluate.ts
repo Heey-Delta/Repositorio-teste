@@ -26,6 +26,21 @@ function compare(a: Scalar, b: Scalar): number {
   return Number(a) - Number(b);
 }
 
+function binOp(op: string, l: Value, r: Value): Value {
+  switch (op) {
+    case '+': return toNumber(l) + toNumber(r);
+    case '-': return toNumber(l) - toNumber(r);
+    case '*': return toNumber(l) * toNumber(r);
+    case '/': { const d = toNumber(r); const x = toNumber(l); return d === 0 ? raise('#DIV/0!') : x / d; }
+    case '^': return toNumber(l) ** toNumber(r);
+    case '&': return toText(l) + toText(r);
+    default: {
+      const c = compare(scalar(l), scalar(r));
+      return { '=': c === 0, '<>': c !== 0, '<': c < 0, '>': c > 0, '<=': c <= 0, '>=': c >= 0 }[op] ?? raise('#ERROR!');
+    }
+  }
+}
+
 function evalNode(a: Ast, ctx: EvalContext): Value {
   switch (a.k) {
     case 'num': return a.v;
@@ -35,6 +50,7 @@ function evalNode(a: Ast, ctx: EvalContext): Value {
     case 'ref': return ctx.getCell(a.sheet, a.row, a.col);
     case 'range': return { matrix: ctx.getRange(a.sheet, Math.min(a.start.row, a.end.row), Math.min(a.start.col, a.end.col), Math.max(a.start.row, a.end.row), Math.max(a.start.col, a.end.col)) };
     case 'val': return a.v as Value;
+    case 'arr': return { matrix: a.v };
     case 'name': {
       const target = ctx.getName(a.name) ?? raise('#NAME?');
       return evalNode(target!, ctx);
@@ -43,18 +59,14 @@ function evalNode(a: Ast, ctx: EvalContext): Value {
     case 'pct': return toNumber(evalNode(a.arg, ctx)) / 100;
     case 'bin': {
       const l = evalNode(a.left, ctx), r = evalNode(a.right, ctx);
-      switch (a.op) {
-        case '+': return toNumber(l) + toNumber(r);
-        case '-': return toNumber(l) - toNumber(r);
-        case '*': return toNumber(l) * toNumber(r);
-        case '/': { const d = toNumber(r); const x = toNumber(l); return d === 0 ? raise('#DIV/0!') : x / d; }
-        case '^': return toNumber(l) ** toNumber(r);
-        case '&': return toText(l) + toText(r);
-        default: {
-          const c = compare(scalar(l), scalar(r));
-          return { '=': c === 0, '<>': c !== 0, '<': c < 0, '>': c > 0, '<=': c <= 0, '>=': c >= 0 }[a.op] ?? raise('#ERROR!');
-        }
+      // matriz com matriz/valor: operação elemento a elemento (C2:C6>200, (B2:B6="Sul")*C2:C6…)
+      if (isMatrix(l) || isMatrix(r)) {
+        const L = isMatrix(l) ? l.matrix : [[l]], R = isMatrix(r) ? r.matrix : [[r]];
+        const h = Math.max(L.length, R.length), w = Math.max(L[0]?.length ?? 1, R[0]?.length ?? 1);
+        const at = (m: Value[][], i: number, j: number) => m[m.length === 1 ? 0 : i]?.[m[0].length === 1 ? 0 : j] ?? err('#N/A');
+        return { matrix: Array.from({ length: h }, (_, i) => Array.from({ length: w }, (_, j) => { try { return binOp(a.op, at(L, i, j), at(R, i, j)); } catch (x) { if (x instanceof FormulaFault) return err(x.code); throw x; } })) };
       }
+      return binOp(a.op, l, r);
     }
     case 'call': {
       const def = ctx.functions.get(a.name) ?? raise('#NAME?');
@@ -71,6 +83,7 @@ function evalNode(a: Ast, ctx: EvalContext): Value {
         if (isErr(s) && (name === 'SEERRO' || s.error === '#N/A')) return evalNode(a.args[1], ctx);
         return first;
       }
+      if (def!.lazyFn) return def!.lazyFn(a.args.map((x) => () => evalNode(x, ctx)), { now: ctx.now });
       return def!.fn(a.args.map((x) => evalNode(x, ctx)), { now: ctx.now });
     }
   }

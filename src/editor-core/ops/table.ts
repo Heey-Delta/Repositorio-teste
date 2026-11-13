@@ -3,6 +3,7 @@
 //   SHEET (planilhas, SURFACE com surfaceType SHEET): só as células usadas, por endereço — data.cells['A1'].
 // As mesmas operações servem às duas; a implementação interna muda. Endereços sempre em A1 (ou { row, col }
 // começando em 1). Fórmulas: o motor tabular guarda fórmula e resultado; o FormulaService calcula.
+import { formatValue } from '../formula/number-format.ts';
 import type { EditorNode } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
 import type { SheetCell, ValidationRule } from '../formula/service.ts';
@@ -195,10 +196,13 @@ function afterWrite(e: Engine, n: EditorNode, changed: string[]) {
 export function readCell(e: Engine, n: EditorNode, row: number, col: number) {
   if (n.type === 'TABLE') {
     const c = tableCell(n, row, col);
-    return { address: toAddress({ row, col }), value: c.value ?? null, formula: c.formula ?? null, calculatedValue: c.calculatedValue ?? null, error: c.error ?? null, display: c.formula ? (c.error ? c.error.code : c.calculatedValue) : c.value };
+    const display = c.formula ? (c.error ? c.error.code : c.calculatedValue) : c.value;
+    return { address: toAddress({ row, col }), value: c.value ?? null, formula: c.formula ?? null, calculatedValue: c.calculatedValue ?? null, error: c.error ?? null, display, text: c.error ? c.error.code : formatValue(display, (c.styleOverrides as any)?.numberFormat).text };
   }
   const c = cellsMap(n)[toAddress({ row, col })] ?? {};
-  return { address: toAddress({ row, col }), value: c.value ?? null, formula: c.formula ?? null, calculatedValue: c.calculatedValue ?? null, error: c.error ?? null, display: c.formula ? (c.error ? c.error.code : c.calculatedValue ?? null) : c.value ?? null };
+  const display = c.formula ? (c.error ? c.error.code : c.calculatedValue ?? null) : c.value ?? null;
+  // "text": o valor como aparece na célula, já com o formato numérico (moeda, data, %…)
+  return { address: toAddress({ row, col }), value: c.value ?? null, formula: c.formula ?? null, calculatedValue: c.calculatedValue ?? null, error: c.error ?? null, display, text: c.error ? c.error.code : formatValue(display, (c.styleOverrides as any)?.numberFormat).text };
 }
 
 const visible = (v: unknown) => (isErr(v) ? v.error : v);

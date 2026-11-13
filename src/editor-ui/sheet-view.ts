@@ -1,6 +1,7 @@
 // Visão de planilha: barra de fórmulas, grade com seleção de célula/intervalo, edição no lugar,
 // teclado (setas, Enter, Tab, Delete, F2) e abas das planilhas.
 import type { Engine, EditorNode } from '../editor-core/index.ts';
+import { formatValue } from '../editor-core/formula/number-format.ts';
 import { h, toast } from './dom.ts';
 import { parseAddress, toAddress, indexToCol } from '../editor-core/formula/parse.ts';
 
@@ -63,7 +64,10 @@ export class SheetView {
         const cell = cells[addr];
         const shown = cell ? (cell.error ? cell.error.code : cell.calculatedValue ?? cell.value ?? '') : '';
         const td = h('td', { 'data-cell': addr, role: 'gridcell', 'aria-selected': addr === this.active() ? 'true' : null });
-        td.textContent = typeof shown === 'number' ? shown.toLocaleString('pt-BR', { maximumFractionDigits: 10 }) : typeof shown === 'boolean' ? (shown ? 'VERDADEIRO' : 'FALSO') : String(shown);
+        // formato numérico da célula (moeda, data, %, máscaras…), com a cor que o formato pedir ([Vermelho])
+        const fmt = cell?.error ? null : formatValue(shown, (cell?.styleOverrides as any)?.numberFormat);
+        td.textContent = fmt ? fmt.text : String(shown);
+        if (fmt?.color) td.style.color = fmt.color;
         if (typeof shown === 'number') td.classList.add('is-num');
         if (cell?.error) td.classList.add('is-err');
         const st = { ...(cell?.styleOverrides ?? {}), ...(looks[addr]?.style ?? {}) };

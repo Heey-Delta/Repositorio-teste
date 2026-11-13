@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**296 funcionalidades** · ✅ 296 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**300 funcionalidades** · ✅ 300 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -14,7 +14,7 @@
 | 04 | Inserção de elementos | Adicionar componentes | 18 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 23 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 21 | 0 | 0 |
-| 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
+| 07 | Cálculos e fórmulas | Processar informações | 20 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 22 | 0 | 0 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
@@ -42,11 +42,11 @@
 | Comentários e colaboração (`COLLAB`) | 1 | 14 |
 | Importação e exportação (`IO`) | 1 | 12 |
 | Visualização e navegação (`VIEW`) | 1 | 15 |
-| Tabelas e dados (`TABLE`) | 2 | 25 |
-| Cálculos e fórmulas (`FORMULA`) | 2 | 18 |
+| Tabelas e dados (`TABLE`) | 2 | 26 |
+| Cálculos e fórmulas (`FORMULA`) | 2 | 21 |
 | Visualização de dados (`CHART`) | 2 | 11 |
 | Diagramas (`DIAGRAM`) | 2 | 4 |
-| Layout e composição (`PAGE`) | 2 | 11 |
+| Layout e composição (`PAGE`) | 2 | 17 |
 | Animações e transições (`ANIMATION`) | 2 | 13 |
 | Revisão e validação (`REVIEW`) | 2 | 10 |
 | Referências e elementos automáticos (`REFERENCE`) | 2 | 13 |
@@ -245,6 +245,11 @@
 | ✅ | F07.14 | Calcular automaticamente | FORMULA | `SET_CELL` |  | Recalcula só o que depende do que mudou, em ordem. |
 | ✅ | F07.15 | Recalcular manualmente | FORMULA | `RECALCULATE` |  | Recalcula tudo. |
 | ✅ | F07.16 | Identificar erros de cálculo | FORMULA | `FORMULA_ERRORS` |  | #DIV/0!, #VALUE!, #REF!, #NAME?, #N/A, #NUM!, #CYCLE!. |
+| | | **C1 · Funções e formatos** | | | | |
+| ✅ | F07.17 | Biblioteca ampliada de funções | FORMULA | `SET_FORMULA` | formula | 249 funções em português e inglês: matemáticas, trigonometria, estatística (SOMASES, PERCENTIL, PREVISÃO, distribuição normal), lógicas (SES, PARÂMETRO, XOU), texto (UNIRTEXTO, TEXTOANTES, DIVIDIRTEXTO), datas (DATADIF, DIATRABALHO, FIMMÊS), financeiras (VPL, TIR, XTIR, IPGTO, depreciação), engenharia (bases, CONVERTER). C1. |
+| ✅ | F07.18 | Pesquisa moderna e matrizes dinâmicas | FORMULA | `SET_FORMULA` | formula | PROCX, CORRESPX, FILTRO, CLASSIFICAR, CLASSIFICARPOR, ÚNICO, SEQUÊNCIA, TRANSPOR, EMPILHARV/H, TOMAR, DESCARTAR, ESCOLHERCOLS/LINS. C1. O resultado em matriz mostra o primeiro valor na célula. |
+| ✅ | F07.19 | Matrizes constantes e operações elemento a elemento | FORMULA | `SET_FORMULA` | formula | {1;2;3}, {1\2\3}, C2:C6>200, (B2:B6="Sul")*C2:C6; vírgula decimal (0,5). C1. |
+| ✅ | F07.20 | Formatos numéricos | TABLE | `FORMAT_CELLS` | properties.numberFormat | Geral, número, moeda, contábil, %, científico, fração, datas, horas, duração, texto, CEP, CPF, CNPJ, telefone e códigos personalizados com seções, cores e condições. C1. |
 
 ## 08. Visualização de dados
 
@@ -289,12 +294,12 @@
 | ✅ | F09.15 | Configurar espaçamento entre elementos | OBJECTS | `DISTRIBUTE` `UPDATE_LAYOUT` |  | Distribuir ou definir gap. |
 | ✅ | F09.16 | Definir posicionamento de objetos | OBJECTS | `SET_LAYOUT` `SET_POSITION` |  | Fluxo ou posição livre. |
 | | | **B3 · Página** | | | | |
-| ✅ | F09.17 | Marca d'água | LAYOUT | `SET_WATERMARK` | text, color, opacity, diagonal \| assetId | Texto (CONFIDENCIAL, RASCUNHO…) na diagonal ou imagem esmaecida. B3. |
-| ✅ | F09.18 | Borda da página | LAYOUT | `SET_PAGE_BORDER` | style, width, color, offset, pages | Simples, dupla, tracejada, pontilhada, sombra, 3D; em todas, só na primeira ou menos na primeira. B3. |
-| ✅ | F09.19 | Formato da numeração de página | LAYOUT | `SET_PAGE_NUMBERING` | format, start, chapterPrefix | 1, i, I, a, A…; começar em N; por seção. B3. |
-| ✅ | F09.20 | Números de linha | LAYOUT | `SET_LINE_NUMBERS` | countBy, start, restart, distance | Contar de N em N, reiniciar por página/seção ou contínuo. B3. |
-| ✅ | F09.21 | Hifenização | LAYOUT | `SET_HYPHENATION` | auto, zone, limit, caps | Automática, zona, limite de hífens seguidos, palavras em maiúsculas. B3. |
-| ✅ | F09.22 | Medianiz, margens espelhadas e alinhamento vertical | LAYOUT | `SET_PAGE` | gutter, gutterPosition, mirrorMargins, verticalAlign | Encadernação, frente e verso e texto centralizado na página. B3. |
+| ✅ | F09.17 | Marca d'água | PAGE | `SET_WATERMARK` | text, color, opacity, diagonal \| assetId | Texto (CONFIDENCIAL, RASCUNHO…) na diagonal ou imagem esmaecida. B3. |
+| ✅ | F09.18 | Borda da página | PAGE | `SET_PAGE_BORDER` | style, width, color, offset, pages | Simples, dupla, tracejada, pontilhada, sombra, 3D; em todas, só na primeira ou menos na primeira. B3. |
+| ✅ | F09.19 | Formato da numeração de página | PAGE | `SET_PAGE_NUMBERING` | format, start, chapterPrefix | 1, i, I, a, A…; começar em N; por seção. B3. |
+| ✅ | F09.20 | Números de linha | PAGE | `SET_LINE_NUMBERS` | countBy, start, restart, distance | Contar de N em N, reiniciar por página/seção ou contínuo. B3. |
+| ✅ | F09.21 | Hifenização | PAGE | `SET_HYPHENATION` | auto, zone, limit, caps | Automática, zona, limite de hífens seguidos, palavras em maiúsculas. B3. |
+| ✅ | F09.22 | Medianiz, margens espelhadas e alinhamento vertical | PAGE | `SET_PAGE` | gutter, gutterPosition, mirrorMargins, verticalAlign | Encadernação, frente e verso e texto centralizado na página. B3. |
 
 ## 10. Temas e estilos
 
