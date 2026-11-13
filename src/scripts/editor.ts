@@ -6,7 +6,7 @@ import { Markdown } from '@tiptap/markdown';
 import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
-import { Circle, askCircle } from './editor-blocks';
+import { RichBlocks, openBlockDialog } from './editor-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
 
 type Dep = { id: number; slug: string; name: string; code: string };
@@ -41,7 +41,7 @@ const editor = new Editor({
     Markdown,
     Image.configure({ inline: false, allowBase64: false }),
     TableKit.configure({ table: { resizable: false } }),
-    Circle,
+    ...RichBlocks,
     Placeholder.configure({ placeholder: 'Escreva aqui. Use a barra acima para títulos de seção, listas e links.' }),
   ],
   content: data.draft.body ?? '',
@@ -62,7 +62,10 @@ const commands: Record<string, () => void> = {
   hr: () => editor.chain().focus().setHorizontalRule().run(),
   image: () => openMedia('inline'),
   table: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-  circle: () => { const a = askCircle(); if (a) editor.chain().focus().insertContent({ type: 'circle', attrs: a }).run(); },
+  circle: () => insertBlock('circle'),
+  chart: () => insertBlock('chart'),
+  diagram: () => insertBlock('diagram'),
+  math: () => insertBlock('math'),
   rowAdd: () => editor.chain().focus().addRowAfter().run(),
   colAdd: () => editor.chain().focus().addColumnAfter().run(),
   rowDel: () => editor.chain().focus().deleteRow().run(),
@@ -91,16 +94,31 @@ function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
   $('#tableTools').hidden = !editor.isActive('table');
 }
-// duplo clique (ou Enter com o círculo selecionado) edita o círculo
-const editCircle = () => {
+// gráfico, diagrama, equação e círculo: inserir pela janela; duplo clique (ou Enter quando selecionado) edita
+const BLOCKS = ['chart', 'diagram', 'math', 'circle'] as const;
+async function insertBlock(kind: (typeof BLOCKS)[number]) {
+  const { from } = editor.state.selection;
+  const attrs = await openBlockDialog(kind);
+  if (attrs) editor.chain().focus().setTextSelection(from).insertContent({ type: kind, attrs }).run();
+}
+async function editBlock() {
   const sel = editor.state.selection as any;
-  if (sel.node?.type.name !== 'circle') return false;
-  const a = askCircle(sel.node.attrs);
-  if (a) editor.chain().focus().updateAttributes('circle', a).run();
+  const kind = sel.node?.type.name;
+  if (!BLOCKS.includes(kind)) return false;
+  const pos = sel.from;
+  const attrs = await openBlockDialog(kind, sel.node.attrs);
+  if (attrs) editor.chain().focus().setNodeSelection(pos).updateAttributes(kind, attrs).run();
   return true;
-};
-editor.view.dom.addEventListener('dblclick', (e) => { if ((e.target as HTMLElement).closest('.lab-circle')) { e.preventDefault(); editCircle(); } });
-editor.view.dom.addEventListener('keydown', (e) => { if (e.key === 'Enter' && editCircle()) e.preventDefault(); });
+}
+editor.view.dom.addEventListener('dblclick', (e) => {
+  const el = (e.target as HTMLElement).closest('.rich-block');
+  if (!el) return;
+  e.preventDefault();
+  const pos = editor.view.posAtDOM(el, 0);
+  editor.commands.setNodeSelection(pos);
+  void editBlock();
+});
+editor.view.dom.addEventListener('keydown', (e) => { const n = (editor.state.selection as any).node; if (e.key === 'Enter' && n && BLOCKS.includes(n.type.name)) { e.preventDefault(); void editBlock(); } });
 
 // ---------- título, resumo e contadores ----------
 // o endereço acompanha o título só em publicação nova: depois de salva, muda apenas se for editado à mão

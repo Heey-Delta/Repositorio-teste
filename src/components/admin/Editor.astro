@@ -36,7 +36,8 @@ const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 const tools = [
   ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
   ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
-  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['circle', 'Inserir círculo de destaque', '◯ Círculo'],
+  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', '📊 Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
+  ['math', 'Inserir equação', '∑ Equação'], ['circle', 'Inserir círculo de destaque', '◯ Círculo'],
   ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 // aparecem só com o cursor dentro de uma tabela
@@ -44,7 +45,7 @@ const tableTools = [
   ['rowAdd', 'Adicionar linha abaixo', '+ Linha'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna'],
   ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableDel', 'Apagar tabela', '✕ Tabela'],
 ];
-const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'circle', 'image'];
+const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'circle', 'image'];
 ---
 <Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
@@ -59,7 +60,7 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'circle', 'image'];
       <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
       <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
     </div>
-    <div id="toolbar" role="toolbar" aria-label="Formatação do texto" class="flex gap-1 overflow-x-auto border-t border-line px-4 py-1.5 lg:px-6">
+    <div id="toolbar" role="toolbar" aria-label="Formatação do texto" class="flex flex-wrap gap-1 border-t border-line px-4 py-1.5 lg:px-6">
       {tools.map(([cmd, name, glyph]) => (
         <button type="button" data-cmd={cmd} aria-label={name} title={name} aria-pressed={noPressed.includes(cmd) ? undefined : 'false'}
           class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
@@ -337,8 +338,8 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'circle', 'image'];
   #body .ProseMirror .selectedCell { background: rgb(251 191 0 / .12); }
   #body .ProseMirror .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: var(--accent); pointer-events: none; }
   #body .ProseMirror td, #body .ProseMirror th { position: relative; }
-  #body .ProseMirror .lab-circle { cursor: pointer; }
-  #body .ProseMirror .lab-circle.ProseMirror-selectednode { outline: 2px solid var(--ink); outline-offset: 4px; }
+  #body .ProseMirror .rich-block { cursor: pointer; }
+  #body .ProseMirror .rich-block.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
   #tableTools[hidden] { display: none; }
   #body .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; }
   #saveState[data-tone="dirty"] { color: var(--ink); }

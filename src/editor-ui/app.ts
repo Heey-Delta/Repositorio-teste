@@ -5,6 +5,11 @@ import { h, download, svgToPng, toast, readDataUrl, readBytes } from './dom.ts';
 import { DocView } from './doc-view.ts';
 import { SlideView, present } from './slide-view.ts';
 import { SheetView } from './sheet-view.ts';
+import { openBlockDialog } from './block-dialog.ts';
+import { parseChartData } from '../lib/rich-blocks.ts';
+
+/** Atributos da janela → dados do motor. */
+const chartFrom = (a: Record<string, string>) => { const { categories, series } = parseChartData(a.data ?? ''); return { chartType: a.type, title: { text: a.title ?? '', visible: Boolean(a.title) }, source: { type: 'MANUAL', categories, series } }; };
 
 type View = DocView | SlideView | SheetView;
 const STATUS: Record<string, string> = { idle: 'Pronto', pending: 'Alterações a salvar…', saving: 'Salvando…', saved: 'Salvo', error: 'Erro ao salvar — tentando de novo', offline: 'Sem conexão — salvará quando voltar' };
@@ -57,7 +62,9 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       select('Tamanho', [['', 'Tamanho'], ...[9, 10, 11, 12, 14, 16, 18, 24, 32].map((n) => [String(n), `${n} pt`] as [string, string])], (v) => view.format({ fontSize: Number(v) })),
       ...textTools, color('Marca-texto', (c) => view.format({ highlight: c })), sep(),
       btn('⯇', 'Alinhar à esquerda', () => view.align('LEFT')), btn('≡', 'Centralizar', () => view.align('CENTER')), btn('⯈', 'Alinhar à direita', () => view.align('RIGHT')), btn('☰', 'Justificar', () => view.align('JUSTIFY')), sep(),
-      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CIRCLE', 'Círculo'], ['RECTANGLE', 'Retângulo'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
+      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…'], ['CIRCLE', 'Círculo'], ['RECTANGLE', 'Retângulo'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
+        if (v === 'CHART') { void openBlockDialog('chart').then((a) => { if (a) view.insert('CHART', chartFrom(a)); }); return; }
+        if (v === 'DIAGRAM') { void openBlockDialog('diagram').then((a) => { if (a) view.insert('DIAGRAM', { diagramType: a.type, outline: a.outline }); }); return; }
         if (v === 'CIRCLE' || v === 'RECTANGLE') { const t = prompt('Texto dentro da forma (opcional):', '') ?? ''; view.insert('SHAPE', { shapeType: v, ...(t ? { text: t } : {}) }, v === 'CIRCLE' ? { width: 160, height: 160 } : { width: 240, height: 120 }); return; }
         if (v.startsWith('LIST')) view.insert('LIST', { listType: v === 'LIST_NUMBERED' ? 'NUMBERED' : 'BULLET', items: [''] });
         else if (v === 'TABLE') view.insert('TABLE', { header: true, values: [['', '', ''], ['', '', ''], ['', '', '']] });
@@ -68,7 +75,9 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       }));
   } else if (view instanceof SlideView) {
     toolbar.append(...common,
-      select('Inserir', [['', 'Inserir…'], ['TEXT', 'Caixa de texto'], ['RECTANGLE', 'Retângulo'], ['ROUNDED_RECTANGLE', 'Retângulo arredondado'], ['ELLIPSE', 'Elipse'], ['TRIANGLE', 'Triângulo'], ['DIAMOND', 'Losango'], ['ARROW', 'Seta'], ['STAR', 'Estrela'], ['LINE', 'Linha'], ['TABLE', 'Tabela'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…']], (v) => {
+      select('Inserir', [['', 'Inserir…'], ['TEXT', 'Caixa de texto'], ['RECTANGLE', 'Retângulo'], ['ROUNDED_RECTANGLE', 'Retângulo arredondado'], ['ELLIPSE', 'Elipse'], ['TRIANGLE', 'Triângulo'], ['DIAMOND', 'Losango'], ['ARROW', 'Seta'], ['STAR', 'Estrela'], ['LINE', 'Linha'], ['TABLE', 'Tabela'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…']], (v) => {
+        if (v === 'CHART') { void openBlockDialog('chart').then((a) => { if (a) view.insert('CHART', chartFrom(a), [640, 360]); }); return; }
+        if (v === 'DIAGRAM') { void openBlockDialog('diagram').then((a) => { if (a) view.insert('DIAGRAM', { diagramType: a.type, outline: a.outline }, [640, 400]); }); return; }
         if (v === 'TEXT') view.insert('TEXT', { text: 'Texto' }, [400, 60]);
         else if (v === 'LINE') view.insert('LINE', { lineType: 'STRAIGHT' }, [300, 2]);
         else if (v === 'TABLE') view.insert('TABLE', { header: true, values: [['A', 'B', 'C'], ['', '', ''], ['', '', '']] }, [480, 150]);
@@ -243,6 +252,19 @@ export async function boot(root: HTMLElement, id: string, login: string) {
   e.on('change', render);
   e.on('view', render);
   e.on('navigate', render);
+  if (view instanceof DocView) view.onEditBlock = async (n) => {
+    if (n.type === 'CHART') {
+      const src = n.data.source ?? {};
+      if (src.type !== 'MANUAL') return toast('Este gráfico vem de uma tabela ou planilha: altere os números lá.', 'error');
+      const data = [['Categoria', ...src.series.map((x: any) => x.name)].join(';'), ...(src.categories ?? []).map((c: unknown, i: number) => [c, ...src.series.map((x: any) => x.values[i] ?? '')].join(';'))].join('\n');
+      const a = await openBlockDialog('chart', { type: n.data.chartType, title: n.data.title?.text ?? '', data });
+      if (a) run({ type: 'UPDATE', targetId: n.id, payload: { data: chartFrom(a) } });
+    } else if (n.type === 'DIAGRAM') {
+      const outline = e.execute({ type: 'DIAGRAM_TO_TEXT', targetId: n.id }).value as string;
+      const a = await openBlockDialog('diagram', { type: n.data.diagramType, outline });
+      if (a) run({ type: 'DIAGRAM_FROM_TEXT', targetId: n.id, payload: { text: a.outline, diagramType: a.type } });
+    }
+  };
   view.onSelect = () => { if (currentPanel === 'anim' || currentPanel === 'nav') drawPanel(); };
   e.on('save-status', (s: any) => { status.textContent = STATUS[s.state] ?? s.state; status.dataset.state = s.state; if (s.state === 'saved' && s.lastSavedAt) status.title = `Salvo às ${new Date(s.lastSavedAt).toLocaleTimeString('pt-BR')}`; });
 

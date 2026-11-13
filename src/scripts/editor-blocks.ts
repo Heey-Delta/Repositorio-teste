@@ -1,31 +1,48 @@
-// Blocos extras do editor de publicações: círculo de destaque (a tabela vem do TableKit do Tiptap).
+// Blocos extras do editor de publicações: gráfico, diagrama, equação e círculo (a tabela vem do TableKit).
+// Cada bloco é um nó "atômico": aparece desenhado igual ao site (src/lib/rich-blocks.ts), vira uma linha
+// ":::nome {atributos} :::" no Markdown e abre a janela de edição com duplo clique (ou Enter quando selecionado).
 import { Node as TiptapNode, createAtomBlockMarkdownSpec } from '@tiptap/core';
-import { CIRCLE_DEFAULT, circleInk, parseCircleAttrs, serializeCircleAttrs } from '../lib/circle-block';
+import { blockHtml, parseAttrs, serializeAttrs, type BlockName } from '../lib/rich-blocks.ts';
+import { openBlockDialog } from '../editor-ui/block-dialog.ts';
 
-// ---------- círculo de destaque (mesma sintaxe e mesmo desenho do site: src/lib/circle-block.ts) ----------
-export const Circle = TiptapNode.create({
-  name: 'circle', group: 'block', atom: true, draggable: true, selectable: true,
-  addAttributes() {
-    return { text: { default: CIRCLE_DEFAULT.text }, color: { default: CIRCLE_DEFAULT.color }, size: { default: CIRCLE_DEFAULT.size } };
-  },
-  parseHTML() {
-    return [{ tag: 'div[data-circle]', getAttrs: (el) => parseCircleAttrs(`text="${(el as HTMLElement).dataset.text ?? ''}" color="${(el as HTMLElement).dataset.color ?? ''}" size="${(el as HTMLElement).dataset.size ?? ''}"`) }];
-  },
-  renderHTML({ node }) {
-    const { text, color, size } = node.attrs as { text: string; color: string; size: number };
-    return ['div', { 'data-circle': '', 'data-text': text, 'data-color': color, 'data-size': String(size), class: 'lab-circle', role: 'img', 'aria-label': text || 'Círculo', style: `--c:${color};--s:${size}px;color:${circleInk(color)}` }, ['span', {}, text]];
-  },
-  ...createAtomBlockMarkdownSpec({ nodeName: 'circle', parseAttributes: (src) => parseCircleAttrs(src), serializeAttributes: (a) => serializeCircleAttrs(a) }),
-});
+const DEFAULTS: Record<BlockName, Record<string, string>> = {
+  chart: { type: 'COLUMN', title: '', data: '' },
+  diagram: { type: 'ORGCHART', outline: '' },
+  math: { tex: '' },
+  circle: { text: '', color: '#FBBF00', size: '160' },
+};
 
-/** Pergunta texto, cor e tamanho do círculo (para inserir ou editar). */
-export function askCircle(cur = CIRCLE_DEFAULT) {
-  const text = window.prompt('Texto dentro do círculo (ex.: 112%)', cur.text);
-  if (text === null) return null;
-  const color = window.prompt('Cor (ex.: #FBBF00 amarelo, #2563EB azul, #16A34A verde)', cur.color);
-  if (color === null) return null;
-  const size = window.prompt('Tamanho em pixels (60 a 400)', String(cur.size));
-  if (size === null) return null;
-  return parseCircleAttrs(serializeCircleAttrs({ text, color: color.trim(), size: Number(size) }));
+function makeBlock(name: BlockName) {
+  return TiptapNode.create({
+    name, group: 'block', atom: true, draggable: true, selectable: true,
+    addAttributes() {
+      return Object.fromEntries(Object.entries(DEFAULTS[name]).map(([k, v]) => [k, { default: v }]));
+    },
+    parseHTML() {
+      return [{ tag: `div[data-block="${name}"]`, getAttrs: (el) => { try { return JSON.parse((el as HTMLElement).dataset.attrs ?? '{}'); } catch { return {}; } } }];
+    },
+    renderHTML({ node }) {
+      return ['div', { 'data-block': name, 'data-attrs': JSON.stringify(node.attrs) }];
+    },
+    addNodeView() {
+      return ({ node }) => {
+        const dom = document.createElement('div');
+        dom.dataset.block = name;
+        dom.className = 'rich-block';
+        dom.contentEditable = 'false';
+        dom.title = 'Duplo clique para editar';
+        const draw = (attrs: Record<string, string>) => { try { dom.innerHTML = blockHtml(name, attrs); } catch (x) { dom.textContent = (x as Error).message; } };
+        draw(node.attrs as Record<string, string>);
+        return {
+          dom,
+          update: (n) => { if (n.type.name !== name) return false; draw(n.attrs as Record<string, string>); return true; },
+          ignoreMutation: () => true,
+        };
+      };
+    },
+    ...createAtomBlockMarkdownSpec({ nodeName: name, parseAttributes: (src) => parseAttrs(src), serializeAttributes: (a) => serializeAttrs(a) }),
+  });
 }
 
+export const RichBlocks = (['chart', 'diagram', 'math', 'circle'] as BlockName[]).map(makeBlock);
+export { openBlockDialog };

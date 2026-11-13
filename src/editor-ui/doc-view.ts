@@ -21,6 +21,8 @@ export class DocView {
   pending: { id: string; start: number; end?: number } | null = null;
   last: TextRange | null = null;
   onSelect: (r: TextRange | null) => void = () => {};
+  /** duplo clique num gráfico ou diagrama (a casca abre a janela de edição) */
+  onEditBlock: (n: EditorNode) => void = () => {};
   private composing = false;
 
   constructor(e: Engine, host: HTMLElement) {
@@ -96,8 +98,8 @@ export class DocView {
           into.push(span);
           return;
         }
-        case 'CHART': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, html: chartSvg(chartData(e, n), String(n.data.title?.text ?? ''), 600, 340) })); return;
-        case 'DIAGRAM': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, html: diagramSvg(n.data) })); return;
+        case 'CHART': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, title: 'Duplo clique para editar', ondblclick: () => this.onEditBlock(n), html: chartSvg(chartData(e, n), String(n.data.title?.text ?? ''), 600, 340) })); return;
+        case 'DIAGRAM': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, title: 'Duplo clique para editar', ondblclick: () => this.onEditBlock(n), html: diagramSvg(n.data) })); return;
         case 'SHAPE': {
           // forma no fluxo do texto (círculo, retângulo…): mesmo desenho dos slides, centralizada na linha
           const shape = slideItem(e, n);

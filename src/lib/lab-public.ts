@@ -2,7 +2,7 @@
 // O formato imita o das antigas coleções de conteúdo (entry.id e entry.data), para as páginas mudarem pouco.
 import { and, eq, inArray, lte, or, type SQL } from 'drizzle-orm';
 import { Marked } from 'marked';
-import { CIRCLE_RE, circleHtml, parseCircleAttrs } from './circle-block';
+import { markedBlocks } from './rich-blocks';
 import GithubSlugger from 'github-slugger';
 import { departments as staticDepartments, areas as staticAreas } from '../lab/data';
 import { db, schema as s } from '../db/client';
@@ -104,13 +104,8 @@ export function renderMarkdown(md: string) {
   const headings: { depth: number; slug: string; text: string }[] = [];
   const marked = new Marked({
     gfm: true,
-    // círculo de destaque: ":::circle {text=\"…\" color=\"#…\" size=\"…\"} :::" numa linha própria
-    extensions: [{
-      name: 'circle', level: 'block',
-      start(src: string) { const i = src.search(/^ {0,3}:::circle/m); return i < 0 ? undefined : i; },
-      tokenizer(src: string) { const m = CIRCLE_RE.exec(src); return m ? { type: 'circle', raw: m[0], attrs: parseCircleAttrs(m[1] ?? '') } : undefined; },
-      renderer(t: any) { return `${circleHtml(t.attrs)}\n`; },
-    }],
+    // blocos ricos: gráfico, diagrama, equação e círculo (":::nome {atributos} :::" numa linha própria)
+    extensions: markedBlocks(),
     renderer: {
       heading({ tokens, depth }) {
         const html = this.parser.parseInline(tokens);
