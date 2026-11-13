@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**283 funcionalidades** · ✅ 283 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**296 funcionalidades** · ✅ 296 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -11,16 +11,16 @@
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 39 | 0 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 17 | 0 | 0 |
-| 04 | Inserção de elementos | Adicionar componentes | 16 | 0 | 0 |
+| 04 | Inserção de elementos | Adicionar componentes | 18 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 23 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 21 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
-| 09 | Layout e composição | Organizar espaços | 16 | 0 | 0 |
+| 09 | Layout e composição | Organizar espaços | 22 | 0 | 0 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
-| 12 | Revisão e validação | Verificar conteúdo | 13 | 0 | 0 |
-| 13 | Comentários e colaboração | Trabalhar em conjunto | 11 | 0 | 0 |
+| 12 | Revisão e validação | Verificar conteúdo | 15 | 0 | 0 |
+| 13 | Comentários e colaboração | Trabalhar em conjunto | 14 | 0 | 0 |
 | 14 | Histórico e recuperação | Preservar alterações | 9 | 0 | 0 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 12 | 0 | 0 |
@@ -36,10 +36,10 @@
 | Histórico e versões (`HISTORY`) | 1 | 11 |
 | Hierarquia e organização (`ORGANIZE`) | 1 | 19 |
 | Formatação, estilos e temas (`FORMAT`) | 1 | 50 |
-| Inserção de conteúdo (`CONTENT`) | 1 | 17 |
+| Inserção de conteúdo (`CONTENT`) | 1 | 19 |
 | Texto (`TEXT`) | 1 | 5 |
 | Manipulação de objetos (`OBJECTS`) | 1 | 20 |
-| Comentários e colaboração (`COLLAB`) | 1 | 11 |
+| Comentários e colaboração (`COLLAB`) | 1 | 14 |
 | Importação e exportação (`IO`) | 1 | 12 |
 | Visualização e navegação (`VIEW`) | 1 | 15 |
 | Tabelas e dados (`TABLE`) | 2 | 25 |
@@ -48,7 +48,7 @@
 | Diagramas (`DIAGRAM`) | 2 | 4 |
 | Layout e composição (`PAGE`) | 2 | 11 |
 | Animações e transições (`ANIMATION`) | 2 | 13 |
-| Revisão e validação (`REVIEW`) | 2 | 8 |
+| Revisão e validação (`REVIEW`) | 2 | 10 |
 | Referências e elementos automáticos (`REFERENCE`) | 2 | 13 |
 | Automação e extensibilidade (`AUTOMATION`) | 2 | 8 |
 | Persistência (banco de dados) (`STORAGE`) | 3 | 1 |
@@ -165,6 +165,9 @@
 | ✅ | F04.14 | Cabeçalhos e rodapés | PAGE | `INSERT_STRUCTURE` `SET_HEADER_FOOTER` `PAGINATE` | regionType: HEADER\|FOOTER, applyTo | Regiões repetidas nas páginas: todas, primeira diferente, pares e ímpares. Depende de F09.01. |
 | ✅ | F04.15 | Numeração automática | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` `FIELD_TEXT` | contentType: FIELD, fieldType | Número de página, total de páginas, slide, figura, tabela e notas. Depende de F15.11. |
 | ✅ | F04.16 | Data e hora | REFERENCE | `INSERT_CONTENT` `UPDATE_FIELDS` | fieldType: DATE\|TIME\|DATETIME, format | Campo de data/hora atualizável, formato livre (ex.: 13 de novembro de 2026). Depende de F15.10. |
+| | | **B3 · Formulários e mala direta** | | | | |
+| ✅ | F04.17 | Campos de formulário | CONTENT | `INSERT_FORM_FIELD` `SET_FORM_VALUE` `FORM_DATA` `VALIDATE_FORM` | name, formType, options, required, min, max, maxLength, pattern | Texto, número, data, caixa de seleção e lista suspensa, com obrigatório, limites e padrão. B3. |
+| ✅ | F04.18 | Mala direta | CONTENT | `SET_MERGE_SOURCE` `INSERT_MERGE_FIELD` `MERGE_PREVIEW` `MERGE_RUN` | rows \| csv, name, record, filter | Fonte em CSV ou lista, campos «nome», pré-visualização e um documento por registro (com filtro). B3. |
 
 ## 05. Manipulação de objetos
 
@@ -285,6 +288,13 @@
 | ✅ | F09.14 | Definir alinhamentos | OBJECTS | `ALIGN` `UPDATE_LAYOUT` |  | Alinhamento de objetos e do contêiner. |
 | ✅ | F09.15 | Configurar espaçamento entre elementos | OBJECTS | `DISTRIBUTE` `UPDATE_LAYOUT` |  | Distribuir ou definir gap. |
 | ✅ | F09.16 | Definir posicionamento de objetos | OBJECTS | `SET_LAYOUT` `SET_POSITION` |  | Fluxo ou posição livre. |
+| | | **B3 · Página** | | | | |
+| ✅ | F09.17 | Marca d'água | LAYOUT | `SET_WATERMARK` | text, color, opacity, diagonal \| assetId | Texto (CONFIDENCIAL, RASCUNHO…) na diagonal ou imagem esmaecida. B3. |
+| ✅ | F09.18 | Borda da página | LAYOUT | `SET_PAGE_BORDER` | style, width, color, offset, pages | Simples, dupla, tracejada, pontilhada, sombra, 3D; em todas, só na primeira ou menos na primeira. B3. |
+| ✅ | F09.19 | Formato da numeração de página | LAYOUT | `SET_PAGE_NUMBERING` | format, start, chapterPrefix | 1, i, I, a, A…; começar em N; por seção. B3. |
+| ✅ | F09.20 | Números de linha | LAYOUT | `SET_LINE_NUMBERS` | countBy, start, restart, distance | Contar de N em N, reiniciar por página/seção ou contínuo. B3. |
+| ✅ | F09.21 | Hifenização | LAYOUT | `SET_HYPHENATION` | auto, zone, limit, caps | Automática, zona, limite de hífens seguidos, palavras em maiúsculas. B3. |
+| ✅ | F09.22 | Medianiz, margens espelhadas e alinhamento vertical | LAYOUT | `SET_PAGE` | gutter, gutterPosition, mirrorMargins, verticalAlign | Encadernação, frente e verso e texto centralizado na página. B3. |
 
 ## 10. Temas e estilos
 
@@ -338,6 +348,9 @@
 | ✅ | F12.11 | Contar caracteres | TEXT | `TEXT_STATS` |  | Com e sem espaços. |
 | ✅ | F12.12 | Gerar estatísticas | TEXT | `TEXT_STATS` `DOCUMENT_STATS` |  | Parágrafos, páginas, slides, tempo de leitura, elementos por tipo. Também frases, legibilidade (Flesch PT) e tempo de fala (Etapa 08). |
 | ✅ | F12.13 | Verificar acessibilidade | REVIEW | `CHECK_ACCESSIBILITY` |  | Texto alternativo, contraste, ordem de títulos, tabelas com cabeçalho, links descritivos. Etapa 08. |
+| | | **B3 · Revisão** | | | | |
+| ✅ | F12.14 | Autocorreção | REVIEW | `AUTOCORRECT_RULES` `ADD_AUTOCORRECT` `REMOVE_AUTOCORRECT` `AUTOCORRECT_TEXT` `AUTOCORRECT_DOCUMENT` | from, to \| text | Substituições (vc → você, (c) → ©, -- → —), DUas MAiúsculas e início de frase. B3. |
+| ✅ | F12.15 | Dicionário de sinônimos | REVIEW | `THESAURUS` `ADD_SYNONYMS` | word | Sinônimos em português (base + os do documento). B3. |
 
 ## 13. Comentários e colaboração
 
@@ -354,6 +367,10 @@
 | ✅ | F13.09 | Editar simultaneamente | COLLAB | `APPLY_REMOTE` | transactions[] | Recebe operações de outros editores e aplica sem conflito. Mesclagem em três vias por campo e por lista de filhos; SyncSession; desfazer preserva o trabalho dos outros. Servidor (ordem/transmissão) na Etapa 14. |
 | ✅ | F13.10 | Visualizar alterações de colaboradores | COLLAB | `SET_PRESENCE` `LIST_PRESENCE` | userId, selection | Quem está no documento e o que selecionou. Etapa 09. |
 | ✅ | F13.11 | Controlar alterações | COLLAB | `SET_TRACK_CHANGES` `LIST_CHANGES` `ACCEPT_CHANGE` `REJECT_CHANGE` | changeId | Modo revisão: cada alteração tem autor e pode ser aceita ou rejeitada. Etapa 09. |
+| | | **B3 · Segurança** | | | | |
+| ✅ | F13.12 | Restringir edição com senha | COLLAB | `PROTECT_DOCUMENT` `UNPROTECT_DOCUMENT` | mode, password | Só leitura, só comentários, alterações controladas ou só formulário; senha guardada como resumo SHA-256 com sal. B3. Protege a edição no editor; não é criptografia do arquivo. |
+| ✅ | F13.13 | Marcar como final | COLLAB | `MARK_FINAL` | final | Bloqueia a edição até desmarcar. B3. |
+| ✅ | F13.14 | Inspecionar documento | COLLAB | `INSPECT_DOCUMENT` `REMOVE_PERSONAL_INFO` |  | Comentários, alterações, texto oculto, autores e propriedades; remover dados pessoais. B3. |
 
 ## 14. Histórico e recuperação
 

@@ -139,3 +139,5 @@
 }
 .ed-list li { position: relative; }
 .ed-list li[data-label]:not([data-label=""])::before { content: attr(data-label); position: absolute; right: 100%; top: 0; margin-right: .5em; white-space: nowrap; color: inherit; }
+.ed-page { position: relative; }
+.ed-page.has-wm::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--ed-wm) center 400px / min(80%, 600px) auto repeat-y; opacity: var(--ed-wm-op, 1); }

@@ -8,6 +8,7 @@
 // fieldText(e, id, contexto) calcula o valor de qualquer campo (o número de página do cabeçalho muda a cada página,
 // por isso o contexto); UPDATE_FIELDS grava no documento o que é estável (numerações, sumário, índice, bibliografia
 // e campos do corpo do texto).
+import { formFieldText } from './document-tools.ts';
 import type { EditorNode } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
 import { insertContent } from './content.ts';
@@ -221,6 +222,7 @@ export function fieldText(e: Engine, id: string, ctx: FieldContext = {}, compute
     case 'TOC': return (d.entries ?? []).map((x: any) => `${'  '.repeat(x.level - 1)}${x.text} ${x.page}`).join('\n');
     case 'INDEX': return (d.entries ?? []).map((x: any) => `${x.term}, ${x.pages.join(', ')}`).join('\n');
     case 'BIBLIOGRAPHY': return (d.entries ?? []).map((x: any) => x.text).join('\n');
+    case 'FORM': case 'MERGE': return formFieldText(e, n);
     default: return '';
   }
 }

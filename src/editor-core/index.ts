@@ -31,6 +31,7 @@ import { viewHandlers, installView } from './ops/view.ts';
 import { storageHandlers } from './storage.ts';
 import { wordHandlers } from './ops/word.ts';
 import { objectHandlers } from './ops/objects.ts';
+import { documentToolHandlers, installProtection } from './ops/document-tools.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -81,6 +82,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   view: viewHandlers,
   word: wordHandlers,
   objects: objectHandlers,
+  documentTools: documentToolHandlers,
   storage: storageHandlers as Record<string, Handler>,
 };
 
@@ -97,6 +99,7 @@ export function createEngine(doc: DocumentModel, options?: EngineOptions) {
   installCollaboration(engine);
   installAutomation(engine);
   installView(engine);
+  installProtection(engine);
   engine.services.makeEngine = (app: DocumentModel['document']['application']) => createEngine(createDocument(app), options);
   return engine;
 }
@@ -111,6 +114,7 @@ export { resolveStyle } from './ops/format.ts';
 export { formulas } from './formula/service.ts';
 export { paginate, estimateMeasure } from './ops/page.ts';
 export { fieldText, formatCitation, formatReference } from './ops/reference.ts';
+export { sha256, autocorrect, formFieldText, THESAURUS_PT } from './ops/document-tools.ts';
 export { imageFilter, imageClip, tableCellLook, TABLE_STYLES } from './ops/objects.ts';
 export { SHAPES, shapeSvg, shapeD } from './io/shapes.ts';
 export { listLabels, formatNumber, roman, alpha, BUILTIN_STYLES, SPECIAL_CHARACTERS, NUMBER_FORMATS } from './ops/word.ts';

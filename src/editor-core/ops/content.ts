@@ -34,7 +34,7 @@ const withIds = <T extends Record<string, any>>(e: Engine, list: T[] = [], prefi
 
 export const TEXT_TYPES = ['PARAGRAPH', 'TITLE', 'SUBTITLE', 'HEADING_1', 'HEADING_2', 'HEADING_3', 'HEADING_4', 'HEADING_5', 'HEADING_6', 'QUOTE', 'CODE'];
 export const SHAPE_TYPES = [...Object.keys(SHAPES), 'POLYGON', 'CUSTOM'];
-export const FIELD_TYPES = ['PAGE_NUMBER', 'PAGE_COUNT', 'DATE', 'TIME', 'DATETIME', 'DOC_NAME', 'AUTHOR', 'SECTION_TITLE', 'CROSS_REFERENCE', 'SLIDE_NUMBER', 'SHEET_NAME', 'TOC', 'INDEX', 'BIBLIOGRAPHY'];
+export const FIELD_TYPES = ['PAGE_NUMBER', 'PAGE_COUNT', 'DATE', 'TIME', 'DATETIME', 'DOC_NAME', 'AUTHOR', 'SECTION_TITLE', 'CROSS_REFERENCE', 'SLIDE_NUMBER', 'SHEET_NAME', 'TOC', 'INDEX', 'BIBLIOGRAPHY', 'FORM', 'MERGE'];
 
 export const CONTENT: Record<ContentType, ContentSpec> = {
   TEXT: {

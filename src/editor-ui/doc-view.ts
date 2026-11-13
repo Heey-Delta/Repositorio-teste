@@ -49,6 +49,15 @@ export class DocView {
     const out: Node[] = [];
     const page = e.doc.document.settings.page;
     this.root.style.setProperty('--ed-page-w', `${page?.width ?? 794}px`);
+    // marca d'água e borda da página (B3)
+    const st = e.doc.document.settings as Record<string, any>;
+    const wm = st.watermark, pb = st.pageBorder;
+    this.root.style.setProperty('--ed-wm', wm?.text ? `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><text x='300' y='300' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-weight='700' font-size='${wm.fontSize ?? 72}' fill='${wm.color}' fill-opacity='${wm.opacity}'${wm.diagonal ? " transform='rotate(-45 300 300)'" : ''}>${esc(wm.text)}</text></svg>`)}")` : wm?.assetId && doc.assets[wm.assetId] ? `url("${doc.assets[wm.assetId].source}")` : 'none');
+    this.root.style.setProperty('--ed-wm-op', wm?.assetId ? String(wm.opacity ?? 0.15) : '1');
+    this.root.style.outline = pb ? `${pb.width}px ${({ DOUBLE: 'double', DASHED: 'dashed', DOTTED: 'dotted' } as Record<string, string>)[pb.style] ?? 'solid'} ${pb.color}` : '';
+    this.root.style.outlineOffset = pb ? `-${pb.offset ?? 24}px` : '';
+    this.root.classList.toggle('has-wm', Boolean(wm));
+    this.root.toggleAttribute('data-final', Boolean(st.final || st.protection));
     let hideUntil: number | null = null;
     const block = (n: EditorNode, into: Node[]) => {
       if (n.metadata.visible === false) return;

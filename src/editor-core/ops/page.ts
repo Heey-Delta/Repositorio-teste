@@ -27,6 +27,8 @@ export interface PageSetup {
   columns: number;
   columnGap: number;
   background?: Background | null;
+  /** B3: medianiz (encadernação), margens espelhadas (frente e verso) e alinhamento vertical do texto na página */
+  gutter?: number; gutterPosition?: 'LEFT' | 'TOP'; mirrorMargins?: boolean; verticalAlign?: 'TOP' | 'CENTER' | 'JUSTIFY' | 'BOTTOM';
 }
 export interface Background { color?: string; assetId?: string; gradient?: { from: string; to: string; angle: number }; fit?: 'COVER' | 'CONTAIN' | 'TILE' }
 
@@ -77,6 +79,10 @@ function applySetup(cur: PageSetup, p: Record<string, any>): PageSetup {
   if (p.margins) next.margins = typeof p.margins === 'string' ? { ...(MARGIN_PRESETS[p.margins] ?? fail('VALIDATION', `Margens prontas: ${Object.keys(MARGIN_PRESETS).join(', ')}.`)) } : { ...cur.margins, ...p.margins };
   for (const k of ['headerDistance', 'footerDistance', 'columnGap'] as const) if (p[k] !== undefined) next[k] = Number(p[k]);
   if (p.columns !== undefined) next.columns = Number(p.columns);
+  if (p.gutter !== undefined) { if (typeof p.gutter !== 'number' || p.gutter < 0 || p.gutter > 200) fail('VALIDATION', 'Medianiz: de 0 a 200 px.'); next.gutter = p.gutter; }
+  if (p.gutterPosition !== undefined) { if (!['LEFT', 'TOP'].includes(p.gutterPosition)) fail('VALIDATION', 'Posição da medianiz: LEFT ou TOP.'); next.gutterPosition = p.gutterPosition; }
+  if (p.mirrorMargins !== undefined) next.mirrorMargins = Boolean(p.mirrorMargins);
+  if (p.verticalAlign !== undefined) { if (!['TOP', 'CENTER', 'JUSTIFY', 'BOTTOM'].includes(p.verticalAlign)) fail('VALIDATION', 'Alinhamento vertical: TOP, CENTER, JUSTIFY ou BOTTOM.'); next.verticalAlign = p.verticalAlign; }
   if (next.width < 96 || next.height < 96) fail('VALIDATION', 'A página precisa ter pelo menos 1 polegada (96 px) de cada lado.');
   const m = next.margins;
   if ([m.top, m.right, m.bottom, m.left].some((v) => v < 0)) fail('VALIDATION', 'Margens não podem ser negativas.');
