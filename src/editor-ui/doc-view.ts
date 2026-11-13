@@ -6,6 +6,7 @@ import { h, esc, runsHtml, offsetIn, placeCaret, toast } from './dom.ts';
 import { chartData } from '../editor-core/charts/chart.ts';
 import { chartSvg, diagramSvg } from '../editor-core/io/svg.ts';
 import katex from 'katex';
+import { slideItem } from './slide-view.ts';
 
 export interface TextPoint { id: string; offset: number }
 export interface TextRange { start: TextPoint; end: TextPoint; collapsed: boolean }
@@ -97,6 +98,13 @@ export class DocView {
         }
         case 'CHART': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, html: chartSvg(chartData(e, n), String(n.data.title?.text ?? ''), 600, 340) })); return;
         case 'DIAGRAM': into.push(h('div', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id, html: diagramSvg(n.data) })); return;
+        case 'SHAPE': {
+          // forma no fluxo do texto (círculo, retângulo…): mesmo desenho dos slides, centralizada na linha
+          const shape = slideItem(e, n);
+          Object.assign(shape.style, { position: 'relative', left: '', top: '', margin: '0 auto' });
+          into.push(h('div', { class: 'ed-obj ed-shape', contenteditable: 'false', 'data-node-id': n.id }, shape));
+          return;
+        }
         case 'BREAK': into.push(h('div', { class: 'ed-break', contenteditable: 'false' }, n.data.breakType === 'COLUMN' ? 'quebra de coluna' : n.data.breakType === 'SECTION' ? 'quebra de seção' : 'quebra de página')); return;
         case 'LINK': into.push(h('div', { class: 'ed-p' }, h('a', { href: n.data.url ?? '#', contenteditable: 'false', target: '_blank', rel: 'noopener', html: runsHtml(n.data.runs) }))); return;
         case 'FIELD': {
@@ -331,13 +339,13 @@ export class DocView {
   align(a: string) { const r = this.range() ?? this.last; if (r) { this.pending = { id: r.start.id, start: r.start.offset }; this.run({ type: 'FORMAT', targetIds: [...new Set([r.start.id, r.end.id])], payload: { align: a } }); } }
 
   /** Insere um bloco depois do parágrafo do cursor (ou no fim). */
-  insert(contentType: string, data: Record<string, unknown>) {
+  insert(contentType: string, data: Record<string, unknown>, layout?: Record<string, unknown>) {
     const r = this.range() ?? this.last;
     const ref = r ? this.e.find(r.end.id) : null;
     const parentId = ref?.parentId && this.e.get(ref.parentId).type !== 'LIST_ITEM' ? ref.parentId : this.e.state.activeSurface;
     const index = ref && ref.parentId === parentId ? ref.order + 1 : undefined;
     return this.run(contentType === 'LIST' || contentType === 'BREAK'
       ? { type: 'INSERT_STRUCTURE', payload: { structureType: contentType, parentId, index, ...data } }
-      : { type: 'INSERT_CONTENT', payload: { contentType, parentId, index, data } });
+      : { type: 'INSERT_CONTENT', payload: { contentType, parentId, index, data, ...(layout ? { layout } : {}) } });
   }
 }

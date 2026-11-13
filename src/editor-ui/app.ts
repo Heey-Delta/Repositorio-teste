@@ -57,7 +57,8 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       select('Tamanho', [['', 'Tamanho'], ...[9, 10, 11, 12, 14, 16, 18, 24, 32].map((n) => [String(n), `${n} pt`] as [string, string])], (v) => view.format({ fontSize: Number(v) })),
       ...textTools, color('Marca-texto', (c) => view.format({ highlight: c })), sep(),
       btn('⯇', 'Alinhar à esquerda', () => view.align('LEFT')), btn('≡', 'Centralizar', () => view.align('CENTER')), btn('⯈', 'Alinhar à direita', () => view.align('RIGHT')), btn('☰', 'Justificar', () => view.align('JUSTIFY')), sep(),
-      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
+      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CIRCLE', 'Círculo'], ['RECTANGLE', 'Retângulo'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
+        if (v === 'CIRCLE' || v === 'RECTANGLE') { const t = prompt('Texto dentro da forma (opcional):', '') ?? ''; view.insert('SHAPE', { shapeType: v, ...(t ? { text: t } : {}) }, v === 'CIRCLE' ? { width: 160, height: 160 } : { width: 240, height: 120 }); return; }
         if (v.startsWith('LIST')) view.insert('LIST', { listType: v === 'LIST_NUMBERED' ? 'NUMBERED' : 'BULLET', items: [''] });
         else if (v === 'TABLE') view.insert('TABLE', { header: true, values: [['', '', ''], ['', '', ''], ['', '', '']] });
         else if (v === 'BREAK') view.insert('BREAK', { breakType: 'PAGE' });
