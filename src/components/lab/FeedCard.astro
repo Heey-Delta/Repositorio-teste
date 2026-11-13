@@ -1,6 +1,6 @@
 ---
-// Card de publicação do feed do Lab. Variantes: card (padrão), hype (com o número do ranking) e row (lista).
-// Publicação agendada ("em breve") aparece com a data, sem link: fica claro o que já dá para ler.
+// Card de publicação do feed do Lab, com contorno: imagem, tipo (departamento), título, data e curtidas.
+// Variantes: card (padrão), hype (com a posição no ranking) e row (lista). Agendada ("em breve") aparece sem link.
 import type { Card } from '../../lib/lab-feed';
 import LikeButton from './LikeButton.astro';
 import LabIcon from './LabIcon.astro';
@@ -8,16 +8,18 @@ import { departmentBySlug } from '../../lab/data';
 interface Props { c: Card; variant?: 'card' | 'hype' | 'row'; rank?: number; eager?: boolean }
 const { c, variant = 'card', rank, eager = false } = Astro.props;
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }).replace(/\./g, '');
+// nos cards, data curta (13 nov); o ano só aparece quando não é o atual
+const short = (iso: string) => { const d = new Date(iso), same = d.getFullYear() === new Date().getFullYear(); return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', ...(same ? {} : { year: 'numeric' }), timeZone: 'America/Sao_Paulo' }).replace(/\./g, '').replace(/ de /g, ' '); };
 const icon = departmentBySlug(c.dept)?.icon ?? 'notes';
 const soon = c.soon ? fmt(c.soon) : null;
 ---
 {variant === 'row' ? (
   <li class="row">
-    <div class="row-media">{c.cover ? <img src={c.cover.url} alt="" loading="lazy" decoding="async"> : <span class="pc-ph" style="position:relative;display:grid;height:100%"><LabIcon name={icon} class="size-7" /></span>}</div>
+    <div class="row-media">{c.cover ? <img src={c.cover.url} alt="" loading="lazy" decoding="async"> : <LabIcon name={icon} class="size-7" />}</div>
     <div class="min-w-0">
       <h3 class="row-title"><a href={c.url} class="pc-link">{c.title}</a></h3>
       {c.summary && <p class="row-sum">{c.summary}</p>}
-      <p class="row-meta">{[c.deptName, c.code, fmt(c.date)].filter(Boolean).join(' · ')}</p>
+      <p class="row-meta">{c.deptName} · <time datetime={c.date}>{fmt(c.date)}</time></p>
     </div>
     <LikeButton id={c.id} count={c.likes} title={c.title} />
   </li>
@@ -26,14 +28,17 @@ const soon = c.soon ? fmt(c.soon) : null;
     <div class="pc-media">
       {c.cover
         ? <img src={c.cover.url} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async">
-        : <span class="pc-ph"><LabIcon name={icon} class="size-10" />{c.code && <b>{c.code}</b>}</span>}
-      {soon ? <span class="pc-soon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Em breve · {soon}</span> : <span class="pc-open" aria-hidden="true">Ler</span>}
+        : <span class="pc-ph"><LabIcon name={icon} class="size-8" /></span>}
+      {soon && <span class="pc-soon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Em breve · {soon}</span>}
       {rank && <span class="pc-rank" aria-hidden="true">{rank}</span>}
     </div>
-    <h3 class="pc-title">{soon ? c.title : <a href={c.url} class="pc-link">{rank ? <span class="sr-only">{rank}º. </span> : null}{c.title}</a>}</h3>
-    <div class="pc-meta">
-      <span>{c.deptName}{!soon && ` · ${fmt(c.date)}`}</span>
-      {!soon && <LikeButton id={c.id} count={c.likes} title={c.title} />}
+    <div class="pc-body">
+      <span class="pc-kind">{c.deptName}</span>
+      <h3 class="pc-title">{soon ? c.title : <a href={c.url} class="pc-link">{rank ? <span class="sr-only">{rank}º lugar: </span> : null}{c.title}</a>}</h3>
+      <div class="pc-meta">
+        <time datetime={c.date}>{soon ? `Sai em ${short(c.soon!)}` : short(c.date)}</time>
+        {!soon && <LikeButton id={c.id} count={c.likes} title={c.title} />}
+      </div>
     </div>
   </article>
 )}

@@ -1,7 +1,7 @@
 ---
 // Experimental Lab: página inicial em forma de feed.
-// Ordem (do mais geral ao mais específico): título, busca e categorias > Volumes (o caminho principal, cards grandes
-// 40/40/20) > Top hypados (as mais curtidas, 3 e 1/3) > Hoje > Este mês > Todas (lista que carrega sozinha).
+// Ordem: título, imagem, busca e categorias > Publicado hoje (3 e meio) > Volumes (o caminho principal, cards
+// maiores, 40/40/20) > Top hypados (as mais curtidas, 3 e 1/3) > Este mês > Todas (lista que carrega sozinha).
 // Renderizada no servidor e guardada na CDN por 2 minutos: "hoje", "este mês" e as curtidas ficam sempre em dia,
 // sem um novo deploy. Imagens fora da tela só carregam quando chegam perto (loading="lazy").
 import '../../styles/lab-feed.css';
@@ -44,76 +44,79 @@ const jsonld = [{
 }];
 ---
 <Lab title="Experimentos, ensaios e pesquisas" description={LAB_DESCRIPTION} depth={1} noindex={!all.length} jsonld={jsonld}>
-  <!-- TOPO: título, busca e categorias (as categorias são gerais; o caminho principal são os volumes) -->
+  <!-- TOPO: título, imagem do laboratório, busca e categorias (gerais; o caminho principal são os volumes) -->
   <section class="lf-top" aria-labelledby="lab-title">
-    <div class="wrap flex flex-col gap-6 py-8 lg:gap-8 lg:py-12">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
-        <h1 id="lab-title" class="lf-title">Experimental <span>Lab</span></h1>
-        <p class="m-0 max-w-[440px] text-[15px] text-muted lg:pb-2">Experimentos, ensaios e pesquisas do Hallan sobre design, tecnologia e percepção. Comece por um volume ou busque por assunto.</p>
+    <div class="wrap grid grid-cols-[minmax(0,1fr)] gap-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-12 lg:py-12">
+      <div class="flex min-w-0 flex-col gap-5 lg:gap-6">
+        <h1 id="lab-title" class="lf-title">/ Experimental <span class="text-accent">Lab</span></h1>
+        <p class="m-0 max-w-[460px] text-[15px] text-muted lg:text-base">Experimentos, ensaios e pesquisas sobre design, tecnologia e percepção. Os volumes reúnem os textos por assunto, na ordem de leitura.</p>
+        <button type="button" class="lf-search" data-open-search aria-controls="labSearch">
+          <LabIcon name="search" class="size-5 shrink-0" />
+          <span>Buscar por assunto, título ou #tag</span>
+          <kbd aria-hidden="true">/</kbd>
+        </button>
+        <nav aria-label="Categorias do laboratório">
+          <ul class="lf-cats">
+            {departments.map((d) => (
+              <li><a href={`/lab/${d.slug}/`} class="lf-cat"><LabIcon name={d.icon} class="size-4" />{d.name}<small>{perDept(d.slug)}</small></a></li>
+            ))}
+          </ul>
+        </nav>
       </div>
-      <button type="button" class="lf-search" data-open-search aria-controls="labSearch">
-        <LabIcon name="search" class="size-5 shrink-0" />
-        <span>Buscar por assunto, título ou #tag</span>
-        <kbd aria-hidden="true">/</kbd>
-      </button>
-      <nav aria-label="Categorias do laboratório">
-        <ul class="lf-cats">
-          {departments.map((d) => (
-            <li><a href={`/lab/${d.slug}/`} class="lf-cat"><LabIcon name={d.icon} class="size-4" />{d.name}<small>{perDept(d.slug)}</small></a></li>
-          ))}
-        </ul>
-      </nav>
+      <div class="lf-hero-img order-first lg:order-none">
+        <img src="/img/laboratorio.webp" alt="Cúpula escura sobre uma cidade em ruínas, em meio-tom preto e branco" width="1200" height="750" fetchpriority="high" decoding="async">
+      </div>
     </div>
   </section>
 
   {!all.length && (
     <section class="lf-sec">
       <div class="wrap flex flex-col items-start gap-3">
-        <h2 class="lf-h2">As primeiras publicações estão a caminho</h2>
-        <p class="m-0 max-w-[480px] text-[15px] text-muted">Estou escrevendo os primeiros experimentos e notas. Enquanto isso, veja os trabalhos no portfólio.</p>
+        <h2 class="lf-h2">/ Em breve</h2>
+        <p class="m-0 max-w-[480px] text-[15px] text-muted">Os primeiros experimentos e notas estão sendo escritos. Enquanto isso, veja os trabalhos no portfólio.</p>
         <a href="/#works" class="lf-more">Ver os trabalhos</a>
       </div>
     </section>
   )}
 
-  <!-- VOLUMES: coletâneas escolhidas a dedo (hierarquia maior da página) -->
-  {volumes.length > 0 && (
-    <section class="lf-sec" aria-labelledby="vol-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><p class="lf-eyebrow">{volumes.length} {volumes.length === 1 ? 'volume' : 'volumes'}</p><h2 id="vol-title" class="lf-h2">Volumes</h2></div>
-          <a href="/lab/volumes/" class="lf-more">Ver todos</a>
-        </div>
-        <Rail size="vol" label="Volumes" loop={volumes.length > 2}>
-          {volumes.map((v, i) => <li class="rail-item"><VolumeCard v={v} eager={i < 2} /></li>)}
-        </Rail>
-      </div>
-    </section>
-  )}
-
-  <!-- TOP HYPADOS: as publicações mais curtidas, com o número do ranking -->
-  {hype.length > 0 && (
-    <section class="lf-sec" aria-labelledby="hype-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><p class="lf-eyebrow">As mais curtidas</p><h2 id="hype-title" class="lf-h2 lf-h2--sm">Top hypados</h2></div>
-        </div>
-        <Rail size="card" label="Top hypados" loop={hype.length > 3}>
-          {hype.map((c, i) => <li class="rail-item"><FeedCard c={c} variant="hype" rank={i + 1} /></li>)}
-        </Rail>
-      </div>
-    </section>
-  )}
-
-  <!-- HOJE -->
+  <!-- PUBLICADO HOJE (acima dos volumes): três e meio por tela -->
   {today.length > 0 && (
     <section class="lf-sec" aria-labelledby="today-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><p class="lf-eyebrow"><span class="lf-live" aria-hidden="true"></span>{todayName}</p><h2 id="today-title" class="lf-h2 lf-h2--sm">Publicado hoje</h2></div>
+          <div><h2 id="today-title" class="lf-h2 lf-h2--sm">/ Publicado hoje</h2><p class="lf-sub">{todayName}</p></div>
         </div>
-        <Rail size="card" label="Publicado hoje" loop={today.length > 3}>
-          {today.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}
+        <Rail size="today" label="Publicado hoje" loop={today.length > 3}>
+          {today.map((c, i) => <li class="rail-item"><FeedCard c={c} eager={i < 3} /></li>)}
+        </Rail>
+      </div>
+    </section>
+  )}
+
+  <!-- VOLUMES: coletâneas escolhidas a dedo (os cards maiores da página) -->
+  {volumes.length > 0 && (
+    <section class="lf-sec" aria-labelledby="vol-title">
+      <div class="wrap">
+        <div class="lf-head">
+          <div><h2 id="vol-title" class="lf-h2">/ Volumes</h2><p class="lf-sub">Textos reunidos por assunto, na ordem de leitura.</p></div>
+          <a href="/lab/volumes/" class="lf-more">Ver todos</a>
+        </div>
+        <Rail size="vol" label="Volumes" loop={volumes.length > 2}>
+          {volumes.map((v, i) => <li class="rail-item"><VolumeCard v={v} eager={i < 2 && !today.length} /></li>)}
+        </Rail>
+      </div>
+    </section>
+  )}
+
+  <!-- TOP HYPADOS: as publicações mais curtidas, na ordem do ranking -->
+  {hype.length > 0 && (
+    <section class="lf-sec" aria-labelledby="hype-title">
+      <div class="wrap">
+        <div class="lf-head">
+          <div><h2 id="hype-title" class="lf-h2 lf-h2--sm">/ Top hypados</h2><p class="lf-sub">As mais curtidas.</p></div>
+        </div>
+        <Rail size="card" label="Top hypados" loop={hype.length > 3}>
+          {hype.map((c, i) => <li class="rail-item"><FeedCard c={c} variant="hype" rank={i + 1} /></li>)}
         </Rail>
       </div>
     </section>
@@ -124,7 +127,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="month-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><p class="lf-eyebrow">{monthName}</p><h2 id="month-title" class="lf-h2 lf-h2--sm">Este mês</h2></div>
+          <div><h2 id="month-title" class="lf-h2 lf-h2--sm">/ Este mês</h2><p class="lf-sub">{monthName[0].toUpperCase() + monthName.slice(1)}, sem as de hoje.</p></div>
         </div>
         <Rail size="card" label="Publicado este mês" loop={month.length > 3}>
           {month.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}
@@ -138,7 +141,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="all-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><p class="lf-eyebrow">{all.length} {all.length === 1 ? 'publicação' : 'publicações'}</p><h2 id="all-title" class="lf-h2 lf-h2--sm">Todas as publicações</h2></div>
+          <div><h2 id="all-title" class="lf-h2 lf-h2--sm">/ Todas as publicações</h2><p class="lf-sub">{all.length} {all.length === 1 ? 'publicação' : 'publicações'}, da mais nova para a mais antiga.</p></div>
           <a href="/lab/rss.xml" class="lf-more">RSS</a>
         </div>
         <ul class="lf-list" id="feedList" aria-live="polite">
@@ -205,17 +208,17 @@ const jsonld = [{
         return '<li class="row"><div class="row-media">' + (c.cover ? '<img src="' + esc(c.cover.url) + '" alt="" loading="lazy" decoding="async">' : '') + '</div>'
           + '<div class="min-w-0"><h3 class="row-title"><a href="' + esc(c.url) + '" class="pc-link">' + esc(c.title) + '</a></h3>'
           + (c.summary ? '<p class="row-sum">' + esc(c.summary) + '</p>' : '')
-          + '<p class="row-meta">' + [c.deptName, c.code, fmt(c.date)].filter(Boolean).map(esc).join(' · ') + '</p></div>'
+          + '<p class="row-meta">' + esc(c.deptName) + ' · <time datetime="' + esc(c.date) + '">' + fmt(c.date) + '</time></p></div>'
           + '<button type="button" class="like" data-like="' + esc(c.id) + '" aria-pressed="false" aria-label="Curtir: ' + c.likes + '">' + heart + '<span data-like-count>' + c.likes + '</span></button></li>';
       };
       var load = function () {
         if (busy || !more.dataset.next) return;
-        busy = true; more.querySelector('button').textContent = 'Carregando…';
+        busy = true; var bt = more.querySelector('button'); bt.textContent = 'Carregando'; bt.setAttribute('aria-busy', 'true');
         fetch('/api/lab/lista?offset=' + more.dataset.next + '&limit=12').then(function (r) { return r.json(); }).then(function (d) {
           list.insertAdjacentHTML('beforeend', d.items.map(row).join(''));
           if (window.labLikes) window.labLikes.sync(d.items.map(function (c) { return c.id; }));
           if (d.next == null) { more.remove(); io && io.disconnect(); } else { more.dataset.next = d.next; more.querySelector('button').textContent = 'Carregar mais'; }
-        }).catch(function () { more.querySelector('button').textContent = 'Não carregou. Tentar de novo'; }).finally(function () { busy = false; });
+        }).catch(function () { more.querySelector('button').textContent = 'Não carregou. Tentar de novo'; }).finally(function () { busy = false; var b2 = more.querySelector('button'); if (b2) b2.removeAttribute('aria-busy'); });
       };
       more.querySelector('button').addEventListener('click', load);
       var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { if (es[0].isIntersecting) load(); }, { rootMargin: '600px 0px' }) : null;

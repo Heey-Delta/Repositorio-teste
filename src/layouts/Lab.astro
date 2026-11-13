@@ -86,10 +86,10 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
     <div id="labSearch" class="hidden max-h-[calc(100dvh-64px)] overflow-y-auto border-t border-line bg-bg">
       <div class="wrap flex flex-col gap-3 py-4">
         <label for="labSearchInput" class="text-xs text-muted">Busque por assunto, título, código ou tag. Não precisa ser a palavra exata: "inteligência artificial" também encontra "IA".</label>
-        <input id="labSearchInput" type="search" autocomplete="off" enterkeyhint="search" class="h-12 w-full border border-line bg-bg px-4 text-[15px] text-ink focus-visible:border-accent" placeholder="cérebro, IA, EXP-001, #tipografia…">
+        <input id="labSearchInput" type="search" autocomplete="off" enterkeyhint="search" class="h-12 w-full rounded-full border border-line bg-bg px-5 text-[15px] text-ink focus-visible:border-accent" placeholder="cérebro, IA, EXP-001, #tipografia…">
         <ul id="labSearchTags" class="m-0 flex list-none gap-1.5 overflow-x-auto p-0 pb-1 [scrollbar-width:none] sm:flex-wrap" aria-label="Tags"></ul>
         <p id="labSearchState" class="m-0 min-h-4 text-xs text-muted" role="status"></p>
-        <ul id="labSearchOut" class="m-0 grid list-none gap-px p-0"></ul>
+        <ul id="labSearchOut" class="m-0 grid list-none gap-2 p-0"></ul>
       </div>
     </div>
   </header>
@@ -142,13 +142,13 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
       var show = function (list, note) {
         out.innerHTML = ''; state.textContent = note || '';
         list.forEach(function (h) {
-          var li = el('li'), a = el('a', 'group grid grid-cols-[64px_1fr] items-center gap-3 border-b border-line py-3');
+          var li = el('li'), a = el('a', 'group grid grid-cols-[72px_1fr] items-center gap-3 rounded-2xl border border-line p-2 hover:border-ink');
           a.href = h.url;
-          var th = el('span', 'block aspect-[16/10] overflow-hidden border border-line bg-[#111]');
+          var th = el('span', 'block aspect-[16/10] overflow-hidden rounded-[10px] border border-line bg-[#111]');
           if (h.cover) { var im = el('img', 'h-full w-full object-cover'); im.src = h.cover; im.alt = ''; im.loading = 'lazy'; th.appendChild(im); }
           var tx = el('span', 'flex min-w-0 flex-col gap-1');
           tx.appendChild(el('span', 'text-[15px] leading-tight group-hover:text-accent', h.title));
-          tx.appendChild(el('span', 'font-mono text-[11px] uppercase text-muted', h.meta));
+          tx.appendChild(el('span', 'text-[12px] text-muted', h.meta));
           a.appendChild(th); a.appendChild(tx); li.appendChild(a); out.appendChild(li);
         });
       };

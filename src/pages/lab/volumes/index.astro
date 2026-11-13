@@ -19,9 +19,8 @@ const jsonld = [{
   <section class="lf-sec">
     <div class="wrap flex flex-col gap-8">
       <div class="flex flex-col gap-3">
-        <p class="lf-eyebrow">{volumes.length} {volumes.length === 1 ? 'volume' : 'volumes'}</p>
-        <h1 class="lf-title">Volumes</h1>
-        <p class="m-0 max-w-[560px] text-[15px] text-muted">Cada volume reúne os artigos de um assunto, na ordem em que vale a pena ler. É o melhor jeito de começar.</p>
+        <h1 class="lf-title">/ Volumes</h1>
+        <p class="m-0 max-w-[560px] text-[15px] text-muted">{volumes.length} {volumes.length === 1 ? 'volume' : 'volumes'}. Cada um reúne os artigos de um assunto, na ordem em que vale a pena ler.</p>
       </div>
       {volumes.length
         ? <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 lg:grid-cols-3">{volumes.map((v, i) => <li><VolumeCard v={v} eager={i < 4} /></li>)}</ul>
