@@ -5,6 +5,8 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
+import { TableKit } from '@tiptap/extension-table';
+import { Circle, askCircle } from './editor-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
 
 type Dep = { id: number; slug: string; name: string; code: string };
@@ -38,6 +40,8 @@ const editor = new Editor({
     StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true } }),
     Markdown,
     Image.configure({ inline: false, allowBase64: false }),
+    TableKit.configure({ table: { resizable: false } }),
+    Circle,
     Placeholder.configure({ placeholder: 'Escreva aqui. Use a barra acima para títulos de seção, listas e links.' }),
   ],
   content: data.draft.body ?? '',
@@ -57,6 +61,14 @@ const commands: Record<string, () => void> = {
   code: () => editor.chain().focus().toggleCodeBlock().run(),
   hr: () => editor.chain().focus().setHorizontalRule().run(),
   image: () => openMedia('inline'),
+  table: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+  circle: () => { const a = askCircle(); if (a) editor.chain().focus().insertContent({ type: 'circle', attrs: a }).run(); },
+  rowAdd: () => editor.chain().focus().addRowAfter().run(),
+  colAdd: () => editor.chain().focus().addColumnAfter().run(),
+  rowDel: () => editor.chain().focus().deleteRow().run(),
+  colDel: () => editor.chain().focus().deleteColumn().run(),
+  headerRow: () => editor.chain().focus().toggleHeaderRow().run(),
+  tableDel: () => editor.chain().focus().deleteTable().run(),
   undo: () => editor.chain().focus().undo().run(),
   redo: () => editor.chain().focus().redo().run(),
   link: () => {
@@ -77,7 +89,18 @@ toolButtons.forEach((b) => b.addEventListener('mousedown', (e) => e.preventDefau
 toolButtons.forEach((b) => b.addEventListener('click', () => commands[b.dataset.cmd!]?.()));
 function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
+  $('#tableTools').hidden = !editor.isActive('table');
 }
+// duplo clique (ou Enter com o círculo selecionado) edita o círculo
+const editCircle = () => {
+  const sel = editor.state.selection as any;
+  if (sel.node?.type.name !== 'circle') return false;
+  const a = askCircle(sel.node.attrs);
+  if (a) editor.chain().focus().updateAttributes('circle', a).run();
+  return true;
+};
+editor.view.dom.addEventListener('dblclick', (e) => { if ((e.target as HTMLElement).closest('.lab-circle')) { e.preventDefault(); editCircle(); } });
+editor.view.dom.addEventListener('keydown', (e) => { if (e.key === 'Enter' && editCircle()) e.preventDefault(); });
 
 // ---------- título, resumo e contadores ----------
 // o endereço acompanha o título só em publicação nova: depois de salva, muda apenas se for editado à mão

@@ -88,3 +88,10 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .lab-prose pre { background: #111; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
 .lab-prose pre code { background: none; padding: 0; font-size: inherit; }
 .lab-prose hr { border-top: 1px solid var(--line); }
+
+/* Publicações: tabelas e círculo de destaque (editor e site usam as mesmas classes) */
+.lab-prose table { width: 100%; border-collapse: collapse; font-size: 15px; display: block; overflow-x: auto; }
+.lab-prose th, .lab-prose td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; min-width: 4em; }
+.lab-prose th { background: #111; font-weight: 700; }
+.lab-prose td p, .lab-prose th p { margin: 0; }
+.lab-circle { width: var(--s, 160px); height: var(--s, 160px); max-width: 100%; aspect-ratio: 1; margin-inline: auto; border-radius: 50%; background: var(--c, var(--accent)); display: grid; place-items: center; text-align: center; font-family: var(--font-display); font-size: calc(var(--s, 160px) / 5); line-height: 1; padding: 12px; box-sizing: border-box; overflow-wrap: anywhere; }
