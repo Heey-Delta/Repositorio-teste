@@ -12,6 +12,7 @@ import { chartSvg, diagramSvg, type SvgTheme } from '../editor-core/io/svg.ts';
 import { layoutDiagram } from '../editor-core/ops/diagram.ts';
 import type { ChartData } from '../editor-core/charts/chart.ts';
 import { circleHtml, circleInk, parseCircleAttrs } from './circle-block.ts';
+import { SHAPES, shapeKind, shapeSvg } from '../editor-core/io/shapes.ts';
 
 /** Mesmas cores e fonte do site (shared.css): fundo do texto, tinta, cinza, linhas e o amarelo de destaque. */
 export const SITE_THEME: SvgTheme = {
@@ -49,60 +50,23 @@ function box(a: Record<string, unknown>, fallbackWidth?: number) {
 }
 
 // ---------------------------------------------------------------- formas
-export const SHAPE_KINDS: [string, string][] = [
-  ['RECTANGLE', 'Retângulo'], ['SQUARE', 'Quadrado'], ['ROUNDED', 'Retângulo arredondado'], ['CIRCLE', 'Círculo'], ['ELLIPSE', 'Elipse'],
-  ['TRIANGLE', 'Triângulo'], ['RIGHT_TRIANGLE', 'Triângulo retângulo'], ['DIAMOND', 'Losango'], ['PARALLELOGRAM', 'Paralelogramo'], ['TRAPEZOID', 'Trapézio'],
-  ['PENTAGON', 'Pentágono'], ['HEXAGON', 'Hexágono'], ['OCTAGON', 'Octógono'], ['STAR', 'Estrela'], ['STAR6', 'Estrela de 6 pontas'],
-  ['ARROW_RIGHT', 'Seta para a direita'], ['ARROW_LEFT', 'Seta para a esquerda'], ['ARROW_UP', 'Seta para cima'], ['ARROW_DOWN', 'Seta para baixo'], ['DOUBLE_ARROW', 'Seta dupla'],
-  ['CHEVRON', 'Divisa'], ['CALLOUT', 'Balão de fala'], ['CLOUD', 'Nuvem'], ['HEART', 'Coração'], ['CROSS', 'Cruz'], ['LIGHTNING', 'Raio'], ['LINE', 'Linha'],
-];
-/** Formas desenhadas numa caixa 100×100 (esticam junto com o bloco). */
-const SHAPES: Record<string, string> = {
-  RECTANGLE: '<rect x="1" y="1" width="98" height="98"/>',
-  SQUARE: '<rect x="1" y="1" width="98" height="98"/>',
-  ROUNDED: '<rect x="1" y="1" width="98" height="98" rx="14" ry="14"/>',
-  CIRCLE: '<ellipse cx="50" cy="50" rx="49" ry="49"/>',
-  ELLIPSE: '<ellipse cx="50" cy="50" rx="49" ry="49"/>',
-  TRIANGLE: '<polygon points="50,1 99,99 1,99"/>',
-  RIGHT_TRIANGLE: '<polygon points="1,1 1,99 99,99"/>',
-  DIAMOND: '<polygon points="50,1 99,50 50,99 1,50"/>',
-  PARALLELOGRAM: '<polygon points="22,1 99,1 78,99 1,99"/>',
-  TRAPEZOID: '<polygon points="22,1 78,1 99,99 1,99"/>',
-  PENTAGON: '<polygon points="50,1 99,38 80,99 20,99 1,38"/>',
-  HEXAGON: '<polygon points="25,1 75,1 99,50 75,99 25,99 1,50"/>',
-  OCTAGON: '<polygon points="30,1 70,1 99,30 99,70 70,99 30,99 1,70 1,30"/>',
-  STAR: '<polygon points="50,1 61,36 98,36 68,58 79,94 50,72 21,94 32,58 2,36 39,36"/>',
-  STAR6: '<polygon points="50,1 62,27 93,25 75,50 93,75 62,73 50,99 38,73 7,75 25,50 7,25 38,27"/>',
-  ARROW_RIGHT: '<polygon points="1,30 62,30 62,4 99,50 62,96 62,70 1,70"/>',
-  ARROW_LEFT: '<polygon points="99,30 38,30 38,4 1,50 38,96 38,70 99,70"/>',
-  ARROW_UP: '<polygon points="30,99 30,38 4,38 50,1 96,38 70,38 70,99"/>',
-  ARROW_DOWN: '<polygon points="30,1 30,62 4,62 50,99 96,62 70,62 70,1"/>',
-  DOUBLE_ARROW: '<polygon points="1,50 25,8 25,32 75,32 75,8 99,50 75,92 75,68 25,68 25,92"/>',
-  CHEVRON: '<polygon points="1,1 70,1 99,50 70,99 1,99 30,50"/>',
-  CALLOUT: '<path d="M8,1 H92 Q99,1 99,8 V62 Q99,69 92,69 H42 L22,98 L26,69 H8 Q1,69 1,62 V8 Q1,1 8,1 Z"/>',
-  CLOUD: '<path d="M25,85 Q2,85 4,64 Q5,48 22,47 Q20,22 44,20 Q58,4 74,20 Q97,18 96,42 Q99,62 84,72 Q86,86 66,85 Z"/>',
-  HEART: '<path d="M50,95 C18,72 1,52 1,30 C1,12 15,2 29,2 C40,2 47,9 50,18 C53,9 60,2 71,2 C85,2 99,12 99,30 C99,52 82,72 50,95 Z"/>',
-  CROSS: '<polygon points="34,1 66,1 66,34 99,34 99,66 66,66 66,99 34,99 34,66 1,66 1,34 34,34"/>',
-  LIGHTNING: '<polygon points="58,1 14,56 44,56 34,99 86,38 55,38 70,1"/>',
-  LINE: '<line x1="1" y1="50" x2="99" y2="50"/>',
-};
-const SQUARISH = new Set(['SQUARE', 'CIRCLE', 'STAR', 'STAR6', 'HEART', 'OCTAGON', 'CROSS']);
+/** Mesma biblioteca de formas do motor (Documentos e Apresentações): o desenho é idêntico nos três lugares. */
+export const SHAPE_KINDS: [string, string][] = Object.entries(SHAPES).map(([k, v]) => [k, v.label]);
 export interface ShapeAttrs { kind: string; text: string; fill: string; stroke: string; textColor: string; width: string; height: string; align: string }
 export const SHAPE_DEFAULT: ShapeAttrs = { kind: 'RECTANGLE', text: '', fill: '#FBBF00', stroke: '', textColor: '', width: '240', height: '140', align: 'center' };
 
 export function shapeHtml(a: Partial<ShapeAttrs>) {
-  const kind = SHAPES[a.kind ?? ''] ? a.kind! : 'RECTANGLE';
-  let w = px(a.width, 20, 1200) ?? 240, h = px(a.height, 4, 1200) ?? (SQUARISH.has(kind) ? w : 140);
+  const kind = shapeKind(a.kind);
+  const spec = SHAPES[kind];
+  let w = px(a.width, 20, 1200) ?? 240, h = px(a.height, 4, 1200) ?? (spec.square ? w : 140);
   if (kind === 'SQUARE' || kind === 'CIRCLE') h = w;
-  if (kind === 'LINE') h = Math.min(h, 40);
+  if (spec.open) h = Math.min(h, 40);
   const fill = color(a.fill, '#FBBF00');
   const stroke = a.stroke ? color(a.stroke, '') : '';
-  const line = kind === 'LINE';
-  const paint = line ? `fill="none" stroke="${stroke || fill}" stroke-width="4"` : `fill="${fill}"${stroke ? ` stroke="${stroke}" stroke-width="3"` : ''}`;
-  const svg = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g ${paint} vector-effect="non-scaling-stroke">${SHAPES[kind].replace(/\/>$/, ' vector-effect="non-scaling-stroke"/>')}</g></svg>`;
+  const svg = `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true" overflow="visible">${shapeSvg({ shapeType: kind }, w, h, { fill, stroke: stroke || undefined, strokeWidth: spec.open ? 4 : 3 })}</svg>`;
   const ink = color(a.textColor, circleInk(fill));
-  const label = esc(a.text || (SHAPE_KINDS.find(([k]) => k === kind)?.[1] ?? 'Forma'));
-  return `<div class="lab-shape" role="img" aria-label="${label}" style="${box(a, w)};aspect-ratio:${w}/${h};--fs:${Math.round(Math.min(w, h) / 5)}px;color:${ink}">${svg}${a.text && !line ? `<span>${esc(a.text)}</span>` : ''}</div>`;
+  const label = esc(a.text || spec.label);
+  return `<div class="lab-shape" role="img" aria-label="${label}" style="${box(a, w)};aspect-ratio:${w}/${h};--fs:${Math.round(Math.min(w, h) / 5)}px;color:${ink}">${svg}${a.text && !spec.open ? `<span>${esc(a.text)}</span>` : ''}</div>`;
 }
 
 // ---------------------------------------------------------------- gráfico

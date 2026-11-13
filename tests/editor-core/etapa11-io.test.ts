@@ -79,7 +79,7 @@ test('apresentação: PPTX ida e volta (posições, forma, tabela) e SVG do slid
   assert.deepEqual(items, [['text', 60, 40, 1160, 90, null, null], ['shape', 100, 200, 240, 160, 'ELLIPSE', '#FBBF00'], ['table', 500, 200, 400, 120, null, null]]);
   const svg = exportDocument(e, 'SVG', { targetId: sl }).data as string;
   assert.match(svg, /^<svg[^>]+viewBox="0 0 1280 720"/);
-  assert.match(svg, /<ellipse[^>]+fill="#FBBF00"/);
+  assert.match(svg, /<path d="M0,80 A120,80[^"]*" fill="#FBBF00"/);
   assert.equal(e.execute({ type: 'EXPORT', payload: { format: 'SVG' }, targetId: e.doc.document.rootId }).ok, false);
 });
 

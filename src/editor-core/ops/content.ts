@@ -3,6 +3,7 @@
 // histórico são do núcleo.
 //   INTERFACE → INSERT_CONTENT { contentType, data } → construtor → validador → CREATE → NODES
 // Também: estruturas (seção, superfície, região, lista, quebra), arquivos (ASSETS), atualizar e converter conteúdo.
+import { SHAPES } from '../io/shapes.ts';
 import type { Asset, ContentType, EditorNode, Layout } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
 import { createNode } from './basic.ts';
@@ -32,7 +33,7 @@ const URL_OK = /^(https?:\/\/|mailto:|tel:|#)/i;
 const withIds = <T extends Record<string, any>>(e: Engine, list: T[] = [], prefix: string) => list.map((x) => ({ ...x, id: x.id ?? e.newId(prefix) }));
 
 export const TEXT_TYPES = ['PARAGRAPH', 'TITLE', 'SUBTITLE', 'HEADING_1', 'HEADING_2', 'HEADING_3', 'HEADING_4', 'HEADING_5', 'HEADING_6', 'QUOTE', 'CODE'];
-export const SHAPE_TYPES = ['RECTANGLE', 'ROUNDED_RECTANGLE', 'SQUARE', 'CIRCLE', 'ELLIPSE', 'TRIANGLE', 'DIAMOND', 'PENTAGON', 'HEXAGON', 'POLYGON', 'STAR', 'ARROW', 'CALLOUT', 'CUSTOM'];
+export const SHAPE_TYPES = [...Object.keys(SHAPES), 'POLYGON', 'CUSTOM'];
 export const FIELD_TYPES = ['PAGE_NUMBER', 'PAGE_COUNT', 'DATE', 'TIME', 'DATETIME', 'DOC_NAME', 'AUTHOR', 'SECTION_TITLE', 'CROSS_REFERENCE', 'SLIDE_NUMBER', 'SHEET_NAME', 'TOC', 'INDEX', 'BIBLIOGRAPHY'];
 
 export const CONTENT: Record<ContentType, ContentSpec> = {

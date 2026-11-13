@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**273 funcionalidades** · ✅ 273 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**283 funcionalidades** · ✅ 283 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -12,8 +12,8 @@
 | 02 | Formatação | Definir aparência | 39 | 0 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 17 | 0 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 16 | 0 | 0 |
-| 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
-| 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
+| 05 | Manipulação de objetos | Transformar e posicionar | 23 | 0 | 0 |
+| 06 | Tabelas e dados | Organizar informações | 21 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 16 | 0 | 0 |
@@ -36,13 +36,13 @@
 | Histórico e versões (`HISTORY`) | 1 | 11 |
 | Hierarquia e organização (`ORGANIZE`) | 1 | 19 |
 | Formatação, estilos e temas (`FORMAT`) | 1 | 50 |
-| Inserção de conteúdo (`CONTENT`) | 1 | 11 |
+| Inserção de conteúdo (`CONTENT`) | 1 | 17 |
 | Texto (`TEXT`) | 1 | 5 |
 | Manipulação de objetos (`OBJECTS`) | 1 | 20 |
 | Comentários e colaboração (`COLLAB`) | 1 | 11 |
 | Importação e exportação (`IO`) | 1 | 12 |
 | Visualização e navegação (`VIEW`) | 1 | 15 |
-| Tabelas e dados (`TABLE`) | 2 | 21 |
+| Tabelas e dados (`TABLE`) | 2 | 25 |
 | Cálculos e fórmulas (`FORMULA`) | 2 | 18 |
 | Visualização de dados (`CHART`) | 2 | 11 |
 | Diagramas (`DIAGRAM`) | 2 | 4 |
@@ -187,6 +187,13 @@
 | ✅ | F05.15 | Ajustar ao grid | OBJECTS | `SET_GRID` `SNAP` `SET_POSITION` | grid.size, snap | Encaixa na grade. |
 | ✅ | F05.16 | Ajustar a outros objetos | OBJECTS | `SNAP` `SET_POSITION` | threshold | Encaixa em bordas e centros dos vizinhos e guias. |
 | ✅ | F05.17 | Redimensionar proporcionalmente | OBJECTS | `RESIZE` `SET_CONSTRAINT` | keepRatio \| lockAspectRatio | Mantém a proporção e respeita limites. |
+| | | **B2 · Imagens e formas** | | | | |
+| ✅ | F05.18 | Recortar imagem | CONTENT | `IMAGE_CROP` | left, top, right, bottom \| aspect \| shape | Por margens, por proporção (1:1, 4:3, 16:9…) ou na forma (círculo, estrela, coração…). B2. |
+| ✅ | F05.19 | Ajustar imagem | CONTENT | `IMAGE_ADJUST` | brightness, contrast, saturation, hue, grayscale, sepia, invert, blur, transparency, recolor | Brilho, contraste, saturação, matiz, cinza, sépia, negativo, desfoque, transparência e recolorir. B2. |
+| ✅ | F05.20 | Redefinir imagem | CONTENT | `IMAGE_RESET` | size | Tira recorte, ajustes, giro e espelhamento; opcionalmente volta ao tamanho original. B2. |
+| ✅ | F05.21 | Galeria de formas | CONTENT | `SHAPE_GALLERY` |  | 31 formas: básicas, setas, estrelas, balão, nuvem, coração, raio, lua, cilindro, documento, linha. B2. |
+| ✅ | F05.22 | Editar pontos da forma | CONTENT | `SHAPE_EDIT_POINTS` | points, closed | Transforma em forma livre a partir dos vértices. B2. |
+| ✅ | F05.23 | Mesclar formas | CONTENT | `SHAPE_BOOLEAN` | ids, mode | Unir, combinar (sobreposição vira buraco), subtrair e interseção. B2. |
 
 ## 06. Tabelas e dados
 
@@ -209,6 +216,11 @@
 | ✅ | F06.15 | Criar listas suspensas | TABLE | `SET_VALIDATION` | rule: { type: 'LIST', values } | Regra LIST. |
 | ✅ | F06.16 | Converter texto em tabela | TABLE | `TEXT_TO_TABLE` | separator | Parágrafos → linhas. |
 | ✅ | F06.17 | Converter tabela em texto | TABLE | `TABLE_TO_TEXT` | separator | Linhas → parágrafos. |
+| | | **B2 · Tabelas** | | | | |
+| ✅ | F06.18 | Dividir tabela | TABLE | `TABLE_SPLIT` | row, repeatHeader | Em duas, antes de uma linha (pode repetir o cabeçalho). B2. |
+| ✅ | F06.19 | Estilos de tabela | TABLE | `TABLE_STYLES` `TABLE_STYLE` | style, headerRow, totalRow, firstColumn, lastColumn, bandedRows, bandedColumns | Galeria (Grade, Simples, Azul, Laranja, Verde, Cinza, Escura, Destaque) e opções: cabeçalho, total, 1ª/última coluna, faixas. B2. |
+| ✅ | F06.20 | Ajuste automático | TABLE | `TABLE_AUTOFIT` | mode, width | Pelo conteúdo, pela janela ou largura fixa. B2. |
+| ✅ | F06.21 | Propriedades da tabela | TABLE | `TABLE_PROPERTIES` | repeatHeader, align, allowRowBreak, caption | Repetir cabeçalho em cada página, alinhamento, quebra de linha entre páginas, legenda. B2. |
 
 ## 07. Cálculos e fórmulas
 

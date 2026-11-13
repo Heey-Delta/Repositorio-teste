@@ -8,6 +8,7 @@ import { chartSvg, diagramSvg } from '../editor-core/io/svg.ts';
 import katex from 'katex';
 import { slideItem } from './slide-view.ts';
 import { listLabelsIn } from '../editor-core/ops/word.ts';
+import { imageClip, imageFilter, tableCellLook } from '../editor-core/ops/objects.ts';
 
 export interface TextPoint { id: string; offset: number }
 export interface TextRange { start: TextPoint; end: TextPoint; collapsed: boolean }
@@ -92,7 +93,16 @@ export class DocView {
         case 'TABLE': into.push(this.table(n)); return;
         case 'IMAGE': {
           const a = doc.assets[n.data.assetId];
-          into.push(h('figure', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id }, a ? h('img', { src: a.source, alt: n.data.alt ?? '', style: n.layout.width ? `width:${n.layout.width}px` : '' }) : h('span', {}, '[imagem sem arquivo]')));
+          const img = a ? h('img', { src: a.source, alt: n.data.alt ?? '', style: n.layout.width ? `width:${n.layout.width}px` : '' }) as HTMLImageElement : null;
+          if (img) {
+            // recorte, ajustes (brilho, contraste, cinza…), transparência, giro e espelhamento vindos do motor
+            img.style.filter = imageFilter(n.data.adjust);
+            img.style.clipPath = imageClip(n.data.crop);
+            if (n.data.adjust?.transparency) img.style.opacity = String(1 - n.data.adjust.transparency);
+            const tf = [n.layout.rotation ? `rotate(${n.layout.rotation}deg)` : '', n.layout.flipH || n.layout.flipV ? `scale(${n.layout.flipH ? -1 : 1},${n.layout.flipV ? -1 : 1})` : ''].filter(Boolean).join(' ');
+            if (tf) img.style.transform = tf;
+          }
+          into.push(h('figure', { class: 'ed-obj', contenteditable: 'false', 'data-node-id': n.id }, img ?? h('span', {}, '[imagem sem arquivo]')));
           return;
         }
         case 'EQUATION': {
@@ -129,16 +139,21 @@ export class DocView {
   }
 
   private table(n: EditorNode) {
-    const t = h('table', { class: 'ed-table', contenteditable: 'false', 'data-node-id': n.id });
+    const t = h('table', { class: 'ed-table', contenteditable: 'false', 'data-node-id': n.id, style: n.data.align === 'CENTER' ? 'margin-inline:auto' : n.data.align === 'RIGHT' ? 'margin-left:auto' : '' });
     (n.data.rows ?? []).forEach((row: any, r: number) => {
       const tr = h('tr');
       row.cells.forEach((c: any, k: number) => {
-        if (c.merged) return;
+        if (c.merged || c.mergedInto) return;
         const addr = `${String.fromCharCode(65 + k)}${r + 1}`;
         const shown = c.error ? c.error.code : c.calculatedValue ?? c.value ?? '';
         const td = h(r === 0 && n.data.header ? 'th' : 'td', { title: c.formula ?? '', tabindex: '0', ondblclick: () => this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''), onkeydown: (ev: KeyboardEvent) => { if (ev.key === 'Enter') { ev.preventDefault(); this.editCell(td, n.id, addr, c.formula ?? c.value ?? ''); } } }, String(shown));
-        if (c.rowSpan > 1) td.setAttribute('rowspan', String(c.rowSpan));
-        if (c.colSpan > 1) td.setAttribute('colspan', String(c.colSpan));
+        const rs = c.span?.rows ?? c.rowSpan, cs = c.span?.columns ?? c.colSpan;
+        if (rs > 1) td.setAttribute('rowspan', String(rs));
+        if (cs > 1) td.setAttribute('colspan', String(cs));
+        const lk = tableCellLook(n.data, r, k);
+        if (lk.fill) td.style.background = lk.fill;
+        if (lk.ink) td.style.color = lk.ink;
+        if (lk.bold) td.style.fontWeight = '700';
         tr.append(td);
       });
       t.append(tr);

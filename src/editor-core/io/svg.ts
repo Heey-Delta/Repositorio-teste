@@ -1,5 +1,6 @@
 // SVG: slides (formas, textos, linhas, imagens, tabelas), gráficos e diagramas — vetorial, abre em qualquer
 // navegador e serve de base para PNG (a interface rasteriza o SVG num canvas).
+import { shapeSvg } from './shapes.ts';
 import type { RunM, SlideM, SlideItemM, Scalar } from './model.ts';
 import type { ChartData } from '../charts/chart.ts';
 import { esc } from './xml.ts';
@@ -34,26 +35,8 @@ function textBlock(runs: RunM[], x: number, y: number, w: number, h: number, siz
   return ls.map((l, i) => `<text x="${center ? x + w / 2 : x + 4}" y="${top + lh * (i + 0.8)}" font-size="${size}" font-family="${t?.font ?? FONT}"${center ? ' text-anchor="middle"' : ''} fill="${t?.ink ?? '#1E293B'}">${l.runs.map(tspan).join('')}</text>`).join('');
 }
 function shapePath(it: SlideItemM) {
-  const { x, y, width: w, height: h } = it;
-  const fill = it.fill ?? (it.kind === 'shape' ? '#4472C4' : 'none'), stroke = it.stroke ? ` stroke="${it.stroke}" stroke-width="2"` : '';
-  switch (it.shapeType) {
-    case 'ELLIPSE': case 'CIRCLE': return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}" fill="${fill}"${stroke}/>`;
-    case 'ROUNDED_RECTANGLE': return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) * 0.15}" fill="${fill}"${stroke}/>`;
-    case 'DIAMOND': return `<polygon points="${x + w / 2},${y} ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}" fill="${fill}"${stroke}/>`;
-    case 'TRIANGLE': return `<polygon points="${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}" fill="${fill}"${stroke}/>`;
-    default: {
-      // mesmas proporções do editor (em % da caixa)
-      const POLY: Record<string, number[][]> = {
-        STAR: [[50, 0], [61, 35], [98, 35], [68, 57], [79, 91], [50, 70], [21, 91], [32, 57], [2, 35], [39, 35]],
-        ARROW: [[0, 30], [65, 30], [65, 0], [100, 50], [65, 100], [65, 70], [0, 70]],
-        PENTAGON: [[50, 0], [100, 38], [82, 100], [18, 100], [0, 38]],
-        HEXAGON: [[25, 0], [75, 0], [100, 50], [75, 100], [25, 100], [0, 50]],
-      };
-      const poly = POLY[it.shapeType ?? ''];
-      if (poly) return `<polygon points="${poly.map(([px, py]) => `${x + (w * px) / 100},${y + (h * py) / 100}`).join(' ')}" fill="${fill}"${stroke}/>`;
-      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${stroke}/>`;
-    }
-  }
+  const fill = it.fill ?? (it.kind === 'shape' ? '#4472C4' : 'none');
+  return `<g transform="translate(${it.x},${it.y})">${shapeSvg({ shapeType: it.shapeType, ...it.geometry }, it.width, it.height, { fill, stroke: it.stroke })}</g>`;
 }
 const cell = (v: Scalar) => (v === null || v === undefined ? '' : String(v));
 

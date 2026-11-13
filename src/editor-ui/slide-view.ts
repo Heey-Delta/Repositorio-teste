@@ -7,6 +7,8 @@ import { chartData } from '../editor-core/charts/chart.ts';
 import { chartSvg, diagramSvg, slideSvg } from '../editor-core/io/svg.ts';
 import { readDocument } from '../editor-core/io/model.ts';
 import katex from 'katex';
+import { shapeSvg } from '../editor-core/io/shapes.ts';
+import { imageClip, imageFilter, tableCellLook } from '../editor-core/ops/objects.ts';
 
 const BASE: Record<string, number> = { TITLE: 44, SUBTITLE: 28, HEADING_1: 36, HEADING_2: 30, HEADING_3: 26 };
 const textOf = (n: EditorNode) => (n.data.runs ?? []).map((r: any) => r.text).join('');
@@ -20,21 +22,35 @@ export function slideItem(e: Engine, n: EditorNode): HTMLElement {
   switch (n.type) {
     case 'TEXT': el.append(text()); if (st.fill && n.styleOverrides.fill) el.style.background = String(st.fill); break;
     case 'SHAPE': {
-      const shape = n.data.shapeType;
-      el.style.background = String(n.styleOverrides.fill ?? st.fill ?? '#4472C4');
-      if (st.stroke) el.style.border = `${st.strokeWidth ?? 2}px solid ${st.stroke}`;
-      if (shape === 'ELLIPSE' || shape === 'CIRCLE') el.style.borderRadius = '50%';
-      if (shape === 'ROUNDED_RECTANGLE') el.style.borderRadius = '14px';
-      const clip: Record<string, string> = { TRIANGLE: 'polygon(50% 0,100% 100%,0 100%)', DIAMOND: 'polygon(50% 0,100% 50%,50% 100%,0 50%)', PENTAGON: 'polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)', HEXAGON: 'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)', STAR: 'polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)', ARROW: 'polygon(0 30%,65% 30%,65% 0,100% 50%,65% 100%,65% 70%,0 70%)' };
-      if (clip[shape]) el.style.clipPath = clip[shape];
+      // desenho da biblioteca de formas do motor (também nas formas combinadas e de pontos editados)
+      const w = Math.max(1, Number(L.width ?? 200)), hh = Math.max(1, Number(L.height ?? 60));
+      const dash = st.strokeStyle === 'DASHED' ? '8 5' : st.strokeStyle === 'DOTTED' ? '2 4' : undefined;
+      el.innerHTML = `<svg class="sl-shape-svg" width="100%" height="100%" viewBox="0 0 ${w} ${hh}" preserveAspectRatio="none" overflow="visible">${shapeSvg(n.data, w, hh, { fill: String(n.styleOverrides.fill ?? st.fill ?? '#4472C4'), stroke: st.stroke ? String(st.stroke) : undefined, strokeWidth: Number(st.strokeWidth ?? 2), dash })}</svg>`;
       if (n.data.runs) { const t = text(); t.classList.add('sl-center'); el.append(t); }
       break;
     }
-    case 'IMAGE': { const a = e.doc.assets[n.data.assetId]; el.append(a ? h('img', { src: a.source, alt: n.data.alt ?? '', draggable: 'false' }) : h('div', { class: 'sl-missing' }, 'imagem')); break; }
+    case 'IMAGE': {
+      const a = e.doc.assets[n.data.assetId];
+      if (!a) { el.append(h('div', { class: 'sl-missing' }, 'imagem')); break; }
+      const img = h('img', { src: a.source, alt: n.data.alt ?? '', draggable: 'false' }) as HTMLImageElement;
+      const adj = n.data.adjust;
+      img.style.filter = imageFilter(adj);
+      if (adj?.transparency) img.style.opacity = String(1 - adj.transparency);
+      img.style.clipPath = imageClip(n.data.crop);
+      if (L.flipH || L.flipV) img.style.transform = `scale(${L.flipH ? -1 : 1},${L.flipV ? -1 : 1})`;
+      el.append(img); break;
+    }
     case 'LINE': el.innerHTML = `<svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 ${Math.max(1, Number(L.width ?? 1))} ${Math.max(1, Number(L.height ?? 1))}"><line x1="0" y1="0" x2="${L.width ?? 1}" y2="${L.height ?? 1}" stroke="${st.stroke ?? '#404040'}" stroke-width="${st.strokeWidth ?? 3}"/></svg>`; break;
     case 'TABLE': {
       const t = h('table', { class: 'sl-table' });
-      (n.data.rows ?? []).forEach((row: any, i: number) => t.append(h('tr', {}, ...row.cells.map((c: any) => h(i === 0 ? 'th' : 'td', {}, String(c.error?.code ?? c.calculatedValue ?? c.value ?? ''))))));
+      (n.data.rows ?? []).forEach((row: any, i: number) => t.append(h('tr', {}, ...row.cells.map((c: any, ci: number) => {
+        const cell = h(i === 0 && n.data.header !== false ? 'th' : 'td', {}, String(c.error?.code ?? c.calculatedValue ?? c.value ?? ''));
+        const lk = tableCellLook(n.data, i, ci);
+        if (lk.fill) cell.style.background = lk.fill;
+        if (lk.ink) cell.style.color = lk.ink;
+        if (lk.bold) cell.style.fontWeight = '700';
+        return cell;
+      }))));
       el.append(t); break;
     }
     case 'CHART': el.innerHTML = chartSvg(chartData(e, n), String(n.data.title?.text ?? ''), Number(L.width ?? 600), Number(L.height ?? 360)); break;

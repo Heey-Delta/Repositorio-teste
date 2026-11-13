@@ -22,7 +22,7 @@ export type BlockM =
 export interface SlideItemM {
   kind: 'text' | 'shape' | 'image' | 'line' | 'table';
   x: number; y: number; width: number; height: number;
-  textType?: string; runs?: RunM[]; shapeType?: string; fill?: string; stroke?: string; alt?: string; source?: string; rows?: Scalar[][];
+  textType?: string; runs?: RunM[]; shapeType?: string; geometry?: { path?: string; sides?: number; boolean?: any }; fill?: string; stroke?: string; alt?: string; source?: string; rows?: Scalar[][];
 }
 export interface SlideM { items: SlideItemM[]; background?: string; notes?: string }
 export interface SheetM { name: string; cells: Record<string, { value?: Scalar; formula?: string }> }
@@ -76,7 +76,7 @@ export function readDocument(e: Engine, scope?: string): ImportModel {
         const L = n.layout, box = { x: Number(L.x ?? 0), y: Number(L.y ?? 0), width: Number(L.width ?? 200), height: Number(L.height ?? 40) };
         const look = { ...(n.styleOverrides.fill ? { fill: String(n.styleOverrides.fill) } : {}), ...(n.styleOverrides.stroke ? { stroke: String(n.styleOverrides.stroke) } : {}) };
         if (n.type === 'TEXT') return [{ kind: 'text', ...box, textType: n.data.textType, runs: runsOf(n), ...look }];
-        if (n.type === 'SHAPE') return [{ kind: 'shape', ...box, shapeType: n.data.shapeType, runs: n.data.runs ? runsOf(n) : undefined, ...look }];
+        if (n.type === 'SHAPE') return [{ kind: 'shape', ...box, shapeType: n.data.shapeType, ...(n.data.path || n.data.sides ? { geometry: { path: n.data.path, sides: n.data.sides, boolean: n.data.boolean } } : {}), runs: n.data.runs ? runsOf(n) : undefined, ...look }];
         if (n.type === 'IMAGE') return [{ kind: 'image', ...box, alt: n.data.alt ?? '', source: doc.assets[n.data.assetId]?.source }];
         if (n.type === 'LINE') return [{ kind: 'line', ...box, ...look }];
         if (n.type === 'TABLE') return [{ kind: 'table', ...box, rows: tableRows(e, n) }];
