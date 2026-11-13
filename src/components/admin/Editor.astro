@@ -34,7 +34,8 @@ const localInput = (iso: string | null | undefined) => {
 const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 const tools = [
-  ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
+  ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['h4', 'Subtítulo menor', 'H4'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
+  ['underline', 'Sublinhado', 'U'], ['strike', 'Riscado', 'S'], ['sup', 'Sobrescrito', 'x²'], ['sub', 'Subscrito', 'x₂'], ['clear', 'Limpar formatação', 'Limpar'],
   ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
   ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
   ['math', 'Inserir equação', 'Equação'], ['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'],
@@ -51,7 +52,7 @@ const blockTools = [
   ['blockEdit', 'Editar dados e aparência', 'Editar'], ['alignLeft', 'Alinhar à esquerda', 'Esquerda'], ['alignCenter', 'Centralizar', 'Centro'], ['alignRight', 'Alinhar à direita', 'Direita'],
   ['sizeDown', 'Diminuir', 'Menor'], ['sizeUp', 'Aumentar', 'Maior'], ['sizeReset', 'Largura do texto', 'Largura total'], ['blockDup', 'Duplicar', 'Duplicar'], ['blockDel', 'Excluir', 'Excluir'],
 ];
-const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'image'];
+const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'image'];
 ---
 <Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
@@ -71,6 +72,17 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'm
         <button type="button" data-cmd={cmd} aria-label={name} title={name} aria-pressed={noPressed.includes(cmd) ? undefined : 'false'}
           class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
       ))}
+      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted" title="Cor do texto">Cor
+        <input id="textColor" type="color" value="#fbbf00" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
+      </label>
+      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted" title="Realce (marca-texto)">Realce
+        <input id="textHighlight" type="color" value="#8a6a00" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
+      </label>
+      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Alinhar
+        <select id="textAlign" class="h-8 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink focus-visible:border-accent">
+          <option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificar</option>
+        </select>
+      </label>
       <span id="tableTools" hidden class="contents">
         <span class="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden="true"></span>
         {tableTools.map(([cmd, name, glyph]) => (

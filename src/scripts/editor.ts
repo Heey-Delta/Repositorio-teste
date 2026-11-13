@@ -7,6 +7,7 @@ import { Placeholder } from '@tiptap/extensions';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
 import { RichBlocks, openBlockDialog } from './editor-blocks';
+import { TextExtras } from './editor-marks';
 import { CHART_KINDS, DIAGRAM_KINDS, SHAPE_KINDS } from '../lib/rich-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
 
@@ -38,11 +39,12 @@ const plain = (el: HTMLElement) => (el.textContent || '').replace(/\s+/g, ' ').t
 const editor = new Editor({
   element: $('#body'),
   extensions: [
-    StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true } }),
+    StarterKit.configure({ heading: { levels: [2, 3, 4] }, link: { openOnClick: false, autolink: true } }),
     Markdown,
     Image.configure({ inline: false, allowBase64: false }),
     TableKit.configure({ table: { resizable: false } }),
     ...RichBlocks,
+    ...TextExtras,
     Placeholder.configure({ placeholder: 'Escreva aqui. Use a barra acima para títulos de seção, listas e links.' }),
   ],
   content: data.draft.body ?? '',
@@ -61,7 +63,13 @@ const editor = new Editor({
 const commands: Record<string, () => void> = {
   h2: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
   h3: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+  h4: () => editor.chain().focus().toggleHeading({ level: 4 }).run(),
   bold: () => editor.chain().focus().toggleBold().run(),
+  underline: () => editor.chain().focus().toggleUnderline().run(),
+  strike: () => editor.chain().focus().toggleStrike().run(),
+  sup: () => editor.chain().focus().unsetMark('subscript').toggleMark('superscript').run(),
+  sub: () => editor.chain().focus().unsetMark('superscript').toggleMark('subscript').run(),
+  clear: () => editor.chain().focus().unsetAllMarks().run(),
   italic: () => editor.chain().focus().toggleItalic().run(),
   bullet: () => editor.chain().focus().toggleBulletList().run(),
   ordered: () => editor.chain().focus().toggleOrderedList().run(),
@@ -103,6 +111,8 @@ const commands: Record<string, () => void> = {
 };
 const active: Record<string, () => boolean> = {
   h2: () => editor.isActive('heading', { level: 2 }), h3: () => editor.isActive('heading', { level: 3 }),
+  h4: () => editor.isActive('heading', { level: 4 }), underline: () => editor.isActive('underline'), strike: () => editor.isActive('strike'),
+  sup: () => editor.isActive('superscript'), sub: () => editor.isActive('subscript'),
   bold: () => editor.isActive('bold'), italic: () => editor.isActive('italic'), bullet: () => editor.isActive('bulletList'),
   ordered: () => editor.isActive('orderedList'), quote: () => editor.isActive('blockquote'), code: () => editor.isActive('codeBlock'),
 };
@@ -113,7 +123,27 @@ function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
   $('#tableTools').hidden = !editor.isActive('table');
   syncBlockTools();
+  if (document.activeElement !== alignSel) alignSel.value = currentAlign()?.value ?? 'left';
 }
+
+// ---------- cor, realce e alinhamento ----------
+const alignSel = $<HTMLSelectElement>('#textAlign');
+const textColor = $<HTMLInputElement>('#textColor'), textHighlight = $<HTMLInputElement>('#textHighlight');
+// sem seleção, a cor vale para o que for digitado a seguir; "Limpar" tira cor e realce também
+textColor.addEventListener('input', () => editor.chain().focus().setMark('textColor', { color: textColor.value }).run());
+textHighlight.addEventListener('input', () => editor.chain().focus().setMark('highlight', { color: textHighlight.value }).run());
+/** Bloco de alinhamento que envolve o cursor (se houver). */
+function currentAlign() {
+  const { $from } = editor.state.selection;
+  for (let d = $from.depth; d > 0; d--) { const n = $from.node(d); if (n.type.name === 'align') return { value: n.attrs.value as string, pos: $from.before(d), node: n }; }
+  return null;
+}
+alignSel.addEventListener('change', () => {
+  const v = alignSel.value, cur = currentAlign();
+  if (cur && v === 'left') editor.chain().focus().lift('align').run();
+  else if (cur) editor.chain().focus().command(({ tr }) => { tr.setNodeMarkup(cur.pos, undefined, { value: v }); return true; }).run();
+  else if (v !== 'left') editor.chain().focus().wrapIn('align', { value: v }).run();
+});
 
 // ---------- blocos: forma, gráfico, diagrama, equação, imagem ----------
 // inserir pela janela; duplo clique (ou Enter quando selecionado) edita; selecionado mostra as alças e a barra do bloco

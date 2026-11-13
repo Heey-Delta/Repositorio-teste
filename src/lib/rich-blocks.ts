@@ -192,4 +192,15 @@ export const markedBlocks = () => [{
   start(src: string) { const i = src.search(new RegExp(`^ {0,3}:::(${NAMES})`, 'm')); return i < 0 ? undefined : i; },
   tokenizer(src: string) { const m = BLOCK_RE.exec(src); return m ? { type: 'richBlock', raw: m[0], block: m[1] as BlockName, attrs: parseAttrs(m[2] ?? '') } : undefined; },
   renderer(t: any) { return `${blockHtml(t.block, t.attrs)}\n`; },
+}, {
+  // ":::align {value="center"}" … ":::" — parágrafos alinhados (centro, direita ou justificado)
+  name: 'alignBlock', level: 'block' as const,
+  start(src: string) { const i = src.search(/^:::align\b/m); return i < 0 ? undefined : i; },
+  tokenizer(this: any, src: string) {
+    const m = /^:::align(?:\s+\{([^}]*)\})?[ \t]*\n([\s\S]*?)\n:::[ \t]*(?:\n|$)/.exec(src);
+    if (!m) return undefined;
+    const value = ['center', 'right', 'justify', 'left'].includes(parseAttrs(m[1] ?? '').value) ? parseAttrs(m[1] ?? '').value : 'center';
+    return { type: 'alignBlock', raw: m[0], value, tokens: this.lexer.blockTokens(m[2], []) };
+  },
+  renderer(this: any, t: any) { return `<div class="lab-align" style="text-align:${t.value}">${this.parser.parse(t.tokens)}</div>\n`; },
 }];
