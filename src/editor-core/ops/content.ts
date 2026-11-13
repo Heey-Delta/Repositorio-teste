@@ -254,10 +254,11 @@ export const contentHandlers: Record<string, Handler> = {
     if (kind === 'LIST') {
       oneOf(p.listType ?? 'BULLET', ['BULLET', 'NUMBERED', 'MULTILEVEL'], 'Lista');
       const list = createNode(e, { parentId, nodeType: 'LIST', data: { listType: p.listType ?? 'BULLET', numberFormat: p.numberFormat ?? (p.listType === 'NUMBERED' ? 'DECIMAL' : 'DISC'), start: p.start ?? 1 }, layout: { mode: 'FLOW' }, index: p.index });
-      for (const it of (p.items ?? ['']) as (string | { text: string; level?: number })[]) {
-        const text = typeof it === 'string' ? it : it.text, level = typeof it === 'string' ? 0 : it.level ?? 0;
+      for (const it of (p.items ?? ['']) as (string | { text?: string; level?: number; runs?: { text: string; format?: Record<string, unknown> }[] })[]) {
+        const text = typeof it === 'string' ? it : it.text ?? '', level = typeof it === 'string' ? 0 : it.level ?? 0;
+        const rs = typeof it !== 'string' && it.runs?.length ? it.runs.map((r) => ({ id: e.newId('RUN'), text: String(r.text), format: { ...(r.format ?? {}) } })) : [{ id: e.newId('RUN'), text, format: {} }];
         const item = createNode(e, { parentId: list.id, nodeType: 'LIST_ITEM', data: { level }, layout: { mode: 'FLOW' } });
-        createNode(e, { parentId: item.id, nodeType: 'TEXT', data: { textType: 'PARAGRAPH', runs: [{ id: e.newId('RUN'), text, format: {} }] }, layout: { mode: 'FLOW' } });
+        createNode(e, { parentId: item.id, nodeType: 'TEXT', data: { textType: 'PARAGRAPH', runs: rs }, layout: { mode: 'FLOW' } });
       }
       return list.id;
     }

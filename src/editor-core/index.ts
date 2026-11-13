@@ -3,6 +3,7 @@
 //   const e = createEngine(createDocument('PRESENTATION_EDITOR'));
 //   e.run({ type: 'INSERT_CONTENT', payload: { contentType: 'SHAPE', parentId: e.state.activeSurface, data: { shapeType: 'CIRCLE' } } });
 import type { DocumentModel } from './types.ts';
+import { createDocument } from './document.ts';
 import type { EngineOptions, Handler } from './engine.ts';
 import { Engine } from './engine.ts';
 import { basicHandlers } from './ops/basic.ts';
@@ -24,6 +25,7 @@ import { animationHandlers } from './ops/animation.ts';
 import { reviewHandlers } from './ops/review.ts';
 import { collabHandlers, installCollaboration } from './ops/collab.ts';
 import { versionHandlers } from './ops/versions.ts';
+import { ioHandlers } from './ops/io.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -39,6 +41,9 @@ export type { Issue, SpellProvider, TranslateProvider } from './ops/review.ts';
 export { SyncSession, roleOf } from './ops/collab.ts';
 export type { RemoteTransaction, Role } from './ops/collab.ts';
 export { merge3, mergeList } from './util.ts';
+export { exportDocument, importFile, openFile, convertFiles, parseFile, printLayout, formatOf, FORMATS } from './ops/io.ts';
+export { readDocument, buildFromModel } from './io/model.ts';
+export type { ImportModel } from './io/model.ts';
 export { diffText, diffDocuments, checkIntegrity, repair, rebuild, Journal } from './ops/versions.ts';
 export { layoutDiagram, itemsFromOutline, outlineFromItems } from './ops/diagram.ts';
 
@@ -62,6 +67,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   review: reviewHandlers,
   collab: collabHandlers,
   versions: versionHandlers,
+  io: ioHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
@@ -75,6 +81,7 @@ export function createEngine(doc: DocumentModel, options?: EngineOptions) {
   const engine = new Engine(doc, handlers, options);
   watchCharts(engine);
   installCollaboration(engine);
+  engine.services.makeEngine = (app: DocumentModel['document']['application']) => createEngine(createDocument(app), options);
   return engine;
 }
 

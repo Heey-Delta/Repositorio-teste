@@ -58,6 +58,7 @@ Planilha      SECTION → SURFACE (SHEET, células esparsas: data.cells['A1'])
 | Animações | `ops/animation.ts` | entrada/ênfase/saída/trajetória, gatilhos, sequência, transições, linha do tempo e estado por passo |
 | Revisão | `ops/review.ts` | ortografia (provedor plugável), gramática, estilo, acessibilidade, consistência, correções, tradução, estatísticas |
 | Versões e recuperação | `ops/versions.ts` | `COMPARE_VERSIONS` · `EXPORT_STATE` · `RECOVER` · `CHECK_INTEGRITY` · `REPAIR_DOCUMENT` · `Journal` (diário) · `rebuild` |
+| Importação e exportação | `ops/io.ts` + `io/` | `EXPORT` · `IMPORT` · `PRINT_LAYOUT` · `CONVERT_BATCH` · `importFile` · `openFile` · `convertFiles` — TXT, MD, HTML, CSV, JSON, XLSX, DOCX, PPTX, PDF, SVG; tudo passa pelo modelo neutro (`io/model.ts`); ZIP, XML e PDF próprios, sem dependências |
 | Colaboração | `ops/collab.ts` | comentários e menções, permissões por efeito, presença, controle de alterações, `APPLY_REMOTE` + `SyncSession` |
 
 ## Como usar

@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 219 prontas · 🟡 5 parciais · ⬜ 36 a fazer
+**260 funcionalidades** · ✅ 230 prontas · 🟡 6 parciais · ⬜ 24 a fazer
 
 ## Resumo por categoria
 
@@ -23,7 +23,7 @@
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 11 | 0 | 0 |
 | 14 | Histórico e recuperação | Preservar alterações | 7 | 1 | 1 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
-| 16 | Importação e exportação | Gerenciar formatos | 0 | 0 | 12 |
+| 16 | Importação e exportação | Gerenciar formatos | 11 | 1 | 0 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 0 | 1 | 8 |
 | 18 | Visualização e navegação | Controlar a experiência | 0 | 0 | 14 |
 
@@ -362,18 +362,18 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F16.01 | Importar arquivos | IO | `IMPORT` | format, content | JSON, texto, Markdown, HTML, CSV, XLSX, DOCX. Etapa 11. |
-| ⬜ | F16.02 | Exportar arquivos | IO | `EXPORT` | format, scope | Exporta no formato escolhido. Etapa 11. |
-| ⬜ | F16.03 | Converter formatos | IO | `IMPORT` `EXPORT` |  | Importar de um formato e exportar em outro. Depende de F16.01, F16.02. Etapa 11. |
-| ⬜ | F16.04 | Exportar PDF | IO | `EXPORT` | format: PDF | Páginas/slides em PDF. Depende de F09.07. Etapa 11. |
-| ⬜ | F16.05 | Exportar imagens | IO | `EXPORT` | format: SVG\|PNG | Slides e gráficos em SVG/PNG. Etapa 11. |
-| ⬜ | F16.06 | Exportar texto | IO | `EXPORT` | format: TXT\|MD\|HTML | Texto puro, Markdown e HTML. Etapa 11. |
-| ⬜ | F16.07 | Exportar dados estruturados | IO | `EXPORT` | format: JSON\|CSV | JSON do documento e CSV de tabelas/planilhas. Etapa 11. |
-| ⬜ | F16.08 | Exportar planilhas | IO | `EXPORT` | format: XLSX | XLSX com valores e fórmulas. Etapa 11. |
-| ⬜ | F16.09 | Exportar apresentações | IO | `EXPORT` | format: PPTX | PPTX. Etapa 11. |
-| ⬜ | F16.10 | Imprimir | IO | `PRINT_LAYOUT` |  | Gera o layout de impressão (páginas prontas). Depende de F09.10. Etapa 11. |
-| ⬜ | F16.11 | Visualizar impressão | IO | `PRINT_LAYOUT` |  | Prévia com as páginas paginadas. Depende de F16.10. Etapa 11. |
-| ⬜ | F16.12 | Converter arquivos em lote | IO | `CONVERT_BATCH` | files, to | Vários arquivos de uma vez. Depende de F16.03. Etapa 11. |
+| ✅ | F16.01 | Importar arquivos | IO | `IMPORT` | format, content \| model | JSON, texto, Markdown, HTML, CSV, XLSX, DOCX, PPTX. XLSX/DOCX/PPTX por importFile()/openFile() (leitura assíncrona do ZIP). Testado também com arquivos do LibreOffice (Etapa 11). |
+| ✅ | F16.02 | Exportar arquivos | IO | `EXPORT` | format, targetId?, options? | Exporta no formato escolhido. TXT, MD, HTML, CSV, JSON, XLSX, DOCX, PPTX, PDF, SVG (Etapa 11). |
+| ✅ | F16.03 | Converter formatos | IO | `IMPORT` `EXPORT` |  | Importar de um formato e exportar em outro. Depende de F16.01, F16.02. Etapa 11. |
+| ✅ | F16.04 | Exportar PDF | IO | `EXPORT` | format: PDF | Páginas/slides em PDF. Depende de F09.07. PDF próprio: Helvetica/WinAnsi (acentos), tabelas, listas, quebras, slides, JPEG embutido, número da página (Etapa 11). |
+| 🟡 | F16.05 | Exportar imagens | IO | `EXPORT` | format: SVG\|PNG | Slides e gráficos em SVG/PNG. SVG pronto (slide, gráfico, diagrama); PNG é rasterizado pela interface a partir do SVG (Etapa 15). |
+| ✅ | F16.06 | Exportar texto | IO | `EXPORT` | format: TXT\|MD\|HTML | Texto puro, Markdown e HTML. Etapa 11. |
+| ✅ | F16.07 | Exportar dados estruturados | IO | `EXPORT` | format: JSON\|CSV | JSON do documento e CSV de tabelas/planilhas. Etapa 11. |
+| ✅ | F16.08 | Exportar planilhas | IO | `EXPORT` | format: XLSX | XLSX com valores e fórmulas. Fórmulas convertidas para nomes em inglês e separador "," (Etapa 11). |
+| ✅ | F16.09 | Exportar apresentações | IO | `EXPORT` | format: PPTX | PPTX. Textos, formas, linhas, tabelas, imagens e fundo; anotações do orador ainda não (Etapa 11). |
+| ✅ | F16.10 | Imprimir | IO | `PRINT_LAYOUT` `SET_PRINT` |  | Gera o layout de impressão (páginas prontas). Depende de F09.10. Etapa 11. |
+| ✅ | F16.11 | Visualizar impressão | IO | `PRINT_LAYOUT` |  | Prévia com as páginas paginadas. Depende de F16.10. Etapa 11. |
+| ✅ | F16.12 | Converter arquivos em lote | IO | `CONVERT_BATCH` | files, to | Vários arquivos de uma vez. Depende de F16.03. convertFiles() aceita todos os formatos (Etapa 11). |
 
 ## 17. Automação e extensibilidade
 
