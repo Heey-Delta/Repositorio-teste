@@ -134,6 +134,7 @@ function syncToolbar() {
   setContext('tabela', inTable);
   setContext('bloco', Boolean(selectedBlock()));
   if (document.activeElement !== alignSel) alignSel.value = currentAlign()?.value ?? 'left';
+  if (document.activeElement !== fontSel) fontSel.value = (editor.getAttributes('fontFamily').font as string) ?? '';
 }
 
 // ---------- abas da barra (Início, Inserir, Layout, Regras + Tabela e Bloco de contexto) ----------
@@ -205,6 +206,12 @@ rb.querySelectorAll<HTMLButtonElement>('[data-layout-reset]').forEach((b) => b.a
 applyLayout();
 
 // ---------- cor, realce e alinhamento ----------
+// fonte do trecho: só Anton, Arial e Times New Roman ("Padrão" tira a marca e volta à fonte da publicação)
+const fontSel = $<HTMLSelectElement>('#fontFamily');
+fontSel.addEventListener('change', () => {
+  if (fontSel.value) editor.chain().focus().setMark('fontFamily', { font: fontSel.value }).run();
+  else editor.chain().focus().unsetMark('fontFamily').run();
+});
 const alignSel = $<HTMLSelectElement>('#textAlign');
 const textColor = $<HTMLInputElement>('#textColor'), textHighlight = $<HTMLInputElement>('#textHighlight');
 // sem seleção, a cor vale para o que for digitado a seguir; "Limpar" tira cor e realce também

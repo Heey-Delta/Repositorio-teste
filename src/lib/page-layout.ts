@@ -12,9 +12,9 @@ export const pageLayoutSchema = z.object({
   spacing: z.number().min(0.3).max(3).default(1.1),
   align: z.enum(['left', 'justify']).default('left'),
   columns: z.union([z.literal(1), z.literal(2)]).default(1),
-  font: z.enum(['arial', 'serif']).default('arial'),
+  font: z.enum(['arial', 'anton', 'times']).default('arial'),
   // regras de formatação
-  headingFont: z.enum(['anton', 'arial']).default('anton'),
+  headingFont: z.enum(['anton', 'arial', 'times']).default('anton'),
   h2Size: z.number().min(18).max(56).default(30),
   h2Color: hex, h3Color: hex, linkColor: hex, boldColor: hex, quoteColor: hex,
   numberHeadings: z.boolean().default(false),
@@ -55,7 +55,7 @@ export function layoutAttrs(input: unknown) {
   if (l.boldColor) vars.push(`--pl-bold:${l.boldColor}`);
   if (l.quoteColor) vars.push(`--pl-quote:${l.quoteColor}`);
   const flags = [
-    l.align === 'justify' && 'justify', l.columns === 2 && 'cols2', l.font === 'serif' && 'serif', l.headingFont === 'arial' && 'h-arial',
+    l.align === 'justify' && 'justify', l.columns === 2 && 'cols2', l.font !== 'arial' && `f-${l.font}`, l.headingFont !== 'anton' && `h-${l.headingFont}`,
     l.numberHeadings && 'num', l.dropCap && 'dropcap', l.indent && 'indent', l.zebra && 'zebra', !l.imageBorder && 'noborder',
   ].filter(Boolean).join(' ');
   return { style: vars.join(';'), flags, maxWidth: WIDTHS[l.width] };

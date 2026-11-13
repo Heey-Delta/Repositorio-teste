@@ -85,8 +85,14 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .lab-prose strong { color: var(--pl-bold, inherit); }
 /* Layout e regras de formatação da publicação (aba Layout/Regras do editor; src/lib/page-layout.ts) */
 .lab-prose[data-pl~="justify"] > p { text-align: justify; hyphens: auto; }
-.lab-prose[data-pl~="serif"] { font-family: Georgia, 'Times New Roman', serif; }
-.lab-prose[data-pl~="h-arial"] h2 { font-family: Arial, Helvetica, sans-serif; font-weight: 700; text-transform: none; }
+/* fontes permitidas: Anton, Arial e Times New Roman (texto todo, títulos ou um trecho com <span data-font>) */
+.lab-prose[data-pl~="f-times"] { font-family: 'Times New Roman', Times, serif; }
+.lab-prose[data-pl~="f-anton"] { font-family: var(--font-display); letter-spacing: .01em; }
+.lab-prose[data-pl~="h-arial"] :is(h2, h3, h4) { font-family: Arial, Helvetica, sans-serif; font-weight: 700; text-transform: none; }
+.lab-prose[data-pl~="h-times"] :is(h2, h3, h4) { font-family: 'Times New Roman', Times, serif; font-weight: 700; text-transform: none; }
+.lab-prose [data-font="anton"] { font-family: var(--font-display); }
+.lab-prose [data-font="arial"] { font-family: Arial, Helvetica, sans-serif; }
+.lab-prose [data-font="times"] { font-family: 'Times New Roman', Times, serif; }
 .lab-prose[data-pl~="indent"] > p + p { text-indent: 1.5em; }
 .lab-prose[data-pl~="dropcap"] > p:first-of-type::first-letter { float: left; font-family: var(--font-display); font-size: 3.4em; line-height: .85; padding: .06em .12em 0 0; color: var(--accent); }
 .lab-prose[data-pl~="zebra"] tbody tr:nth-child(even) td { background: #0d0d0d; }
