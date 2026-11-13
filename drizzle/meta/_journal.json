@@ -43,6 +43,13 @@
       "when": 1794590381201,
       "tag": "0005_fila-responsavel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794592486991,
+      "tag": "0006_layout-da-pagina",
+      "breakpoints": true
     }
   ]
 }

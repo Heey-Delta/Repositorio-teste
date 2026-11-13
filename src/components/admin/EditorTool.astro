@@ -1,0 +1,6 @@
+---
+// Um botão da barra do editor (abas Início, Inserir, Tabela e Bloco). O comando está em src/scripts/editor.ts.
+interface Props { cmd: string; name: string; glyph: string; pressed: boolean; big?: boolean }
+const { cmd, name, glyph, pressed, big } = Astro.props;
+---
+<button type="button" data-cmd={cmd} aria-label={name} title={name} aria-pressed={pressed ? 'false' : undefined} class:list={['tool', big && 'tool-big']}>{glyph}</button>

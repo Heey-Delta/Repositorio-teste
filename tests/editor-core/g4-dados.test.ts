@@ -33,3 +33,16 @@ test('nomes repetidos ganham sufixo', () => {
   const items = dataItems(':::chart {name="Vendas" data="a;b&#10;x;1"} :::\n\n:::chart {name="Vendas" data="a;b&#10;x;2"} :::\n');
   assert.deepEqual(items.map((i) => i.slug), ['vendas', 'vendas-2']);
 });
+
+test('layout e regras da publicação: só o que muda é guardado e vira CSS', async () => {
+  const { layoutAttrs, compactLayout, readLayout } = await import('../../src/lib/page-layout.ts');
+  assert.equal(compactLayout({ width: 'normal', fontSize: 17 }), null);
+  assert.deepEqual(compactLayout({ width: 'larga', fontSize: 17, zebra: true }), { width: 'larga', zebra: true });
+  assert.deepEqual(readLayout({ fontSize: 99 }), {});
+  const a = layoutAttrs({ width: 'larga', fontSize: 19, numberHeadings: true, h2Color: '#fbbf00', align: 'justify' });
+  assert.equal(a.maxWidth, 920);
+  assert.match(a.style, /--pl-fs:19px/);
+  assert.match(a.style, /--pl-h2c:#fbbf00/);
+  assert.equal(a.flags, 'justify num');
+  assert.equal(layoutAttrs(null).flags, '');
+});

@@ -144,7 +144,7 @@ export function pictureHtml(a: Partial<PictureAttrs>) {
 // ---------------------------------------------------------------- apresentação (slides passáveis dentro do trabalho)
 // Cada slide é um quadro 16:9 com itens posicionados em % (título em Anton, texto em Arial, imagem e forma).
 // O tamanho da letra é em % da largura do slide (cqw): o slide inteiro escala junto, do celular à tela grande.
-export interface SlideItem { id: string; type: 'title' | 'text' | 'image' | 'shape'; x: number; y: number; w: number; h: number; text?: string; src?: string; alt?: string; kind?: string; fill?: string; color?: string; size?: number; align?: 'left' | 'center' | 'right'; bold?: boolean }
+export interface SlideItem { id: string; type: 'title' | 'text' | 'image' | 'shape' | 'block'; block?: Exclude<BlockName, 'slides' | 'picture' | 'circle'>; attrs?: Record<string, string>; x: number; y: number; w: number; h: number; text?: string; src?: string; alt?: string; kind?: string; fill?: string; color?: string; size?: number; align?: 'left' | 'center' | 'right'; bold?: boolean }
 export interface Slide { id: string; bg?: string; items: SlideItem[] }
 export interface Deck { ratio?: '16:9' | '4:3'; slides: Slide[] }
 let seq = 0;
@@ -170,12 +170,18 @@ const textHtml = (t: string) => {
   return lines.map((l) => (/^\s*[-•]\s+/.test(l) ? `• ${l.replace(/^\s*[-•]\s+/, '')}` : l)).join('<br>');
 };
 /** Um item do slide em HTML (posição e tamanho em %). */
-export function slideItemHtml(it: SlideItem) {
+export function slideItemHtml(it: SlideItem): string {
   const pos = `left:${num(it.x, 0)}%;top:${num(it.y, 0)}%;width:${num(it.w, 20)}%;height:${num(it.h, 10)}%`;
   const font = `font-size:${num(it.size, it.type === 'title' ? 4.6 : 2.4)}cqw;color:${color(it.color, it.type === 'title' ? '#F2F2EE' : '#A6A6A0')};text-align:${it.align ?? 'left'}${it.bold ? ';font-weight:700' : ''}`;
   if (it.type === 'title') return `<h3 class="lab-si lab-si-title" data-item="${esc(it.id)}" style="${pos};${font}">${esc(it.text ?? '')}</h3>`;
   if (it.type === 'text') return `<div class="lab-si lab-si-text" data-item="${esc(it.id)}" style="${pos};${font}">${textHtml(it.text ?? '')}</div>`;
   if (it.type === 'image') return it.src && /^(https?:|\/|data:image\/)/.test(it.src) ? `<img class="lab-si lab-si-img" data-item="${esc(it.id)}" style="${pos}" src="${esc(it.src)}" alt="${esc(it.alt ?? '')}" loading="lazy" decoding="async">` : `<div class="lab-si lab-si-img lab-si-empty" data-item="${esc(it.id)}" style="${pos}">Imagem</div>`;
+  // gráfico, diagrama, planilha (tabela) ou equação dentro do slide: o mesmo desenho do texto, encaixado na caixa
+  if (it.type === 'block') {
+    const b = it.block && ['chart', 'diagram', 'sheet', 'math', 'shape'].includes(it.block) ? it.block : null;
+    const inner: string = b ? blockHtml(b, { ...(it.attrs ?? {}), width: '', align: 'center' }) : '';
+    return `<div class="lab-si lab-si-block lab-si-${b ?? 'empty'}" data-item="${esc(it.id)}" style="${pos};font-size:${num(it.size, 1.6)}cqw">${inner || 'Dados'}</div>`;
+  }
   const kind = shapeKind(it.kind);
   return `<div class="lab-si lab-si-shape" data-item="${esc(it.id)}" style="${pos}" aria-hidden="true"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${shapeSvg({ shapeType: kind }, 100, 100, { fill: color(it.fill, '#FBBF00') })}</svg>${it.text ? `<span style="${font}">${esc(it.text)}</span>` : ''}</div>`;
 }
@@ -241,7 +247,7 @@ export function sheetHtml(a: Partial<SheetAttrs>, opts: { refs?: boolean } = {})
 }
 
 /** Qualquer bloco → HTML (usado pelo site e pela pré-visualização do editor). */
-export function blockHtml(name: BlockName, attrs: Record<string, string>) {
+export function blockHtml(name: BlockName, attrs: Record<string, string>): string {
   if (name === 'circle') return circleHtml(parseCircleAttrs(Object.entries(attrs).map(([k, v]) => `${k}="${String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`).join(' ')));
   if (name === 'shape') return shapeHtml(attrs);
   if (name === 'chart') return chartHtml(attrs);

@@ -19,6 +19,7 @@ export interface LabEntry {
     related: string[]; references: { title: string; url?: string; author?: string; publisher?: string; publishedOn?: string; accessedOn?: string }[];
     draft: boolean;   // "não mostrar no Google": a página existe, mas fica fora do índice e do sitemap
     readingMinutes: number | null; methodology: string | null; aiAssistance: string | null;
+    layout: Record<string, unknown> | null;
     seo: { metaTitle: string | null; metaDescription: string | null; canonicalUrl: string | null; schemaType: string | null };
     cover: { url: string; alt: string; width: number | null; height: number | null } | null;
     attachments: { url: string; title: string; caption: string | null; size: number; mime: string }[];
@@ -87,7 +88,7 @@ async function load(filter: SQL | undefined): Promise<LabEntry[]> {
         author, areas: (areasBy.get(p.id) ?? []).map((a) => a.name), tags: (tagsBy.get(p.id) ?? []).map((t) => t.name),
         level: p.level, status: p.stage, format: p.format, related,
         references: (refsBy.get(p.id) ?? []).sort((a, b) => a.sort - b.sort).map((r) => ({ title: r.title, url: r.url ?? undefined, author: r.author ?? undefined, publisher: r.publisher ?? undefined, publishedOn: r.publishedOn ?? undefined, accessedOn: r.accessedOn ?? undefined })),
-        draft: seo?.noindex ?? false, readingMinutes: p.readingMinutes, methodology: p.methodology, aiAssistance: p.aiAssistance,
+        draft: seo?.noindex ?? false, readingMinutes: p.readingMinutes, methodology: p.methodology, aiAssistance: p.aiAssistance, layout: p.layout ?? null,
         seo: { metaTitle: seo?.metaTitle ?? null, metaDescription: seo?.metaDescription ?? null, canonicalUrl: seo?.canonicalUrl ?? null, schemaType: seo?.schemaType ?? null },
         cover: cover ? { url: cover.url, alt: cover.alt ?? '', width: cover.width, height: cover.height } : null,
         attachments: (attBy.get(p.id) ?? []).sort((a, b) => a.sort - b.sort).map((a) => ({ url: a.url, title: a.alt || 'Arquivo', caption: a.caption, size: a.size, mime: a.mime })),

@@ -11,6 +11,7 @@ import { openDeckEditor } from '../editor-ui/deck-editor';
 import { TextExtras } from './editor-marks';
 import { CHART_KINDS, DIAGRAM_KINDS, SHAPE_KINDS } from '../lib/rich-blocks';
 import { prepareFile, sendFile, kb, type Prepared } from './media-upload';
+import { layoutAttrs, readLayout, LAYOUT_DEFAULT, type PageLayout } from '../lib/page-layout';
 
 type Dep = { id: number; slug: string; name: string; code: string };
 type Media = { id: string; url: string; alt: string | null; caption?: string | null; width: number | null; height: number | null; kind?: string; size?: number };
@@ -82,6 +83,7 @@ const commands: Record<string, () => void> = {
   shape: () => insertBlock('shape'),
   slides: () => { void insertDeck(); },
   chart: () => insertBlock('chart'),
+  sheet: () => insertBlock('sheet'),
   diagram: () => insertBlock('diagram'),
   math: () => insertBlock('math'),
   rowBefore: () => editor.chain().focus().addRowBefore().run(),
@@ -127,10 +129,80 @@ toolButtons.forEach((b) => b.addEventListener('mousedown', (e) => e.preventDefau
 toolButtons.forEach((b) => b.addEventListener('click', () => commands[b.dataset.cmd!]?.()));
 function syncToolbar() {
   for (const b of toolButtons) if (active[b.dataset.cmd!]) b.setAttribute('aria-pressed', String(active[b.dataset.cmd!]()));
-  $('#tableTools').hidden = !(editor.isActive('table') || (editor.state.selection as any).node?.type.name === 'table');
+  const inTable = editor.isActive('table') || (editor.state.selection as any).node?.type.name === 'table';
   syncBlockTools();
+  setContext('tabela', inTable);
+  setContext('bloco', Boolean(selectedBlock()));
   if (document.activeElement !== alignSel) alignSel.value = currentAlign()?.value ?? 'left';
 }
+
+// ---------- abas da barra (Início, Inserir, Layout, Regras + Tabela e Bloco de contexto) ----------
+const rb = $('#toolbar');
+const tabBtns = [...rb.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+const panelOf = (id: string) => $(`#${tabBtns.find((t) => t.dataset.tab === id)!.getAttribute('aria-controls')}`);
+let tab = 'inicio', beforeCtx = 'inicio';
+function showTab(id: string) {
+  tab = id;
+  for (const t of tabBtns) { const on = t.dataset.tab === id; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; panelOf(t.dataset.tab!).hidden = !on; }
+}
+/** Aba de contexto (Tabela/Bloco): aparece e abre ao entrar; ao sair, volta para a aba que estava aberta antes. */
+function setContext(id: string, on: boolean) {
+  const t = tabBtns.find((x) => x.dataset.tab === id)!;
+  if (on === !t.hidden) return;
+  t.hidden = !on;
+  if (on) { if (!['tabela', 'bloco'].includes(tab)) beforeCtx = tab; showTab(id); }
+  else if (tab === id) showTab(tabBtns.find((x) => !x.hidden && ['tabela', 'bloco'].includes(x.dataset.tab!))?.dataset.tab ?? beforeCtx);
+}
+tabBtns.forEach((t) => {
+  t.addEventListener('mousedown', (e) => e.preventDefault());   // não tira o cursor do texto
+  t.addEventListener('click', () => { if (rb.classList.contains('collapsed')) toggleRibbon(); showTab(t.dataset.tab!); });
+  t.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const vis = tabBtns.filter((x) => !x.hidden), i = vis.indexOf(t);
+    const n = vis[(i + (e.key === 'ArrowRight' ? 1 : -1) + vis.length) % vis.length];
+    showTab(n.dataset.tab!); n.focus();
+  });
+});
+function toggleRibbon() {
+  const closed = rb.classList.toggle('collapsed');
+  $('#rbCollapse').setAttribute('aria-expanded', String(!closed));
+  try { localStorage.setItem('ed-ribbon', closed ? 'closed' : 'open'); } catch { /* sem armazenamento */ }
+}
+$('#rbCollapse').addEventListener('click', toggleRibbon);
+try { if (localStorage.getItem('ed-ribbon') === 'closed') toggleRibbon(); } catch { /* sem armazenamento */ }
+showTab('inicio');
+
+// ---------- layout da página e regras de formatação (abas Layout e Regras) ----------
+let layout: PageLayout = readLayout(data.draft.layout);
+const LAYOUT_KEYS = ['width', 'columns', 'font', 'fontSize', 'lineHeight', 'spacing', 'align'] as const;
+const layoutCtrls = [...rb.querySelectorAll<HTMLInputElement & HTMLSelectElement>('[data-layout]')];
+function applyLayout() {
+  const a = layoutAttrs(layout);
+  const body = $('#body');
+  body.style.cssText = `${a.style};max-width:${a.maxWidth}px`;
+  if (a.flags) body.dataset.pl = a.flags; else delete body.dataset.pl;
+  const full = { ...LAYOUT_DEFAULT, ...layout } as Record<string, unknown>;
+  for (const c of layoutCtrls) {
+    const v = full[c.dataset.layout!];
+    if (c.type === 'checkbox') c.checked = Boolean(v);
+    else if (c.type === 'color') c.value = (v as string) || (c.dataset.layout === 'h2Color' || c.dataset.layout === 'h3Color' ? '#f2f2ee' : c.dataset.layout === 'boldColor' ? '#f2f2ee' : c.dataset.layout === 'quoteColor' ? '#2b2b2b' : '#fbbf00');
+    else c.value = String(v);
+  }
+}
+for (const c of layoutCtrls) {
+  c.addEventListener(c.type === 'color' ? 'input' : 'change', () => {
+    const k = c.dataset.layout!;
+    const v = c.type === 'checkbox' ? c.checked : 'num' in c.dataset ? Number(c.value) : c.value;
+    layout = { ...layout, [k]: v };
+    applyLayout(); markDirty();
+  });
+}
+rb.querySelectorAll<HTMLButtonElement>('[data-layout-reset]').forEach((b) => b.addEventListener('click', () => {
+  const keys: readonly string[] = b.dataset.layoutReset === 'layout' ? LAYOUT_KEYS : Object.keys(LAYOUT_DEFAULT).filter((k) => !(LAYOUT_KEYS as readonly string[]).includes(k));
+  layout = Object.fromEntries(Object.entries(layout).filter(([k]) => !keys.includes(k))) as PageLayout;
+  applyLayout(); markDirty();
+}));
+applyLayout();
 
 // ---------- cor, realce e alinhamento ----------
 const alignSel = $<HTMLSelectElement>('#textAlign');
@@ -153,7 +225,7 @@ alignSel.addEventListener('change', () => {
 
 // ---------- blocos: forma, gráfico, diagrama, equação, imagem ----------
 // inserir pela janela; duplo clique (ou Enter quando selecionado) edita; selecionado mostra as alças e a barra do bloco
-const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'circle'] as const;
+const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as const;
 type Block = (typeof BLOCKS)[number];
 async function insertBlock(kind: Block) {
   const { from } = editor.state.selection;
@@ -199,7 +271,6 @@ const COLOR_KEY: Partial<Record<string, string>> = { shape: 'fill', chart: 'colo
 let shownType = '';
 function syncBlockTools() {
   const b = selectedBlock();
-  $('#blockTools').hidden = !b;
   if (!b) return;
   const name = b.node.type.name as string;
   const t = TYPE_OPTIONS[name];
@@ -438,6 +509,7 @@ function collect() {
     tags: f('tags').value.split(',').map((t) => t.trim()).filter(Boolean),
     relatedProject: nullable('relatedProject'),
     responsible: nullable('responsible'),
+    layout: Object.keys(layout).length ? layout : null,
     methodology: nullable('methodology'),
     aiAssistance: nullable('aiAssistance'),
     scheduledAt: scheduled ? new Date(scheduled).toISOString() : null,

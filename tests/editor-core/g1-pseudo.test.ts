@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePseudo, pseudoToPost, postToPseudo, pseudoToModel, tableRows, inlineToMd, inlineFromMd } from '../../src/lib/pseudo.ts';
 import { dataItems } from '../../src/lib/data-items.ts';
+import { slidesHtml } from '../../src/lib/rich-blocks.ts';
 import { toPdf } from '../../src/editor-core/io/pdf.ts';
 
 const EXEMPLO = `<doc: teste 1 (
@@ -103,4 +104,34 @@ test('pseudocódigo → PDF (com os slides no fim)', () => {
 test('erros com a linha', () => {
   assert.throws(() => parsePseudo('<doc: x (\n<txt: sem fechar'), /linha 2/);
   assert.throws(() => parsePseudo('<doc: x (\n<txt: ok>'), /parêntese/);
+});
+
+test('dados dentro do slide: gráfico, tabela e diagrama ida e volta', () => {
+  const src = `<doc: Deck (
+<sld: {hash.Painel}(
+  <h1: Resultado>
+  <grf.colunas@6,25,50,60: {hash} Vendas( , Vendas | Jan | 120 | Fev | 180)>
+  <tbl@60,25,34,40: {hash}( Item, Valor | Luz | 100)>
+  <dgm.organograma: {hash}(Diretor
+    - Gerente)>
+)
+)>`;
+  const { body } = pseudoToPost(src);
+  const items = dataItems(body);
+  const deck = items.find((i) => i.kind === 'apresentacao')!.extra.deck!;
+  const kinds = deck.slides[0].items.map((i) => (i.type === 'block' ? i.block : i.type));
+  assert.deepEqual(kinds, ['title', 'chart', 'sheet', 'diagram']);
+  const chart = deck.slides[0].items[1];
+  assert.deepEqual([chart.x, chart.y, chart.w, chart.h], [6, 25, 50, 60]);
+  assert.match(chart.attrs!.data, /Jan;120/);
+  assert.match(deck.slides[0].items[2].attrs!.cells, /"A2":"Luz"/);
+  const back = postToPseudo('Deck', body);
+  assert.match(back, /<grf\.colunas@6,25,50,60: /);
+  assert.match(back, /<pln@60,25,34,40: /);
+  const again = dataItems(pseudoToPost(back).body).find((i) => i.kind === 'apresentacao')!.extra.deck!;
+  assert.deepEqual(again.slides[0].items.map((i) => (i.type === 'block' ? i.block : i.type)), kinds);
+  const html = slidesHtml({ deck: JSON.stringify(deck) });
+  assert.match(html, /lab-si-block lab-si-chart[^>]*><figure class="lab-chart"/);
+  const model = pseudoToModel(src);
+  assert.ok(model.slides?.[0].items.some((i) => i.kind === 'text' && i.runs?.[0].text.startsWith('Gráfico')));
 });

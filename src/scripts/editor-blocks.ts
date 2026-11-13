@@ -49,7 +49,11 @@ function makeBlock(name: BlockName) {
         frame.setAttribute('aria-hidden', 'true');
         const draw = () => {
           try { body.innerHTML = blockHtml(name, attrs); } catch (x) { body.textContent = (x as Error).message; }
-          if (name === 'slides') wireDeck(body);   // Anterior/Próximo funcionam no editor também
+          if (name === 'slides') {
+            wireDeck(body);   // Anterior/Próximo funcionam no editor também
+            // no editor a faixa de slides não recebe foco: o primeiro toque seleciona o bloco (antes, ia para a faixa)
+            body.querySelectorAll('.lab-deck-track').forEach((t) => t.removeAttribute('tabindex'));
+          }
           placeFrame();
         };
         // a moldura acompanha o elemento desenhado (que pode estar alinhado à esquerda, ao centro ou à direita)
@@ -112,7 +116,7 @@ function makeBlock(name: BlockName) {
           update: (n) => { if (n.type.name !== name) return false; node = n; attrs = n.attrs as Record<string, string>; draw(); return true; },
           selectNode: () => { dom.classList.add('ProseMirror-selectednode'); placeFrame(); },
           deselectNode: () => dom.classList.remove('ProseMirror-selectednode'),
-          stopEvent: (e) => { const t = e.target as HTMLElement; return Boolean(t.classList?.contains('rich-handle') || (e.type !== 'dblclick' && t.closest?.('.lab-deck-nav button, .lab-deck-track') && e.type !== 'mousedown')); },
+          stopEvent: (e) => { const t = e.target as HTMLElement; return Boolean(t.classList?.contains('rich-handle') || (e.type !== 'dblclick' && e.type !== 'mousedown' && t.closest?.('.lab-deck-nav button'))); },
           ignoreMutation: () => true,
           destroy: () => ro?.disconnect(),
         };

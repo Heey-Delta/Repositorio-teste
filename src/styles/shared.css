@@ -76,12 +76,27 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 /* Texto corrido das publicações do Lab: usado na página pública e no editor do admin (o mesmo visual nos dois) */
-.lab-prose { font-size: 17px; line-height: 1.7; color: var(--ink); }
-.lab-prose > * + * { margin-top: 1.1em; }
-.lab-prose h2 { margin-top: 2em; font-family: var(--font-display); font-size: 30px; line-height: 1.05; text-transform: uppercase; scroll-margin-top: 88px; }
-.lab-prose h3 { margin-top: 1.6em; font-size: 20px; font-weight: 700; }
-.lab-prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.lab-prose blockquote { border-left: 2px solid var(--line); padding-left: 16px; color: var(--muted); font-size: 15px; }
+.lab-prose { font-size: var(--pl-fs, 17px); line-height: var(--pl-lh, 1.7); color: var(--ink); }
+.lab-prose > * + * { margin-top: var(--pl-gap, 1.1em); }
+.lab-prose h2 { margin-top: 2em; font-family: var(--font-display); font-size: var(--pl-h2, 30px); line-height: 1.05; text-transform: uppercase; scroll-margin-top: 88px; color: var(--pl-h2c, inherit); }
+.lab-prose h3 { margin-top: 1.6em; font-size: 20px; font-weight: 700; color: var(--pl-h3c, inherit); }
+.lab-prose a { color: var(--pl-link, var(--accent)); text-decoration: underline; text-underline-offset: 3px; }
+.lab-prose blockquote { border-left: 2px solid var(--pl-quote, var(--line)); padding-left: 16px; color: var(--muted); font-size: 15px; }
+.lab-prose strong { color: var(--pl-bold, inherit); }
+/* Layout e regras de formatação da publicação (aba Layout/Regras do editor; src/lib/page-layout.ts) */
+.lab-prose[data-pl~="justify"] > p { text-align: justify; hyphens: auto; }
+.lab-prose[data-pl~="serif"] { font-family: Georgia, 'Times New Roman', serif; }
+.lab-prose[data-pl~="h-arial"] h2 { font-family: Arial, Helvetica, sans-serif; font-weight: 700; text-transform: none; }
+.lab-prose[data-pl~="indent"] > p + p { text-indent: 1.5em; }
+.lab-prose[data-pl~="dropcap"] > p:first-of-type::first-letter { float: left; font-family: var(--font-display); font-size: 3.4em; line-height: .85; padding: .06em .12em 0 0; color: var(--accent); }
+.lab-prose[data-pl~="zebra"] tbody tr:nth-child(even) td { background: #0d0d0d; }
+.lab-prose[data-pl~="noborder"] img, .lab-prose[data-pl~="noborder"] .lab-chart, .lab-prose[data-pl~="noborder"] .lab-diagram { border: 0; }
+.lab-prose[data-pl~="num"] { counter-reset: pl-h2; }
+.lab-prose[data-pl~="num"] h2 { counter-increment: pl-h2; counter-reset: pl-h3; }
+.lab-prose[data-pl~="num"] h2::before { content: counter(pl-h2) ". "; }
+.lab-prose[data-pl~="num"] h3 { counter-increment: pl-h3; }
+.lab-prose[data-pl~="num"] h3::before { content: counter(pl-h2) "." counter(pl-h3) " "; }
+@media (min-width: 900px) { .lab-prose[data-pl~="cols2"] { column-count: 2; column-gap: 40px; } .lab-prose[data-pl~="cols2"] > :is(h2, figure, table, .lab-deck, .lab-sheet, .rich-block) { column-span: all; } .lab-prose[data-pl~="cols2"] > * { break-inside: avoid-column; } }
 .lab-prose ul, .lab-prose ol { padding-left: 1.3em; } .lab-prose ul { list-style: square; } .lab-prose ol { list-style: decimal; }
 .lab-prose code { font-family: ui-monospace, monospace; font-size: .9em; background: #111; padding: .1em .35em; }
 .lab-prose img { border: 1px solid var(--line); }
@@ -114,6 +129,15 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .lab-slide { position: relative; flex: 0 0 100%; scroll-snap-align: start; container-type: inline-size; overflow: hidden; }
 .lab-si { position: absolute; box-sizing: border-box; margin: 0; overflow: hidden; line-height: 1.25; font-family: var(--font-sans, Arial, Helvetica, sans-serif); }
 .lab-slide .lab-si { margin: 0; }
+/* dados dentro do slide: gráfico e diagrama encaixam na caixa; planilha e equação usam a letra do slide (cqw) */
+.lab-si-block { display: grid; place-items: center; color: var(--ink); }
+.lab-si-block > figure, .lab-si-block > div { width: 100%; height: 100%; max-width: none !important; margin: 0 !important; padding: 0; border: 0; overflow: hidden; }
+.lab-si-block svg { width: 100%; height: 100%; max-width: none; }
+.lab-si-sheet > figure { overflow: auto; }
+.lab-si-sheet table { font-size: inherit; }
+.lab-si-sheet th, .lab-si-sheet td { padding: .35em .6em; }
+.lab-si-sheet figcaption { display: none; }
+.lab-si-math > div { display: grid; place-items: center; font-size: 2.2em; }
 .lab-slide .lab-si-title { font-weight: 400; }
 .lab-si-title { font-family: var(--font-display, Anton, Impact, sans-serif); font-weight: 400; line-height: 1.02; text-transform: uppercase; }
 .lab-si-text ul { margin: 0; padding-left: 1.1em; }

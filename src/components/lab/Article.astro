@@ -7,6 +7,7 @@ import PubCard from './PubCard.astro';
 import Cover from './Cover.astro';
 import { renderMarkdown, dataSlugOf, type LabEntry } from '../../lib/lab-public';
 import { dataItems, KIND_LABEL } from '../../lib/data-items';
+import { layoutAttrs } from '../../lib/page-layout';
 import { departmentBySlug, statuses, fmtDate, up } from '../../lab/data';
 
 interface Props { entry: LabEntry; all: LabEntry[]; depth?: number; preview?: { status: string; editHref: string } }
@@ -16,6 +17,7 @@ const personId = new URL('/#hallan', Astro.site).href;
 const postSlug = dataSlugOf(entry, all.some((e) => e.id === entry.id) ? all : [...all, entry]);
 const dataBase = `${root}dados/${postSlug}/`;
 const { html, headings } = renderMarkdown(entry.body, { dataBase });
+const pl = layoutAttrs(entry.data.layout);
 // cada dado do texto tem página própria: a lista no fim liga todas (bom para quem lê e para os buscadores)
 const items = dataItems(entry.body);
 const toc = headings.filter((h) => h.depth === 2);
@@ -76,8 +78,8 @@ const meta = [
           </nav>
         )}
       </aside>
-      <div class="flex max-w-[720px] flex-col gap-10">
-        <div class="lab-prose" set:html={html} />
+      <div class="flex max-w-[720px] flex-col gap-10" style={`max-width:${pl.maxWidth}px`}>
+        <div class="lab-prose" style={pl.style} data-pl={pl.flags || undefined} set:html={html} />
         {(d.methodology || d.aiAssistance) && (
           <section class="flex flex-col gap-4 border-t border-line pt-6 text-[15px]" aria-labelledby="como-feito">
             <h2 id="como-feito" class="label-ui m-0 text-[11px] text-muted">Como foi feito</h2>

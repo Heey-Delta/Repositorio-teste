@@ -19,7 +19,7 @@
 //   \<  \>  \(  \)  \|  \,  \\        para usar esses caracteres como texto
 // Texto: *negrito*, _itálico_, ~riscado~, `código`, [link](https://…). Linhas que começam com "- " viram tópicos.
 import { Marked, type Token, type Tokens } from 'marked';
-import { blockMarkdown, markedBlocks, parseAttrs, parseCells, parseDeck, sheetMatrix, newId, type Deck, type Slide, type SlideItem } from './rich-blocks.ts';
+import { BLOCK_RE, blockMarkdown, markedBlocks, parseAttrs, parseCells, parseDeck, sheetMatrix, newId, type Deck, type Slide, type SlideItem } from './rich-blocks.ts';
 import type { BlockM, ImportModel, RunM, SlideItemM, SlideM } from '../editor-core/io/model.ts';
 
 export interface PNode {
@@ -227,10 +227,38 @@ function slideFrom(n: PNode): Slide {
     } else if (c.tag === 'frm') {
       const kind = SHAPE_PT[c.mods[0] ?? ''] ?? (c.mods[0] ?? 'RECTANGLE').toUpperCase();
       items.push({ id: genId(), type: 'shape', kind, fill: c.color ?? '#FBBF00', text: c.text || undefined, size: 2.8, color: '#000000', ...place(c, [40, y, 20, 30]) });
+    } else if (['grf', 'dgm', 'pln', 'eq', 'tbl'].includes(c.tag)) {
+      // dados dentro do slide: gráfico, diagrama, planilha/tabela e equação (mesmos atributos do bloco no texto)
+      const data = slideData(c);
+      if (data) items.push({ id: genId(), type: 'block', ...data, size: 1.6, ...place(c, [8, y, 84, Math.max(30, 92 - y)]) });
     }
   }
   return { id: genId(), bg: n.color ?? '#000000', items };
 }
+
+function slideData(c: PNode): Pick<SlideItem, 'block' | 'attrs'> | null {
+  if (c.tag === 'tbl') {
+    const rows = tableRows(c.raw ?? '');
+    const cells: Record<string, string> = {};
+    rows.forEach((r, i) => r.forEach((v, j) => { if (v !== '') cells[`${colLetters(j + 1)}${i + 1}`] = v; }));
+    return { block: 'sheet', attrs: { name: c.name ?? '', cells: JSON.stringify(cells), header: 'true' } };
+  }
+  const md: string[] = [];
+  blockToMd({ ...c, pos: undefined }, md);
+  const m = BLOCK_RE.exec(md[0] ?? '');
+  if (!m) return null;
+  return { block: m[1] as SlideItem['block'], attrs: parseAttrs(m[2] ?? '') };
+}
+/** Texto curto de um gráfico, diagrama, planilha ou equação de slide (no PDF entra como texto). */
+function blockSummary(it: SlideItem) {
+  const a = it.attrs ?? {};
+  if (it.block === 'chart') return `Gráfico${a.title ? `: ${a.title}` : ''}\n${(a.data ?? '').split(/\r?\n/).filter(Boolean).map((l) => l.split(';').join('  ')).join('\n')}`;
+  if (it.block === 'diagram') return `Diagrama\n${(a.outline ?? '').split(/\r?\n/).filter((l) => l.trim()).map((l) => `• ${l.trim()}`).join('\n')}`;
+  if (it.block === 'sheet') return sheetMatrix(a.cells).rows.map((r) => r.map((v) => (v ?? '')).join('  ')).join('\n');
+  if (it.block === 'math') return a.tex ?? '';
+  return '';
+}
+const colLetters = (n: number) => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
 
 function blockToMd(n: PNode, out: string[]) {
   switch (n.tag) {
@@ -330,6 +358,13 @@ function slideToPseudo(s: Slide, pad: string) {
     const col = it.type === 'shape' ? (it.fill ? it.fill : '') : it.color ?? '';
     const c = col ? col : '';
     if (it.type === 'image') return `${pad}  <img${pos}: ${escRaw(it.src ?? '')} | ${escRaw(it.alt ?? '')}>`;
+    if (it.type === 'block') {
+      // o mesmo pseudocódigo do bloco no texto, com a posição no slide logo depois da marca
+      const lines = it.block ? tokenToPseudo({ type: 'richBlock', raw: '', block: it.block, attrs: it.attrs ?? {} } as any, `${pad}  `) : [];
+      if (!lines.length) return '';
+      lines[0] = lines[0].replace(/^(\s*<[^:\s]+?)(:)/, `$1${pos}$2`);
+      return lines.join('\n');
+    }
     if (it.type === 'shape') return `${pad}  <frm.${SHAPE_EN[it.kind ?? 'RECTANGLE'] ?? (it.kind ?? 'retangulo').toLowerCase()}${c}${pos}: ${esc(it.text ?? '')}>`;
     const size = it.size ?? 2.4;
     const h = size >= 4 ? 'h1' : size >= 3 ? 'h2' : it.bold ? 'h3' : 'h4';
@@ -337,7 +372,7 @@ function slideToPseudo(s: Slide, pad: string) {
     const text = (it.text ?? '').split('\n').map((l) => l.replace(/^\s*-\s+/, '- ')).join(it.text?.trim().startsWith('-') ? ', ' : '\n');
     return `${pad}  <${h}${font}${c}${pos}: ${esc(text)}>`;
   });
-  return `${pad}<sld${s.bg && s.bg !== '#000000' ? s.bg : ''}: {${s.id}}(\n${lines.join('\n')}\n${pad})>`;
+  return `${pad}<sld${s.bg && s.bg !== '#000000' ? s.bg : ''}: {${s.id}}(\n${lines.filter(Boolean).join('\n')}\n${pad})>`;
 }
 
 function tokenToPseudo(t: Token, pad: string): string[] {
@@ -487,6 +522,7 @@ export function pseudoToModel(src: string): ImportModel {
             const box = { x: (it.x / 100) * 1280, y: (it.y / 100) * 720, width: (it.w / 100) * 1280, height: (it.h / 100) * 720 };
             if (it.type === 'image') return { kind: 'image', ...box, source: it.src, alt: it.alt };
             if (it.type === 'shape') return { kind: 'shape', ...box, shapeType: it.kind, fill: it.fill, runs: it.text ? [{ text: it.text }] : undefined };
+            if (it.type === 'block') return { kind: 'text', ...box, textType: 'PARAGRAPH', runs: [{ text: blockSummary(it), format: { color: '#A6A6A0' } }] };
             return { kind: 'text', ...box, textType: it.type === 'title' ? 'TITLE' : 'PARAGRAPH', runs: (it.text ?? '').split('\n').flatMap((l, k) => [...(k ? [{ text: '\n' }] : []), { text: l.replace(/^\s*-\s+/, '• '), format: { color: it.color, ...(it.bold ? { bold: true } : {}) } }]) };
           }) });
         }

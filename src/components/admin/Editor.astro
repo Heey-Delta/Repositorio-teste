@@ -5,6 +5,7 @@ import '../../styles/global.css';
 import Base from '../../layouts/Base.astro';
 import type { PostDraft } from '../../lib/posts';
 import { statusLabel } from '../../lib/admin';
+import Tool from './EditorTool.astro';
 
 interface Option { id: number; name: string; slug: string }
 interface Props {
@@ -33,34 +34,41 @@ const localInput = (iso: string | null | undefined) => {
 };
 const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent aria-[invalid=true]:border-[#ff5a5a]';
 const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
-const tools = [
-  ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['h4', 'Subtítulo menor', 'H4'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
-  ['underline', 'Sublinhado', 'U'], ['strike', 'Riscado', 'S'], ['sup', 'Sobrescrito', 'x²'], ['sub', 'Subscrito', 'x₂'], ['clear', 'Limpar formatação', 'Limpar'],
-  ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
-  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
-  ['math', 'Inserir equação', 'Equação'], ['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'], ['slides', 'Inserir apresentação (slides passáveis dentro do texto)', 'Apresentação'],
-  ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
+// Barra em abas (como o Word): Início (texto), Inserir (blocos), Layout (página), Regras (formatação da publicação)
+// e as abas de contexto Tabela e Bloco, que aparecem só com o cursor numa tabela ou com um bloco selecionado.
+type T = [string, string, string];
+const homeGroups: [string, T[]][] = [
+  ['Histórico', [['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷']]],
+  ['Estilo', [['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['h4', 'Subtítulo menor', 'H4']]],
+  ['Fonte', [['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'], ['underline', 'Sublinhado', 'U'], ['strike', 'Riscado', 'S'], ['sup', 'Sobrescrito', 'x²'], ['sub', 'Subscrito', 'x₂'], ['clear', 'Limpar formatação', 'Limpar']]],
+  ['Parágrafo', [['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'], ['code', 'Código', '</>'], ['link', 'Link', 'Link']]],
 ];
+const insertGroups: [string, T[]][] = [
+  ['Mídia', [['image', 'Imagem', 'Imagem']]],
+  ['Dados', [['table', 'Inserir tabela', 'Tabela'], ['sheet', 'Inserir planilha (células com fórmulas)', 'Planilha'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama']]],
+  ['Ilustrações', [['shape', 'Inserir forma (retângulo, círculo, seta, estrela…)', 'Forma'], ['math', 'Inserir equação', 'Equação'], ['hr', 'Divisória', 'Divisória']]],
+  ['Apresentação', [['slides', 'Inserir apresentação (slides passáveis dentro do texto)', 'Apresentação']]],
+];
+const tabs: [string, string, boolean][] = [['inicio', 'Início', false], ['inserir', 'Inserir', false], ['layout', 'Layout', false], ['regras', 'Regras', false], ['tabela', 'Tabela', true], ['bloco', 'Bloco', true]];
 // aparecem só com o cursor dentro de uma tabela
-const tableTools = [
-  ['rowBefore', 'Adicionar linha acima', '+ Linha acima'], ['colBefore', 'Adicionar coluna à esquerda', '+ Coluna à esquerda'],
-  ['rowAdd', 'Adicionar linha abaixo', '+ Linha abaixo'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna à direita'],
-  ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna'], ['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableRefs', 'Mostrar letras das colunas e números das linhas', 'Linhas e colunas'],
-  ['tableSelect', 'Selecionar a tabela inteira', 'Selecionar tabela'], ['tableUp', 'Mover a tabela para cima', 'Mover para cima'], ['tableDown', 'Mover a tabela para baixo', 'Mover para baixo'], ['tableDel', 'Apagar tabela', 'Excluir tabela'],
+const tableGroups: [string, T[]][] = [
+  ['Linhas e colunas', [['rowBefore', 'Adicionar linha acima', '+ Linha acima'], ['rowAdd', 'Adicionar linha abaixo', '+ Linha abaixo'], ['colBefore', 'Adicionar coluna à esquerda', '+ Coluna à esquerda'], ['colAdd', 'Adicionar coluna à direita', '+ Coluna à direita'], ['rowDel', 'Remover linha', '− Linha'], ['colDel', 'Remover coluna', '− Coluna']]],
+  ['Formato', [['headerRow', 'Primeira linha como cabeçalho', 'Cabeçalho'], ['tableRefs', 'Mostrar letras das colunas e números das linhas', 'Linhas e colunas']]],
+  ['Tabela', [['tableSelect', 'Selecionar a tabela inteira', 'Selecionar'], ['tableUp', 'Mover a tabela para cima', 'Subir'], ['tableDown', 'Mover a tabela para baixo', 'Descer'], ['tableDel', 'Apagar tabela', 'Excluir']]],
 ];
 // aparecem com uma forma, gráfico, diagrama, equação ou imagem selecionados
 const blockTools = [
   ['blockEdit', 'Editar dados e aparência', 'Editar'], ['alignLeft', 'Alinhar à esquerda', 'Esquerda'], ['alignCenter', 'Centralizar', 'Centro'], ['alignRight', 'Alinhar à direita', 'Direita'],
   ['sizeDown', 'Diminuir', 'Menor'], ['sizeUp', 'Aumentar', 'Maior'], ['sizeReset', 'Largura do texto', 'Largura total'], ['blockDup', 'Duplicar', 'Duplicar'], ['blockDel', 'Excluir', 'Excluir'],
 ];
-const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'math', 'shape', 'slides', 'image', 'tableSelect', 'tableUp', 'tableDown'];
+const noPressed = ['clear', 'undo', 'redo', 'link'];
 ---
 <Base title={`${draft.title || 'Nova publicação'} · Editor · Admin`} bodyClass="editor-body">
   <Fragment slot="head"><meta name="robots" content="noindex, nofollow"></Fragment>
   <script type="application/json" id="editorData" set:html={data} />
 
   <header class="sticky top-0 z-40 border-b border-line bg-bg">
-    <div class="flex h-14 items-center gap-3 px-4 lg:px-6">
+    <div class="ed-head flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 lg:gap-3 lg:px-6">
       <a href="/admin/publicacoes/" class="text-sm text-muted hover:text-ink">← Publicações</a>
       <p id="saveState" class="m-0 min-w-0 flex-1 truncate text-[13px] text-muted" role="status" aria-live="polite">{id ? 'Tudo salvo' : 'Ainda não salva'}</p>
       <a id="viewLink" href={`/lab/${dep.slug}/${draft.slug}/`} target="_blank" rel="noopener" hidden={!id || draft.status !== 'published'} class="hidden text-sm text-muted hover:text-ink sm:inline">Ver no site ↗</a>
@@ -69,42 +77,124 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
       <button type="button" id="detailsBtn" aria-expanded="false" aria-controls="details" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">Detalhes</button>
       <button type="button" id="saveBtn" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:cursor-wait disabled:opacity-60">Salvar</button>
     </div>
-    <div id="toolbar" role="toolbar" aria-label="Formatação do texto" class="flex flex-wrap gap-1 border-t border-line px-4 py-1.5 lg:px-6">
-      {tools.map(([cmd, name, glyph]) => (
-        <button type="button" data-cmd={cmd} aria-label={name} title={name} aria-pressed={noPressed.includes(cmd) ? undefined : 'false'}
-          class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
-      ))}
-      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted" title="Cor do texto">Cor
-        <input id="textColor" type="color" value="#fbbf00" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
-      </label>
-      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted" title="Realce (marca-texto)">Realce
-        <input id="textHighlight" type="color" value="#8a6a00" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
-      </label>
-      <label class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Alinhar
-        <select id="textAlign" class="h-8 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink focus-visible:border-accent">
-          <option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificar</option>
-        </select>
-      </label>
-      <span id="tableTools" hidden class="contents">
-        <span class="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden="true"></span>
-        {tableTools.map(([cmd, name, glyph]) => (
-          <button type="button" data-cmd={cmd} aria-label={name} title={name}
-            class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
+    <div id="toolbar" class="rb" aria-label="Ferramentas do texto">
+      <div class="rb-tabs" role="tablist" aria-label="Grupos de ferramentas">
+        {tabs.map(([id, name, ctx]) => (
+          <button type="button" role="tab" id={`tab-${id}`} data-tab={id} aria-controls={id === 'tabela' ? 'tableTools' : id === 'bloco' ? 'blockTools' : `panel-${id}`} aria-selected={id === 'inicio' ? 'true' : 'false'} hidden={ctx ? true : undefined} class={ctx ? 'rb-tab rb-ctx' : 'rb-tab'}>{name}</button>
         ))}
-      </span>
-      <span id="blockTools" hidden class="contents">
-        <span class="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden="true"></span>
-        <label id="blockTypeWrap" class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Tipo
-          <select id="blockType" class="h-8 rounded-[4px] border border-line bg-bg px-2 text-[13px] text-ink focus-visible:border-accent"></select>
-        </label>
-        <label id="blockColorWrap" class="flex min-h-9 shrink-0 items-center gap-1.5 px-1 text-[13px] text-muted">Cor
-          <input id="blockColor" type="color" class="h-8 w-10 cursor-pointer rounded-[4px] border border-line bg-bg p-0.5">
-        </label>
-        {blockTools.map(([cmd, name, glyph]) => (
-          <button type="button" data-cmd={cmd} aria-label={name} title={name}
-            class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
+        <button type="button" id="rbCollapse" class="rb-collapse" aria-expanded="true" aria-label="Recolher a barra de ferramentas" title="Recolher / mostrar a barra">▴</button>
+      </div>
+      <div id="panel-inicio" role="tabpanel" aria-labelledby="tab-inicio" class="rb-panel">
+        {homeGroups.map(([cap, items]) => (
+          <div class="rb-group" role="group" aria-label={cap}>
+            <div class="rb-items">{items.map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={!noPressed.includes(cmd)} />)}
+              {cap === 'Fonte' && <>
+                <label class="rb-field" title="Cor do texto">Cor<input id="textColor" type="color" value="#fbbf00"></label>
+                <label class="rb-field" title="Realce (marca-texto)">Realce<input id="textHighlight" type="color" value="#8a6a00"></label>
+              </>}
+              {cap === 'Parágrafo' && <label class="rb-field">Alinhar
+                <select id="textAlign"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificar</option></select>
+              </label>}
+            </div>
+            <span class="rb-cap">{cap}</span>
+          </div>
         ))}
-      </span>
+      </div>
+      <div id="panel-inserir" role="tabpanel" aria-labelledby="tab-inserir" class="rb-panel" hidden>
+        {insertGroups.map(([cap, items]) => (
+          <div class="rb-group" role="group" aria-label={cap}>
+            <div class="rb-items">{items.map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={false} big />)}</div>
+            <span class="rb-cap">{cap}</span>
+          </div>
+        ))}
+      </div>
+      <div id="panel-layout" role="tabpanel" aria-labelledby="tab-layout" class="rb-panel" hidden>
+        <div class="rb-group" role="group" aria-label="Página">
+          <div class="rb-items">
+            <label class="rb-field">Largura<select data-layout="width"><option value="estreita">Estreita</option><option value="normal">Normal</option><option value="larga">Larga</option><option value="total">Total</option></select></label>
+            <label class="rb-field">Colunas<select data-layout="columns" data-num><option value="1">1</option><option value="2">2 (no computador)</option></select></label>
+          </div>
+          <span class="rb-cap">Página</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Texto">
+          <div class="rb-items">
+            <label class="rb-field">Fonte<select data-layout="font"><option value="arial">Arial</option><option value="serif">Serifada</option></select></label>
+            <label class="rb-field">Letra<select data-layout="fontSize" data-num>{[15, 16, 17, 18, 19, 20, 22].map((n) => <option value={n}>{n} px</option>)}</select></label>
+            <label class="rb-field">Entrelinha<select data-layout="lineHeight" data-num>{[1.4, 1.5, 1.6, 1.7, 1.85, 2].map((n) => <option value={n}>{String(n).replace('.', ',')}</option>)}</select></label>
+          </div>
+          <span class="rb-cap">Texto</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Parágrafos">
+          <div class="rb-items">
+            <label class="rb-field">Espaço entre parágrafos<select data-layout="spacing" data-num>{[[0.6, 'Pouco'], [1.1, 'Normal'], [1.6, 'Médio'], [2.2, 'Muito']].map(([v, l]) => <option value={v}>{l}</option>)}</select></label>
+            <label class="rb-field">Alinhamento do texto<select data-layout="align"><option value="left">Esquerda</option><option value="justify">Justificado</option></select></label>
+          </div>
+          <span class="rb-cap">Parágrafos</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Padrão">
+          <div class="rb-items"><button type="button" class="tool" data-layout-reset="layout">Restaurar layout</button></div>
+          <span class="rb-cap">Padrão</span>
+        </div>
+      </div>
+      <div id="panel-regras" role="tabpanel" aria-labelledby="tab-regras" class="rb-panel" hidden>
+        <div class="rb-group" role="group" aria-label="Títulos">
+          <div class="rb-items">
+            <label class="rb-field">Fonte dos títulos<select data-layout="headingFont"><option value="anton">Anton</option><option value="arial">Arial</option></select></label>
+            <label class="rb-field">Tamanho<select data-layout="h2Size" data-num>{[24, 28, 30, 34, 40, 48].map((n) => <option value={n}>{n} px</option>)}</select></label>
+            <label class="rb-field">Cor H2<input type="color" data-layout="h2Color"></label>
+            <label class="rb-field">Cor H3<input type="color" data-layout="h3Color"></label>
+            <label class="rb-check"><input type="checkbox" data-layout="numberHeadings">Numerar (1, 1.1)</label>
+          </div>
+          <span class="rb-cap">Títulos</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Texto">
+          <div class="rb-items">
+            <label class="rb-field">Links<input type="color" data-layout="linkColor"></label>
+            <label class="rb-field">Negrito<input type="color" data-layout="boldColor"></label>
+            <label class="rb-field">Citações<input type="color" data-layout="quoteColor"></label>
+            <label class="rb-check"><input type="checkbox" data-layout="dropCap">Letra capitular</label>
+            <label class="rb-check"><input type="checkbox" data-layout="indent">Recuo na 1ª linha</label>
+          </div>
+          <span class="rb-cap">Texto</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Tabelas e imagens">
+          <div class="rb-items">
+            <label class="rb-check"><input type="checkbox" data-layout="zebra">Tabelas listradas</label>
+            <label class="rb-check"><input type="checkbox" data-layout="imageBorder">Borda em imagens e gráficos</label>
+          </div>
+          <span class="rb-cap">Tabelas e imagens</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Padrão">
+          <div class="rb-items"><button type="button" class="tool" data-layout-reset="regras">Restaurar regras</button></div>
+          <span class="rb-cap">Padrão</span>
+        </div>
+      </div>
+      <div id="tableTools" role="tabpanel" aria-labelledby="tab-tabela" class="rb-panel" hidden>
+        {tableGroups.map(([cap, items]) => (
+          <div class="rb-group" role="group" aria-label={cap}>
+            <div class="rb-items">{items.map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={false} />)}</div>
+            <span class="rb-cap">{cap}</span>
+          </div>
+        ))}
+      </div>
+      <div id="blockTools" role="tabpanel" aria-labelledby="tab-bloco" class="rb-panel" hidden>
+        <div class="rb-group" role="group" aria-label="Aparência">
+          <div class="rb-items">
+            <label id="blockTypeWrap" class="rb-field">Tipo<select id="blockType"></select></label>
+            <label id="blockColorWrap" class="rb-field">Cor<input id="blockColor" type="color"></label>
+            {blockTools.slice(0, 1).map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={false} />)}
+          </div>
+          <span class="rb-cap">Aparência</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Posição e tamanho">
+          <div class="rb-items">{blockTools.slice(1, 7).map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={false} />)}</div>
+          <span class="rb-cap">Posição e tamanho</span>
+        </div>
+        <div class="rb-group" role="group" aria-label="Bloco">
+          <div class="rb-items">{blockTools.slice(7).map(([cmd, name, glyph]) => <Tool cmd={cmd} name={name} glyph={glyph} pressed={false} />)}</div>
+          <span class="rb-cap">Bloco</span>
+        </div>
+      </div>
     </div>
     <div id="tablePicker" hidden role="dialog" aria-label="Tamanho da tabela" class="absolute z-50 rounded-[8px] border border-line bg-bg p-3 shadow-[0_8px_24px_rgb(0_0_0/.6)]">
       <p id="tablePickerLabel" class="m-0 mb-2 text-[13px] text-muted">Escolha linhas × colunas</p>
@@ -407,7 +497,38 @@ const noPressed = ['clear', 'undo', 'redo', 'link', 'hr', 'table', 'chart', 'dia
   #body .ProseMirror .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: var(--accent); pointer-events: none; }
   #body .ProseMirror td, #body .ProseMirror th { position: relative; }
   #body .ProseMirror .rich-block { cursor: pointer; }
-  #tableTools[hidden], #blockTools[hidden], #tablePicker[hidden], #blockTools label[hidden] { display: none; }
+  #tableTools[hidden], #blockTools[hidden], #tablePicker[hidden], #blockTools label[hidden], .rb [hidden] { display: none !important; }
+  /* barra em abas */
+  .rb { border-top: 1px solid var(--line); }
+  .rb-tabs { display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); }
+  .rb-tab { min-height: 38px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .rb-tab:hover { color: var(--ink); }
+  .rb-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .rb-ctx { color: var(--accent); }
+  .rb-collapse { margin-left: auto; min-width: 38px; min-height: 38px; border: 0; background: none; color: var(--muted); cursor: pointer; }
+  .rb.collapsed .rb-panel { display: none !important; }
+  .rb.collapsed .rb-collapse { rotate: 180deg; }
+  .rb-panel { display: flex; align-items: stretch; gap: 0; padding: 6px 12px 2px; overflow-x: auto; scrollbar-width: thin; }
+  .rb-group { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 10px; border-right: 1px solid var(--line); flex: 0 0 auto; }
+  .rb-group:last-child { border-right: 0; }
+  .rb-items { display: flex; align-items: center; gap: 2px; flex-wrap: nowrap; }
+  .rb-cap { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .rb .tool { min-height: 36px; min-width: 36px; padding: 0 8px; border: 0; border-radius: 4px; background: none; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .rb .tool:hover { background: #141414; color: var(--ink); }
+  .rb .tool[aria-pressed="true"] { background: #1c1c1c; color: var(--accent); }
+  .rb .tool-big { min-height: 40px; padding: 0 12px; border: 1px solid var(--line); color: var(--ink); }
+  .rb-field { display: flex; align-items: center; gap: 6px; padding: 0 4px; font-size: 13px; color: var(--muted); white-space: nowrap; min-height: 36px; }
+  .rb-field select { height: 32px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); padding: 0 6px; font-size: 13px; }
+  .rb-field input[type=color] { width: 36px; height: 30px; padding: 2px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); cursor: pointer; }
+  .rb-check { display: flex; align-items: center; gap: 6px; padding: 0 6px; font-size: 13px; color: var(--ink); white-space: nowrap; min-height: 36px; cursor: pointer; }
+  .rb-check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  @media (max-width: 640px) {
+    .ed-head > a:first-child { font-size: 0; } .ed-head > a:first-child::before { content: '←'; font-size: 18px; }
+    .ed-head button { padding-inline: 10px; }
+    .ed-head #saveState { order: 9; flex-basis: 100%; font-size: 12px; }
+    .ed-head > a:first-child { min-width: 36px; min-height: 40px; display: grid; place-items: center; }
+    .rb-group { padding: 0 6px; }
+  }
   /* referências da tabela (A, B, C / 1, 2, 3) — só no editor, não vão para o site */
   #body.show-refs .ProseMirror table { counter-reset: tr; margin-top: 1.6em; margin-left: 2em; }
   #body.show-refs .ProseMirror tr { counter-increment: tr; counter-reset: tc; }
