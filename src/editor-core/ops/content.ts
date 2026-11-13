@@ -243,7 +243,8 @@ export const contentHandlers: Record<string, Handler> = {
     const parentId = targetParent(e, p.parentId);
     if (kind === 'REGION') {
       oneOf(p.regionType, ['HEADER', 'FOOTER', 'MAIN', 'SIDEBAR'], 'Região');
-      return createNode(e, { parentId, nodeType: 'REGION', data: { regionType: p.regionType }, layout: { mode: 'FLOW', direction: 'VERTICAL' }, index: p.regionType === 'HEADER' ? 0 : p.index }).id;
+      if (p.applyTo !== undefined) oneOf(p.applyTo, ['ALL', 'FIRST', 'EVEN', 'ODD'], 'Páginas do cabeçalho/rodapé');
+      return createNode(e, { parentId, nodeType: 'REGION', data: { regionType: p.regionType, applyTo: p.applyTo ?? 'ALL' }, layout: { mode: 'FLOW', direction: 'VERTICAL' }, index: p.regionType === 'HEADER' ? 0 : p.index }).id;
     }
     if (kind === 'BREAK') {
       oneOf(p.breakType, ['PAGE', 'SECTION', 'COLUMN'], 'Quebra');

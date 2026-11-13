@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 149 prontas · 🟡 21 parciais · ⬜ 90 a fazer
+**260 funcionalidades** · ✅ 158 prontas · 🟡 19 parciais · ⬜ 83 a fazer
 
 ## Resumo por categoria
 
@@ -11,12 +11,12 @@
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 27 | 3 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
-| 04 | Inserção de elementos | Adicionar componentes | 11 | 5 | 0 |
+| 04 | Inserção de elementos | Adicionar componentes | 12 | 4 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 15 | 2 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 15 | 1 | 0 |
 | 08 | Visualização de dados | Representar informações | 10 | 0 | 5 |
-| 09 | Layout e composição | Organizar espaços | 7 | 1 | 8 |
+| 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
 | 10 | Temas e estilos | Padronizar aparência | 9 | 0 | 3 |
 | 11 | Animações e transições | Controlar movimento | 0 | 0 | 13 |
 | 12 | Revisão e validação | Verificar conteúdo | 4 | 1 | 8 |
@@ -147,7 +147,7 @@
 | ✅ | F04.11 | Áudio | CONTENT | `INSERT_CONTENT` | assetId \| url, autoplay, loop | Arquivo ou endereço de áudio. |
 | ✅ | F04.12 | Vídeo | CONTENT | `INSERT_CONTENT` | assetId \| url, poster, captions | Arquivo ou endereço de vídeo. |
 | ✅ | F04.13 | Caixas de texto | CONTENT | `INSERT_CONTENT` |  | Texto com posicionamento livre (TEXT em layout ABSOLUTE). |
-| 🟡 | F04.14 | Cabeçalhos e rodapés | PAGE | `INSERT_STRUCTURE` | regionType: HEADER\|FOOTER | Regiões repetidas em todas as páginas. Depende de F09.01. Repetição por página na Etapa 03. |
+| ✅ | F04.14 | Cabeçalhos e rodapés | PAGE | `INSERT_STRUCTURE` `SET_HEADER_FOOTER` `PAGINATE` | regionType: HEADER\|FOOTER, applyTo | Regiões repetidas nas páginas: todas, primeira diferente, pares e ímpares. Depende de F09.01. |
 | 🟡 | F04.15 | Numeração automática | REFERENCE | `INSERT_CONTENT` | contentType: FIELD, fieldType | Número de página, slide, figura etc. Depende de F15.11. Cálculo dos valores na Etapa 04. |
 | 🟡 | F04.16 | Data e hora | REFERENCE | `INSERT_CONTENT` | fieldType: DATE\|TIME\|DATETIME, format | Campo de data/hora atualizável. Depende de F15.10. Cálculo dos valores na Etapa 04. |
 
@@ -241,16 +241,16 @@
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
 | | | **Organização de páginas e telas** | | | | |
-| ⬜ | F09.01 | Definir dimensões | PAGE | `SET_PAGE` | size \| width, height | Tamanho da página (A4, Carta…) ou do slide. Etapa 03. |
-| ⬜ | F09.02 | Definir orientação | PAGE | `SET_PAGE` | orientation | Retrato ou paisagem. Etapa 03. |
-| ⬜ | F09.03 | Configurar margens | PAGE | `SET_PAGE` | margins | Margens da página. Etapa 03. |
+| ✅ | F09.01 | Definir dimensões | PAGE | `SET_PAGE` `SET_SLIDE_SIZE` | size \| width, height \| preset | Tamanho da página (A3, A4, A5, Carta, Ofício, personalizado) ou do slide (16:9, 4:3…, conteúdo acompanha). |
+| ✅ | F09.02 | Definir orientação | PAGE | `SET_PAGE` | orientation | Retrato ou paisagem (por documento ou por seção). |
+| ✅ | F09.03 | Configurar margens | PAGE | `SET_PAGE` | margins | Margens livres ou prontas (Normal, Estreita, Larga, ABNT). |
 | ✅ | F09.04 | Definir espaçamentos | PAGE | `UPDATE_LAYOUT` `FORMAT` | gap, padding, spaceBefore/After | Espaço entre elementos e parágrafos. |
-| ⬜ | F09.05 | Criar colunas | PAGE | `SET_COLUMNS` `INSERT_STRUCTURE` | count, gap | Texto em colunas (seção ou página). Etapa 03. |
-| ⬜ | F09.06 | Configurar planos de fundo | PAGE | `SET_BACKGROUND` | color \| assetId \| gradient | Cor, imagem ou gradiente de página/slide. Etapa 03. |
-| ⬜ | F09.07 | Definir áreas de conteúdo | PAGE | `PAGINATE` |  | Área útil = página menos margens, cabeçalho e rodapé. Depende de F09.03. Etapa 03. |
-| 🟡 | F09.08 | Criar quebras de página | PAGE | `INSERT_STRUCTURE` `PAGINATE` | breakType: PAGE | Quebra manual + quebras automáticas. Paginação automática na Etapa 03. |
+| ✅ | F09.05 | Criar colunas | PAGE | `SET_COLUMNS` `PAGINATE` | count, gap | Texto em colunas no documento ou numa seção; quebra de coluna manual. |
+| ✅ | F09.06 | Configurar planos de fundo | PAGE | `SET_BACKGROUND` | color \| assetId \| gradient, fit | Cor, imagem ou gradiente do documento, da seção ou do slide. |
+| ✅ | F09.07 | Definir áreas de conteúdo | PAGE | `PAGINATE` `PAGE_SETUP` |  | Área útil = página menos margens, cabeçalho e rodapé; paginação calculada (medição plugável). Depende de F09.03. |
+| ✅ | F09.08 | Criar quebras de página | PAGE | `INSERT_STRUCTURE` `PAGINATE` | breakType: PAGE\|COLUMN | Quebra manual + quebras automáticas (parágrafos divididos por linha, sem linhas sozinhas). |
 | ✅ | F09.09 | Criar quebras de seção | PAGE | `INSERT_STRUCTURE` | breakType: SECTION | Nova seção (pode mudar página/colunas). |
-| ⬜ | F09.10 | Configurar impressão | PAGE | `SET_PRINT` |  | Intervalo, cópias, escala, cabeçalhos de planilha. Etapa 03. |
+| ✅ | F09.10 | Configurar impressão | PAGE | `SET_PRINT` | range, copies, scale, fitToPage, gridlines, headings, repeatRows | Intervalo, cópias, escala, ajustar à página, linhas de grade e cabeçalhos de planilha. |
 | | | **Organização visual** | | | | |
 | ✅ | F09.11 | Utilizar grade | OBJECTS | `SET_GRID` | enabled, size, snap | Grade de alinhamento. |
 | ⬜ | F09.12 | Utilizar régua | VIEW | `SET_VIEW` | ruler, unit | Régua com unidade (cm, pol, px). Etapa 13. |
