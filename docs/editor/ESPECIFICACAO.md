@@ -70,7 +70,7 @@ Cada item de cada categoria está no catálogo com identificador `Fcc.ii` (ex.: 
 | Posicionamento | LAYOUT · TRANSFORM · CONSTRAINT | `node.layout` (`mode`, `x`, `y`, `width`, `rotation`, `scaleX`, `flipH`, `constraints`) |
 | | GRID · GUIDE | `settings.grid`, `settings.guides` |
 | | LAYER | `layout.zIndex` (ordem visual entre irmãos) |
-| Animação | ANIM · TRANS · TRIGGER | Etapa 07 |
+| Animação | ANIM · TRANS · TRIGGER | `slide.data.animations[]` (ordem = sequência), `slide.data.transition` (`ops/animation.ts`) |
 | Revisão/colaboração | COMMENT · USER · PERM · PRESENCE · ISSUE | Etapas 08 e 09 |
 | | CHANGE | `Transaction` (antes/depois por item) |
 | | VERSION | `engine.snapshots` (banco na Etapa 14) |
@@ -132,7 +132,7 @@ Cada passo usa o anterior. ✅ concluído · 🔨 em andamento · ⬜ a fazer.
 | ✅ 04 | Referências: campos calculados, indicadores, referências cruzadas, numeração de notas e legendas, sumário, índice, citações e bibliografia | F15, F04.15–16 |
 | ✅ 05 | Formatação condicional e regras visuais, bordas/sombras/efeitos estruturados, filtros combinados, modelos | F02.25–27, F06.10, F06.13, F08.14–15, F10.08–10 |
 | ✅ 06 | Motor de diagramas (fluxograma, organograma, layout automático, conectores) | F04.07, F08.10–12 |
-| ⬜ 07 | Animações e transições (linha do tempo e reprodução) | F11 |
+| ✅ 07 | Animações e transições (linha do tempo e reprodução) | F11 |
 | ⬜ 08 | Revisão: ortografia, gramática, sugestões, tradução, consistência, acessibilidade, estatísticas | F12 |
 | ⬜ 09 | Comentários, permissões, presença, controle de alterações, edição simultânea | F13 |
 | ⬜ 10 | Comparar versões e recuperação | F14.06, F14.08 |

@@ -109,6 +109,11 @@ export function removeSubtree(e: Engine, id: string) {
     const slots = referenceSlots(other).filter((s) => doomed.has(s.get()!));
     if (!slots.length) continue;
     const t = e.touchNode(other.id);
+    if (t.type === 'SURFACE') {   // animações do elemento apagado somem; gatilho por objeto apagado vira "ao clicar"
+      t.data.animations = (t.data.animations ?? []).filter((a: any) => !doomed.has(a.targetId));
+      for (const a of t.data.animations) if (a.triggerId && doomed.has(a.triggerId)) { a.trigger = 'ON_CLICK'; delete a.triggerId; }
+      continue;
+    }
     if (t.type === 'LINE') {
       for (const k of ['start', 'end']) {
         const end = t.data[k];
@@ -141,6 +146,7 @@ export function cloneSubtree(e: Engine, nodes: Record<string, EditorNode>, rootI
     return c;
   });
   for (const c of out) remapReferences(c, map);
+  for (const c of out) if (Array.isArray(c.data.animations)) c.data.animations = c.data.animations.map((a: any) => ({ ...a, id: e.newId('ANIM') }));   // slide duplicado: animações com IDs próprios
   return { rootId: map.get(rootId)!, nodes: out, map };
 }
 

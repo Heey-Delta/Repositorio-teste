@@ -4,6 +4,7 @@
 //   LINK interno     data.targetId
 //   CAPTION / NOTE   data.targetId (elemento legendado / anotado)
 //   FIELD            data.targetId (ex.: referência cruzada)
+//   SURFACE (slide)  data.animations[].targetId / triggerId (animação do elemento, gatilho ao clicar num objeto)
 // Usado para: remapear IDs ao colar/duplicar (a cópia aponta para as cópias) e tratar exclusões.
 import type { EditorNode } from './types.ts';
 
@@ -16,6 +17,7 @@ export function referenceSlots(node: EditorNode): Slot[] {
   if (node.type === 'LINE') { add(d.start, 'targetId'); add(d.end, 'targetId'); }
   if (node.type === 'CHART') add(d.source, 'targetId');
   if (['LINK', 'CAPTION', 'NOTE', 'FIELD'].includes(node.type)) add(d, 'targetId');
+  if (node.type === 'SURFACE' && Array.isArray(d.animations)) for (const a of d.animations) { add(a, 'targetId'); add(a, 'triggerId'); }
   return slots;
 }
 

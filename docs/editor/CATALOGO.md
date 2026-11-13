@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 184 prontas · 🟡 6 parciais · ⬜ 70 a fazer
+**260 funcionalidades** · ✅ 197 prontas · 🟡 6 parciais · ⬜ 57 a fazer
 
 ## Resumo por categoria
 
@@ -18,7 +18,7 @@
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
-| 11 | Animações e transições | Controlar movimento | 0 | 0 | 13 |
+| 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
 | 12 | Revisão e validação | Verificar conteúdo | 4 | 1 | 8 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 0 | 0 | 11 |
 | 14 | Histórico e recuperação | Preservar alterações | 5 | 1 | 3 |
@@ -280,19 +280,19 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F11.01 | Criar animações | ANIMATION | `ADD_ANIMATION` | targetId, kind, effect | Animação num elemento do slide. Etapa 07. |
-| ⬜ | F11.02 | Configurar entrada | ANIMATION | `ADD_ANIMATION` | kind: ENTRANCE | Aparecer, esmaecer, voar, zoom… Etapa 07. |
-| ⬜ | F11.03 | Configurar ênfase | ANIMATION | `ADD_ANIMATION` | kind: EMPHASIS | Pulsar, girar, mudar cor… Etapa 07. |
-| ⬜ | F11.04 | Configurar saída | ANIMATION | `ADD_ANIMATION` | kind: EXIT | Desaparecer, esmaecer, voar… Etapa 07. |
-| ⬜ | F11.05 | Criar trajetórias de movimento | ANIMATION | `ADD_ANIMATION` | kind: MOTION_PATH, path | Caminho (linha, arco, livre). Etapa 07. |
-| ⬜ | F11.06 | Definir duração | ANIMATION | `UPDATE_ANIMATION` | duration | Em milissegundos. Etapa 07. |
-| ⬜ | F11.07 | Definir atraso | ANIMATION | `UPDATE_ANIMATION` | delay | Espera antes de começar. Etapa 07. |
-| ⬜ | F11.08 | Organizar sequência | ANIMATION | `REORDER_ANIMATION` | animationId, newIndex | Ordem das animações do slide. Etapa 07. |
-| ⬜ | F11.09 | Configurar gatilhos | ANIMATION | `UPDATE_ANIMATION` | trigger | Ao clicar, com a anterior, após a anterior, ao clicar num objeto. Etapa 07. |
-| ⬜ | F11.10 | Criar transições | ANIMATION | `SET_TRANSITION` | effect | Transição de entrada do slide. Etapa 07. |
-| ⬜ | F11.11 | Configurar velocidade de transição | ANIMATION | `SET_TRANSITION` | duration | Duração da transição. Etapa 07. |
-| ⬜ | F11.12 | Visualizar animações | ANIMATION | `ANIMATION_TIMELINE` | surfaceId | Linha do tempo calculada (início/fim de cada efeito). Etapa 07. |
-| ⬜ | F11.13 | Reproduzir animações | ANIMATION | `ANIMATION_STEPS` | surfaceId | Passos de reprodução (cada clique). Etapa 07. |
+| ✅ | F11.01 | Criar animações | ANIMATION | `ADD_ANIMATION` `REMOVE_ANIMATION` `CLEAR_ANIMATIONS` `COPY_ANIMATION` | targetId, kind, effect | Animação num elemento do slide. Etapa 07. |
+| ✅ | F11.02 | Configurar entrada | ANIMATION | `ADD_ANIMATION` | kind: ENTRANCE | Aparecer, esmaecer, voar, zoom… Etapa 07. |
+| ✅ | F11.03 | Configurar ênfase | ANIMATION | `ADD_ANIMATION` | kind: EMPHASIS | Pulsar, girar, mudar cor… Etapa 07. |
+| ✅ | F11.04 | Configurar saída | ANIMATION | `ADD_ANIMATION` | kind: EXIT | Desaparecer, esmaecer, voar… Etapa 07. |
+| ✅ | F11.05 | Criar trajetórias de movimento | ANIMATION | `ADD_ANIMATION` | kind: MOTION_PATH, path | Caminho (linha, arco, livre). Etapa 07. |
+| ✅ | F11.06 | Definir duração | ANIMATION | `UPDATE_ANIMATION` | duration | Em milissegundos. Etapa 07. |
+| ✅ | F11.07 | Definir atraso | ANIMATION | `UPDATE_ANIMATION` | delay | Espera antes de começar. Etapa 07. |
+| ✅ | F11.08 | Organizar sequência | ANIMATION | `REORDER_ANIMATION` `LIST_ANIMATIONS` | animationId, newIndex | Ordem das animações do slide. Etapa 07. |
+| ✅ | F11.09 | Configurar gatilhos | ANIMATION | `UPDATE_ANIMATION` | trigger | Ao clicar, com a anterior, após a anterior, ao clicar num objeto. Etapa 07. |
+| ✅ | F11.10 | Criar transições | ANIMATION | `SET_TRANSITION` | effect | Transição de entrada do slide. Etapa 07. |
+| ✅ | F11.11 | Configurar velocidade de transição | ANIMATION | `SET_TRANSITION` | duration | Duração da transição. Etapa 07. |
+| ✅ | F11.12 | Visualizar animações | ANIMATION | `ANIMATION_TIMELINE` | surfaceId | Linha do tempo calculada (início/fim de cada efeito). Etapa 07. |
+| ✅ | F11.13 | Reproduzir animações | ANIMATION | `ANIMATION_STEPS` `ANIMATION_STATE` | surfaceId | Passos de reprodução (cada clique). Etapa 07. |
 
 ## 12. Revisão e validação
 
