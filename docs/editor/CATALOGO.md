@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 217 prontas · 🟡 5 parciais · ⬜ 38 a fazer
+**260 funcionalidades** · ✅ 219 prontas · 🟡 5 parciais · ⬜ 36 a fazer
 
 ## Resumo por categoria
 
@@ -21,7 +21,7 @@
 | 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
 | 12 | Revisão e validação | Verificar conteúdo | 13 | 0 | 0 |
 | 13 | Comentários e colaboração | Trabalhar em conjunto | 11 | 0 | 0 |
-| 14 | Histórico e recuperação | Preservar alterações | 5 | 1 | 3 |
+| 14 | Histórico e recuperação | Preservar alterações | 7 | 1 | 1 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 0 | 0 | 12 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 0 | 1 | 8 |
@@ -337,9 +337,9 @@
 | ✅ | F14.03 | Refazer operações | HISTORY | `REDO` |  | Mesmo que F01.11. Depende de F01.11. |
 | 🟡 | F14.04 | Criar versões | HISTORY | `CREATE_VERSION` | label | Fotografia completa do documento. Hoje na memória; guardar no banco na Etapa 14. |
 | ✅ | F14.05 | Consultar histórico | HISTORY | `LIST_HISTORY` `LIST_VERSIONS` |  | Transações e versões. |
-| ⬜ | F14.06 | Comparar versões | HISTORY | `COMPARE_VERSIONS` | fromId, toId | Elementos criados, alterados e excluídos; diferença de texto. Depende de F14.04. Etapa 10. |
+| ✅ | F14.06 | Comparar versões | HISTORY | `COMPARE_VERSIONS` | fromId, toId | Elementos criados, alterados e excluídos; diferença de texto. Depende de F14.04. Diferença por palavra, por célula, movidos, estilos e temas (Etapa 10). |
 | ✅ | F14.07 | Restaurar versões anteriores | HISTORY | `RESTORE_VERSION` | versionId | Vira uma transação (dá para desfazer). |
-| ⬜ | F14.08 | Recuperar arquivos | HISTORY | `EXPORT_STATE` `RECOVER` |  | Reconstrói o documento a partir da última versão + operações. Depende de F14.04. Etapa 10. |
+| ✅ | F14.08 | Recuperar arquivos | HISTORY | `EXPORT_STATE` `RECOVER` `CHECK_INTEGRITY` `REPAIR_DOCUMENT` | state \| base, entries | Reconstrói o documento a partir da última versão + operações. Depende de F14.04. Diário (Journal) + rebuild; integridade da árvore verificada e consertada (Etapa 10). |
 | ⬜ | F14.09 | Salvar automaticamente | STORAGE | `AUTOSAVE` | interval | Grava a cada alteração (com intervalo). Etapa 14. |
 
 ## 15. Referências e elementos automáticos

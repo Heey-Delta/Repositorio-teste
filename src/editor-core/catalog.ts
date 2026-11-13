@@ -328,9 +328,9 @@ export const FEATURES: Feature[] = [
     ['Refazer operações', 'HISTORY', ['REDO'], 'DONE', 'Mesmo que F01.11.', undefined, ['F01.11']],
     ['Criar versões', 'HISTORY', ['CREATE_VERSION'], 'PARTIAL', 'Fotografia completa do documento.', 'label', undefined, 'Hoje na memória; guardar no banco na Etapa 14.'],
     ['Consultar histórico', 'HISTORY', ['LIST_HISTORY', 'LIST_VERSIONS'], 'DONE', 'Transações e versões.'],
-    ['Comparar versões', 'HISTORY', ['COMPARE_VERSIONS'], 'TODO', 'Elementos criados, alterados e excluídos; diferença de texto.', 'fromId, toId', ['F14.04'], 'Etapa 10.'],
+    ['Comparar versões', 'HISTORY', ['COMPARE_VERSIONS'], 'DONE', 'Elementos criados, alterados e excluídos; diferença de texto.', 'fromId, toId', ['F14.04'], 'Diferença por palavra, por célula, movidos, estilos e temas (Etapa 10).'],
     ['Restaurar versões anteriores', 'HISTORY', ['RESTORE_VERSION'], 'DONE', 'Vira uma transação (dá para desfazer).', 'versionId'],
-    ['Recuperar arquivos', 'HISTORY', ['EXPORT_STATE', 'RECOVER'], 'TODO', 'Reconstrói o documento a partir da última versão + operações.', undefined, ['F14.04'], 'Etapa 10.'],
+    ['Recuperar arquivos', 'HISTORY', ['EXPORT_STATE', 'RECOVER', 'CHECK_INTEGRITY', 'REPAIR_DOCUMENT'], 'DONE', 'Reconstrói o documento a partir da última versão + operações.', 'state | base, entries', ['F14.04'], 'Diário (Journal) + rebuild; integridade da árvore verificada e consertada (Etapa 10).'],
     ['Salvar automaticamente', 'STORAGE', ['AUTOSAVE'], 'TODO', 'Grava a cada alteração (com intervalo).', 'interval', undefined, 'Etapa 14.'],
   ]),
   ...category(15, [

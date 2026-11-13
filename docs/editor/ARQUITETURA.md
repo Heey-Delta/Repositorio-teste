@@ -57,6 +57,7 @@ Planilha      SECTION → SURFACE (SHEET, células esparsas: data.cells['A1'])
 | Diagramas | `ops/diagram.ts` | itens, ligações, layout automático (árvore, camadas, radial, linear, ciclo, Venn), traçado dos conectores, tópicos ↔ diagrama |
 | Animações | `ops/animation.ts` | entrada/ênfase/saída/trajetória, gatilhos, sequência, transições, linha do tempo e estado por passo |
 | Revisão | `ops/review.ts` | ortografia (provedor plugável), gramática, estilo, acessibilidade, consistência, correções, tradução, estatísticas |
+| Versões e recuperação | `ops/versions.ts` | `COMPARE_VERSIONS` · `EXPORT_STATE` · `RECOVER` · `CHECK_INTEGRITY` · `REPAIR_DOCUMENT` · `Journal` (diário) · `rebuild` |
 | Colaboração | `ops/collab.ts` | comentários e menções, permissões por efeito, presença, controle de alterações, `APPLY_REMOTE` + `SyncSession` |
 
 ## Como usar

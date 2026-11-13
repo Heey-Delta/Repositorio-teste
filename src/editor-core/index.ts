@@ -23,6 +23,7 @@ import { diagramHandlers } from './ops/diagram.ts';
 import { animationHandlers } from './ops/animation.ts';
 import { reviewHandlers } from './ops/review.ts';
 import { collabHandlers, installCollaboration } from './ops/collab.ts';
+import { versionHandlers } from './ops/versions.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -38,6 +39,7 @@ export type { Issue, SpellProvider, TranslateProvider } from './ops/review.ts';
 export { SyncSession, roleOf } from './ops/collab.ts';
 export type { RemoteTransaction, Role } from './ops/collab.ts';
 export { merge3, mergeList } from './util.ts';
+export { diffText, diffDocuments, checkIntegrity, repair, rebuild, Journal } from './ops/versions.ts';
 export { layoutDiagram, itemsFromOutline, outlineFromItems } from './ops/diagram.ts';
 
 export const MODULES: Record<string, Record<string, Handler>> = {
@@ -59,6 +61,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   animation: animationHandlers,
   review: reviewHandlers,
   collab: collabHandlers,
+  versions: versionHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
