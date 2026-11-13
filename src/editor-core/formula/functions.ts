@@ -105,6 +105,7 @@ export class FunctionRegistry {
     return this;
   }
   get(name: string) { return this.map.get(normalizeName(name)); }
+  unregister(name: string) { const d = this.get(name); if (!d) return false; for (const n of [d.name, ...(d.aliases ?? [])]) this.map.delete(normalizeName(n)); return true; }
   list() { return [...new Set(this.map.values())].map((d) => ({ name: d.name, aliases: d.aliases ?? [], category: d.category, description: d.description ?? '' })); }
 }
 

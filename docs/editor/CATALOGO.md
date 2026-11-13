@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 230 prontas · 🟡 6 parciais · ⬜ 24 a fazer
+**260 funcionalidades** · ✅ 240 prontas · 🟡 4 parciais · ⬜ 16 a fazer
 
 ## Resumo por categoria
 
@@ -14,7 +14,7 @@
 | 04 | Inserção de elementos | Adicionar componentes | 15 | 1 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
-| 07 | Cálculos e fórmulas | Processar informações | 15 | 1 | 0 |
+| 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
@@ -24,7 +24,7 @@
 | 14 | Histórico e recuperação | Preservar alterações | 7 | 1 | 1 |
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 11 | 1 | 0 |
-| 17 | Automação e extensibilidade | Ampliar capacidades | 0 | 1 | 8 |
+| 17 | Automação e extensibilidade | Ampliar capacidades | 9 | 0 | 0 |
 | 18 | Visualização e navegação | Controlar a experiência | 0 | 0 | 14 |
 
 ## Motores
@@ -208,7 +208,7 @@
 | ✅ | F07.07 | Trabalhar com datas e horários | FORMULA | `SET_FORMULA` |  | HOJE, AGORA, DATA, DIA, MÊS, ANO, DIAS. |
 | ✅ | F07.08 | Trabalhar com textos | FORMULA | `SET_FORMULA` |  | CONCATENAR, ESQUERDA, EXT.TEXTO, SUBSTITUIR, TEXTO… |
 | ✅ | F07.09 | Utilizar funções predefinidas | FORMULA | `SET_FORMULA` |  | 59 funções, nomes em português e inglês. |
-| 🟡 | F07.10 | Criar funções personalizadas | FORMULA | `DEFINE_FUNCTION` | name, params, body | Função do usuário escrita como fórmula com parâmetros (ex.: IMPOSTO(x) = x*0,15). Hoje só por código (registerFunction); fórmula do usuário na Etapa 12. |
+| ✅ | F07.10 | Criar funções personalizadas | FORMULA | `DEFINE_FUNCTION` `DELETE_FUNCTION` `LIST_FUNCTIONS` | name, params, body | Função do usuário escrita como fórmula com parâmetros (ex.: IMPOSTO(x) = x*0.15). Fica no documento; redefinir recalcula; desfazer volta; recursão infinita vira #NUM! (Etapa 12). |
 | ✅ | F07.11 | Utilizar referências entre células | FORMULA | `SET_FORMULA` |  | A1, $A$1, intervalos. |
 | ✅ | F07.12 | Utilizar referências entre planilhas | FORMULA | `SET_FORMULA` |  | Planilha2!A1, 'Nome com espaço'!B2. |
 | ✅ | F07.13 | Criar intervalos nomeados | FORMULA | `DEFINE_NAME` `DELETE_NAME` | name, range | Nomes para intervalos. |
@@ -379,15 +379,15 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F17.01 | Criar macros | AUTOMATION | `START_RECORDING` `STOP_RECORDING` `RUN_MACRO` | name | Grava operações e reproduz. Etapa 12. |
-| ⬜ | F17.02 | Executar scripts | AUTOMATION | `RUN_SCRIPT` | steps | Sequência de operações com variáveis e repetição (sem executar código livre). Etapa 12. |
-| ⬜ | F17.03 | Criar automações | AUTOMATION | `ADD_AUTOMATION` `REMOVE_AUTOMATION` | event, condition, actions | Quando <evento> e <condição>, faça <ações>. Depende de F17.02. Etapa 12. |
-| ⬜ | F17.04 | Criar atalhos personalizados | AUTOMATION | `SET_SHORTCUT` `RESOLVE_SHORTCUT` | keys, operation | Tecla → operação. Etapa 12. |
-| 🟡 | F17.05 | Utilizar funções personalizadas | FORMULA | `DEFINE_FUNCTION` |  | Mesmo que F07.10. Depende de F07.10. Etapa 12. |
-| ⬜ | F17.06 | Instalar extensões | AUTOMATION | `INSTALL_EXTENSION` | manifest | Extensão adiciona operações, funções e atalhos. Etapa 12. |
-| ⬜ | F17.07 | Gerenciar extensões | AUTOMATION | `LIST_EXTENSIONS` `ENABLE_EXTENSION` `DISABLE_EXTENSION` `UNINSTALL_EXTENSION` |  | Ativar, desativar, remover. Depende de F17.06. Etapa 12. |
-| ⬜ | F17.08 | Integrar serviços externos | AUTOMATION | `ADD_WEBHOOK` `CALL_SERVICE` | url, events | Avisar/consultar serviços por HTTP. Etapa 12. |
-| ⬜ | F17.09 | Criar ações automatizadas | AUTOMATION | `ADD_AUTOMATION` |  | Mesmo mecanismo das automações. Depende de F17.03. Etapa 12. |
+| ✅ | F17.01 | Criar macros | AUTOMATION | `START_RECORDING` `STOP_RECORDING` `RUN_MACRO` `LIST_MACROS` `DELETE_MACRO` | name | Grava operações e reproduz. Etapa 12. |
+| ✅ | F17.02 | Executar scripts | AUTOMATION | `RUN_SCRIPT` | steps | Sequência de operações com variáveis e repetição (sem executar código livre). Etapa 12. |
+| ✅ | F17.03 | Criar automações | AUTOMATION | `ADD_AUTOMATION` `UPDATE_AUTOMATION` `REMOVE_AUTOMATION` `LIST_AUTOMATIONS` | event, condition, actions | Quando <evento> e <condição>, faça <ações>. Depende de F17.02. Etapa 12. |
+| ✅ | F17.04 | Criar atalhos personalizados | AUTOMATION | `SET_SHORTCUT` `RESOLVE_SHORTCUT` `LIST_SHORTCUTS` `RESET_SHORTCUTS` | keys, operation | Tecla → operação. Etapa 12. |
+| ✅ | F17.05 | Utilizar funções personalizadas | FORMULA | `DEFINE_FUNCTION` |  | Mesmo que F07.10. Depende de F07.10. Etapa 12. |
+| ✅ | F17.06 | Instalar extensões | AUTOMATION | `INSTALL_EXTENSION` | manifest | Extensão adiciona operações, funções e atalhos. Etapa 12. |
+| ✅ | F17.07 | Gerenciar extensões | AUTOMATION | `LIST_EXTENSIONS` `ENABLE_EXTENSION` `DISABLE_EXTENSION` `UNINSTALL_EXTENSION` |  | Ativar, desativar, remover. Depende de F17.06. Etapa 12. |
+| ✅ | F17.08 | Integrar serviços externos | AUTOMATION | `ADD_WEBHOOK` `REMOVE_WEBHOOK` `CALL_SERVICE` | url, events | Avisar/consultar serviços por HTTP. Etapa 12. |
+| ✅ | F17.09 | Criar ações automatizadas | AUTOMATION | `ADD_AUTOMATION` |  | Mesmo mecanismo das automações. Depende de F17.03. Etapa 12. |
 
 ## 18. Visualização e navegação
 

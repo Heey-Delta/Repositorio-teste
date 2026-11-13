@@ -26,6 +26,7 @@ import { reviewHandlers } from './ops/review.ts';
 import { collabHandlers, installCollaboration } from './ops/collab.ts';
 import { versionHandlers } from './ops/versions.ts';
 import { ioHandlers } from './ops/io.ts';
+import { automationHandlers, installAutomation } from './ops/automation.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -43,6 +44,8 @@ export type { RemoteTransaction, Role } from './ops/collab.ts';
 export { merge3, mergeList } from './util.ts';
 export { exportDocument, importFile, openFile, convertFiles, parseFile, printLayout, formatOf, FORMATS } from './ops/io.ts';
 export { readDocument, buildFromModel } from './io/model.ts';
+export { runScript, callService, installCodeExtension, normalizeKeys, eventsOf } from './ops/automation.ts';
+export type { Step, UserFunction } from './ops/automation.ts';
 export type { ImportModel } from './io/model.ts';
 export { diffText, diffDocuments, checkIntegrity, repair, rebuild, Journal } from './ops/versions.ts';
 export { layoutDiagram, itemsFromOutline, outlineFromItems } from './ops/diagram.ts';
@@ -68,6 +71,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   collab: collabHandlers,
   versions: versionHandlers,
   io: ioHandlers,
+  automation: automationHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
@@ -81,6 +85,7 @@ export function createEngine(doc: DocumentModel, options?: EngineOptions) {
   const engine = new Engine(doc, handlers, options);
   watchCharts(engine);
   installCollaboration(engine);
+  installAutomation(engine);
   engine.services.makeEngine = (app: DocumentModel['document']['application']) => createEngine(createDocument(app), options);
   return engine;
 }

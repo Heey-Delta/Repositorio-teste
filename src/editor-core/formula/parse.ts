@@ -40,7 +40,9 @@ export type Ast =
   | { k: 'call'; name: string; args: Ast[] }
   | { k: 'un'; op: '-' | '+'; arg: Ast }
   | { k: 'pct'; arg: Ast }
-  | { k: 'bin'; op: string; left: Ast; right: Ast };
+  | { k: 'bin'; op: string; left: Ast; right: Ast }
+  /** valor já calculado (parâmetro de função do usuário); não vem do texto da fórmula */
+  | { k: 'val'; v: unknown };
 
 export class FormulaSyntaxError extends Error {}
 
@@ -196,6 +198,7 @@ export function stringify(a: Ast, sep = ';'): string {
     case 'ref': return quoteSheet(a.sheet) + refText(a);
     case 'range': return `${quoteSheet(a.sheet)}${refText(a.start)}:${refText(a.end)}`;
     case 'call': return `${a.name}(${a.args.map((x) => stringify(x, sep)).join(sep)})`;
+    case 'val': return String(a.v);
     case 'un': return `${a.op}${wrap(a.arg, 6)}`;
     case 'pct': return `${wrap(a.arg, 6)}%`;
     case 'bin': {

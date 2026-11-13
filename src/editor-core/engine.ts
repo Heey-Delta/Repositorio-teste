@@ -178,10 +178,8 @@ export class Engine {
     this.tx = { type, label, depth: 0, before: new Map(), remote: false, after: [] };
     try {
       const result = fn();
-      if (this.commitHooks.length) {
-        const changes = this.pendingChanges();
-        if (changes.length) for (const h of this.commitHooks) h(this, { type, changes, remote: this.tx.remote });
-      }
+      // cada gancho vê também o que os anteriores mudaram (ex.: automação → permissão → controle de alterações)
+      for (const h of this.commitHooks) { const changes = this.pendingChanges(); if (changes.length) h(this, { type, changes, remote: this.tx.remote }); }
       this.commit();
       return result;
     } catch (err) {
@@ -289,9 +287,12 @@ export class Engine {
     const h = this.handlers.get(op.type);
     if (!h) fail('UNKNOWN_OPERATION', `Operação desconhecida: ${op.type}.`);
     const before = this.history.past.at(-1);
+    const outer = !this.tx;
     const result = this.transact(op.type, op.type, () => h!(this, op)) as T;
+    const changed = this.history.past.at(-1) !== before;
     // "repetir última ação" lembra só o que alterou o documento (seleção, consultas e desfazer não contam)
-    if (!['UNDO', 'REDO', 'REPEAT'].includes(op.type) && this.history.past.at(-1) !== before) this.lastOperation = clone(op);
+    if (!['UNDO', 'REDO', 'REPEAT'].includes(op.type) && changed) this.lastOperation = clone(op);
+    if (outer) this.emit('operation', { op, changed, result });   // gravação de macros, registro de uso
     return result;
   }
 
@@ -305,6 +306,12 @@ export class Engine {
   }
 
   has(type: string) { return this.handlers.has(type); }
+  /** Operação nova em tempo de execução (extensões). Não substitui as do sistema sem `replace`. */
+  registerHandler(type: string, h: Handler, replace = false) {
+    if (this.handlers.has(type) && !replace) fail('VALIDATION', `A operação ${type} já existe.`);
+    this.handlers.set(type, h);
+  }
+  unregisterHandler(type: string) { this.handlers.delete(type); }
   operations() { return [...this.handlers.keys()].sort(); }
 
   /** Remove da seleção o que deixou de existir. */

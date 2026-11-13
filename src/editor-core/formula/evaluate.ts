@@ -34,6 +34,7 @@ function evalNode(a: Ast, ctx: EvalContext): Value {
     case 'err': return err(a.code as any);
     case 'ref': return ctx.getCell(a.sheet, a.row, a.col);
     case 'range': return { matrix: ctx.getRange(a.sheet, Math.min(a.start.row, a.end.row), Math.min(a.start.col, a.end.col), Math.max(a.start.row, a.end.row), Math.max(a.start.col, a.end.col)) };
+    case 'val': return a.v as Value;
     case 'name': {
       const target = ctx.getName(a.name) ?? raise('#NAME?');
       return evalNode(target!, ctx);
