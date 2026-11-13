@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**329 funcionalidades** · ✅ 329 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**334 funcionalidades** · ✅ 334 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -25,7 +25,7 @@
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 14 | 0 | 0 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 9 | 0 | 0 |
-| 18 | Visualização e navegação | Controlar a experiência | 14 | 0 | 0 |
+| 18 | Visualização e navegação | Controlar a experiência | 19 | 0 | 0 |
 
 ## Motores
 
@@ -52,6 +52,7 @@
 | Referências e elementos automáticos (`REFERENCE`) | 2 | 13 |
 | Automação e extensibilidade (`AUTOMATION`) | 2 | 8 |
 | Persistência (banco de dados) (`STORAGE`) | 3 | 1 |
+| Interface (aplicações) (`UI`) | 3 | 5 |
 
 ## 01. Edição de conteúdo
 
@@ -491,3 +492,9 @@
 | ✅ | F18.12 | Navegação por teclado | VIEW | `NAVIGATE` | direction | Próximo/anterior elemento, célula, slide. Depende de F17.04. Etapa 13. |
 | ✅ | F18.13 | Leitura assistida | VIEW | `READING_ORDER` | surfaceId | Texto em ordem de leitura para leitor de tela/voz. Etapa 13. |
 | ✅ | F18.14 | Exibição de elementos auxiliares | VIEW | `SET_VIEW` | showGrid, showGuides, showRuler, showMarks | Grade, guias, régua, marcas de formatação. Etapa 13. |
+| | | **E1 · Interface** | | | | |
+| ✅ | F18.15 | Painel Recursos | UI | `READING_ORDER` |  | Todos os recursos novos do motor com formulário curto e resultado no painel, filtrados por aplicação, com busca. E1. |
+| ✅ | F18.16 | Leitura em voz alta | UI | `READING_ORDER` |  | Lê a seleção ou o documento na ordem de leitura (voz pt-BR do navegador). E1. |
+| ✅ | F18.17 | Ditado por voz | UI | `TEXT_SPLICE` |  | Reconhecimento de fala pt-BR do navegador; o texto entra onde está o cursor (ou na célula ativa). E1. Depende do navegador (Chrome/Edge). |
+| ✅ | F18.18 | Tema claro e escuro | UI | `SET_VIEW` |  | Alterna o tema do editor e lembra a escolha. E1. |
+| ✅ | F18.19 | Assistente de IA | UI | `INSERT_CONTENT` `SET_CELL` `SET_SPEAKER_NOTES` | action, text, instruction | Reescrever, resumir, expandir, tom, gramática, traduzir, títulos, ideias, estrutura, perguntas; slides e notas a partir de texto; criar/explicar fórmulas e analisar dados. E1. Roda no servidor com a chave ANTHROPIC_API_KEY (variável da Vercel). |

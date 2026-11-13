@@ -470,6 +470,12 @@ export const FEATURES: Feature[] = [
     ['Navegação por teclado', 'VIEW', ['NAVIGATE'], 'DONE', 'Próximo/anterior elemento, célula, slide.', 'direction', ['F17.04'], 'Etapa 13.'],
     ['Leitura assistida', 'VIEW', ['READING_ORDER'], 'DONE', 'Texto em ordem de leitura para leitor de tela/voz.', 'surfaceId', undefined, 'Etapa 13.'],
     ['Exibição de elementos auxiliares', 'VIEW', ['SET_VIEW'], 'DONE', 'Grade, guias, régua, marcas de formatação.', 'showGrid, showGuides, showRuler, showMarks', undefined, 'Etapa 13.'],
+    { group: 'E1 · Interface' },
+    ['Painel Recursos', 'UI', ['READING_ORDER'], 'DONE', 'Todos os recursos novos do motor com formulário curto e resultado no painel, filtrados por aplicação, com busca.', undefined, undefined, 'E1.'],
+    ['Leitura em voz alta', 'UI', ['READING_ORDER'], 'DONE', 'Lê a seleção ou o documento na ordem de leitura (voz pt-BR do navegador).', undefined, undefined, 'E1.'],
+    ['Ditado por voz', 'UI', ['TEXT_SPLICE'], 'DONE', 'Reconhecimento de fala pt-BR do navegador; o texto entra onde está o cursor (ou na célula ativa).', undefined, undefined, 'E1. Depende do navegador (Chrome/Edge).'],
+    ['Tema claro e escuro', 'UI', ['SET_VIEW'], 'DONE', 'Alterna o tema do editor e lembra a escolha.', undefined, undefined, 'E1.'],
+    ['Assistente de IA', 'UI', ['INSERT_CONTENT', 'SET_CELL', 'SET_SPEAKER_NOTES'], 'DONE', 'Reescrever, resumir, expandir, tom, gramática, traduzir, títulos, ideias, estrutura, perguntas; slides e notas a partir de texto; criar/explicar fórmulas e analisar dados.', 'action, text, instruction', undefined, 'E1. Roda no servidor com a chave ANTHROPIC_API_KEY (variável da Vercel).'],
   ]),
 ];
 

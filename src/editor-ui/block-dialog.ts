@@ -89,8 +89,9 @@ const CSS = `
 .bd button.bd-ok{background:var(--accent,#FBBF00);color:#000;border-color:var(--accent,#FBBF00);font-weight:700}`;
 
 /** Abre a janela; devolve os atributos (ou null se cancelar). */
+export function ensureDialogCss() { if (!document.getElementById('bd-css')) { const st = document.createElement('style'); st.id = 'bd-css'; st.textContent = CSS; document.head.append(st); } }
 export function openBlockDialog(kind: BlockName, current?: Record<string, unknown>): Promise<Record<string, string> | null> {
-  if (!document.getElementById('bd-css')) { const st = document.createElement('style'); st.id = 'bd-css'; st.textContent = CSS; document.head.append(st); }
+  ensureDialogCss();
   const spec = FIELDS[kind];
   const values: Record<string, string> = { ...spec.defaults, ...Object.fromEntries(Object.entries(current ?? {}).map(([k, v]) => [k, String(v ?? '')])) };
   const dlg = document.createElement('dialog');

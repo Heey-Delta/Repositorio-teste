@@ -7,6 +7,9 @@ import { SlideView, present } from './slide-view.ts';
 import { SheetView } from './sheet-view.ts';
 import { openBlockDialog } from './block-dialog.ts';
 import { parseChartData } from '../lib/rich-blocks.ts';
+import { shapeKind } from '../editor-core/io/shapes.ts';
+import { toolsPanel } from './tools-panel.ts';
+import { assistantPanel, applyTheme, dictate, readAloud } from './assist.ts';
 
 /** Atributos da janela → dados do motor. */
 const chartFrom = (a: Record<string, string>) => { const { categories, series } = parseChartData(a.data ?? ''); return { chartType: a.type, title: { text: a.title ?? '', visible: Boolean(a.title) }, source: { type: 'MANUAL', categories, series } }; };
@@ -62,10 +65,10 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       select('Tamanho', [['', 'Tamanho'], ...[9, 10, 11, 12, 14, 16, 18, 24, 32].map((n) => [String(n), `${n} pt`] as [string, string])], (v) => view.format({ fontSize: Number(v) })),
       ...textTools, color('Marca-texto', (c) => view.format({ highlight: c })), sep(),
       btn('⯇', 'Alinhar à esquerda', () => view.align('LEFT')), btn('≡', 'Centralizar', () => view.align('CENTER')), btn('⯈', 'Alinhar à direita', () => view.align('RIGHT')), btn('☰', 'Justificar', () => view.align('JUSTIFY')), sep(),
-      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…'], ['CIRCLE', 'Círculo'], ['RECTANGLE', 'Retângulo'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
+      select('Inserir', [['', 'Inserir…'], ['LIST_BULLET', 'Lista com marcadores'], ['LIST_NUMBERED', 'Lista numerada'], ['TABLE', 'Tabela 3×3'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…'], ['SHAPE', 'Forma…'], ['BREAK', 'Quebra de página'], ['TOC', 'Sumário']], (v) => {
         if (v === 'CHART') { void openBlockDialog('chart').then((a) => { if (a) view.insert('CHART', chartFrom(a)); }); return; }
         if (v === 'DIAGRAM') { void openBlockDialog('diagram').then((a) => { if (a) view.insert('DIAGRAM', { diagramType: a.type, outline: a.outline }); }); return; }
-        if (v === 'CIRCLE' || v === 'RECTANGLE') { const t = prompt('Texto dentro da forma (opcional):', '') ?? ''; view.insert('SHAPE', { shapeType: v, ...(t ? { text: t } : {}) }, v === 'CIRCLE' ? { width: 160, height: 160 } : { width: 240, height: 120 }); return; }
+        if (v === 'SHAPE') { void insertShape((data, w, hh, fill) => { const r = view.insert('SHAPE', data, { width: w, height: hh }); if (r?.ok && fill) run({ type: 'FORMAT', targetId: r.value.id, payload: { fill } }); }); return; }
         if (v.startsWith('LIST')) view.insert('LIST', { listType: v === 'LIST_NUMBERED' ? 'NUMBERED' : 'BULLET', items: [''] });
         else if (v === 'TABLE') view.insert('TABLE', { header: true, values: [['', '', ''], ['', '', ''], ['', '', '']] });
         else if (v === 'BREAK') view.insert('BREAK', { breakType: 'PAGE' });
@@ -75,9 +78,10 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       }));
   } else if (view instanceof SlideView) {
     toolbar.append(...common,
-      select('Inserir', [['', 'Inserir…'], ['TEXT', 'Caixa de texto'], ['RECTANGLE', 'Retângulo'], ['ROUNDED_RECTANGLE', 'Retângulo arredondado'], ['ELLIPSE', 'Elipse'], ['TRIANGLE', 'Triângulo'], ['DIAMOND', 'Losango'], ['ARROW', 'Seta'], ['STAR', 'Estrela'], ['LINE', 'Linha'], ['TABLE', 'Tabela'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…']], (v) => {
+      select('Inserir', [['', 'Inserir…'], ['TEXT', 'Caixa de texto'], ['SHAPE_GALLERY', 'Forma… (todas)'], ['RECTANGLE', 'Retângulo'], ['ROUNDED_RECTANGLE', 'Retângulo arredondado'], ['ELLIPSE', 'Elipse'], ['TRIANGLE', 'Triângulo'], ['DIAMOND', 'Losango'], ['ARROW', 'Seta'], ['STAR', 'Estrela'], ['LINE', 'Linha'], ['TABLE', 'Tabela'], ['IMAGE', 'Imagem…'], ['EQUATION', 'Equação…'], ['CHART', 'Gráfico…'], ['DIAGRAM', 'Diagrama…']], (v) => {
         if (v === 'CHART') { void openBlockDialog('chart').then((a) => { if (a) view.insert('CHART', chartFrom(a), [640, 360]); }); return; }
         if (v === 'DIAGRAM') { void openBlockDialog('diagram').then((a) => { if (a) view.insert('DIAGRAM', { diagramType: a.type, outline: a.outline }, [640, 400]); }); return; }
+        if (v === 'SHAPE_GALLERY') { void insertShape((data, w, hh, fill) => { view.insert('SHAPE', data, [w, hh]); const id = e.state.selection.primaryId; if (fill && id) run({ type: 'FORMAT', targetId: id, payload: { fill } }); }); return; }
         if (v === 'TEXT') view.insert('TEXT', { text: 'Texto' }, [400, 60]);
         else if (v === 'LINE') view.insert('LINE', { lineType: 'STRAIGHT' }, [300, 2]);
         else if (v === 'TABLE') view.insert('TABLE', { header: true, values: [['A', 'B', 'C'], ['', '', ''], ['', '', '']] }, [480, 150]);
@@ -95,6 +99,58 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       btn('Σ', 'Soma do intervalo selecionado', () => { const sv = view as SheetView; const range = sv.range(); if (!range.includes(':')) return toast('Selecione um intervalo (Shift + setas).', 'error'); const end = range.split(':')[1]; const m = /^([A-Z]+)(\d+)$/.exec(end)!; run({ type: 'SET_CELL', targetId: sv.sheet()!.id, payload: { cell: `${m[1]}${Number(m[2]) + 1}`, value: `=SOMA(${range})` } }); }));
   }
   toolbar.append(sep(), btn('Ler', 'Alternar entre edição e leitura', () => run({ type: 'SET_VIEW', payload: { mode: e.state.mode === 'READ' ? 'EDIT' : 'READ' } }), { id: 'edMode' }));
+  // acessibilidade e conforto: ouvir o texto, ditar por voz, tema claro/escuro
+  const listenBtn = btn('Ouvir', 'Ler em voz alta (a seleção ou o documento)', () => readAloud(e, (on) => { listenBtn.textContent = on ? 'Parar' : 'Ouvir'; listenBtn.setAttribute('aria-pressed', String(on)); }));
+  const dictBtn = btn('Ditar', 'Ditar por voz', () => dictate((t) => insertText(t), (on) => { dictBtn.textContent = on ? 'Parar ditado' : 'Ditar'; dictBtn.setAttribute('aria-pressed', String(on)); }));
+  const themeBtn = btn('Tema', 'Alternar tema claro/escuro', () => { themeBtn.dataset.t = applyTheme(root, root.dataset.theme === 'light' ? 'dark' : 'light'); });
+  applyTheme(root);
+  toolbar.append(listenBtn, dictBtn, themeBtn);
+
+  // ---------------------------------------------------------------- forma, ditado e assistente
+  async function insertShape(place: (data: Record<string, unknown>, w: number, h: number, fill?: string) => void) {
+    const a = await openBlockDialog('shape');
+    if (!a) return;
+    place({ shapeType: shapeKind(a.kind), ...(a.text ? { text: a.text } : {}) }, Number(a.width) || 240, Number(a.height) || 140, a.fill || undefined);
+  }
+  /** Texto vindo do ditado ou do assistente entra onde está o cursor (ou como novo parágrafo / caixa / célula). */
+  function insertText(t: string) {
+    if (view instanceof SheetView) { run({ type: 'SET_CELL', targetId: view.sheet()!.id, payload: { cell: view.active(), value: t } }); return; }
+    if (view instanceof DocView && document.activeElement?.closest('.ed-page')) { document.execCommand('insertText', false, `${t} `); return; }
+    if (view instanceof DocView) view.insert('TEXT', { text: t }); else view.insert('TEXT', { text: t }, [700, 80]);
+  }
+  const plainDoc = () => { try { return String(exportDocument(e, app === 'SPREADSHEET_EDITOR' ? 'CSV' : 'TXT').data); } catch { return ''; } };
+  const assistHooks = {
+    selected: () => {
+      if (view instanceof SheetView) { const c = run({ type: 'GET_CELL', targetId: view.sheet()!.id, payload: { cell: view.active() } }); return c.ok ? String(c.value.formula ?? c.value.value ?? '') : ''; }
+      return window.getSelection()?.toString() ?? '';
+    },
+    whole: plainDoc,
+    insert: (text: string, action: string) => {
+      if (action === 'slides' && view instanceof SlideView) {
+        // "## Título" + tópicos "- " → um slide por título
+        for (const block of text.split(/^##\s+/m).map((b) => b.trim()).filter(Boolean)) {
+          const [title, ...rest] = block.split('\n');
+          const id = run({ type: 'INSERT_STRUCTURE', payload: { structureType: 'SURFACE', surfaceType: 'SLIDE', parentId: e.doc.document.rootId } });
+          if (!id.ok) return;
+          run({ type: 'INSERT_CONTENT', payload: { contentType: 'TEXT', parentId: id.value, data: { textType: 'TITLE', text: title.trim() }, layout: { x: 64, y: 48, width: 1152, height: 90 } } });
+          const points = rest.map((l) => l.replace(/^\s*[-*•]\s*/, '').trim()).filter(Boolean).join('\n');
+          if (points) run({ type: 'INSERT_CONTENT', payload: { contentType: 'TEXT', parentId: id.value, data: { text: points }, layout: { x: 64, y: 170, width: 1152, height: 480 } } });
+        }
+        render(); return;
+      }
+      if (action === 'notes' && e.state.activeSurface) { run({ type: 'SET_SPEAKER_NOTES', targetId: e.state.activeSurface, payload: { notes: text } }); toast('Notas gravadas neste slide.'); return; }
+      if (action === 'formula' && view instanceof SheetView) { const f = text.split('\n').find((l) => l.trim().startsWith('=')); if (f) run({ type: 'SET_CELL', targetId: view.sheet()!.id, payload: { cell: view.active(), value: f.trim() } }); return; }
+      if (view instanceof DocView) {
+        for (const line of text.split(/\n{1,}/).map((l) => l.trim()).filter(Boolean)) {
+          const m = /^(#{1,3})\s+(.*)$/.exec(line), li = /^[-*•]\s+(.*)$/.exec(line);
+          view.insert('TEXT', m ? { textType: ['HEADING_1', 'HEADING_2', 'HEADING_3'][m[1].length - 1], text: m[2] } : { text: li ? `• ${li[1]}` : line });
+        }
+        return;
+      }
+      insertText(text);
+    },
+    replace: (text: string) => { if (view instanceof DocView) { view.root.focus(); document.execCommand('insertText', false, text); } else insertText(text); },
+  };
 
   // ---------------------------------------------------------------- painéis
   const PANELS: [string, string, () => Node[]][] = [
@@ -102,6 +158,8 @@ export async function boot(root: HTMLElement, id: string, login: string) {
     ['comments', 'Comentários', commentsPanel],
     ['review', 'Revisão', reviewPanel],
     ...(app === 'PRESENTATION_EDITOR' ? [['anim', 'Animações', animPanel] as [string, string, () => Node[]]] : []),
+    ['tools', 'Recursos', () => toolsPanel(e, () => ({ selection: e.state.selection.selectedIds, surface: e.state.activeSurface ?? null, range: view instanceof SheetView && view.range().includes(':') ? view.range() : null, cell: view instanceof SheetView ? view.active() : null }), () => render())],
+    ['ai', 'Assistente', () => assistantPanel(e, assistHooks)],
     ['versions', 'Versões', versionsPanel],
     ['files', 'Publicar e arquivo', filesPanel],
   ];
