@@ -8,7 +8,9 @@
     "build": "node scripts/db-migrate.ts && astro build && node scripts/vercel-routes.mjs",
     "db:generate": "drizzle-kit generate",
     "preview": "astro preview",
-    "check:widgets": "scripts/check-widgets.sh"
+    "check:widgets": "scripts/check-widgets.sh",
+    "test:editor": "node --test 'tests/editor-core/*.test.ts'",
+    "check:editor": "tsc -p tsconfig.editor.json"
   },
   "dependencies": {
     "@astrojs/vercel": "^11.0.21",

@@ -1,0 +1,59 @@
+// Ponto de entrada do motor: junta as operações de todos os módulos num único Engine.
+//   import { createEngine, createDocument } from '../editor-core/index.ts';
+//   const e = createEngine(createDocument('PRESENTATION_EDITOR'));
+//   e.run({ type: 'INSERT_CONTENT', payload: { contentType: 'SHAPE', parentId: e.state.activeSurface, data: { shapeType: 'CIRCLE' } } });
+import type { DocumentModel } from './types.ts';
+import type { EngineOptions, Handler } from './engine.ts';
+import { Engine } from './engine.ts';
+import { basicHandlers } from './ops/basic.ts';
+import { historyHandlers } from './ops/history.ts';
+import { selectionHandlers } from './ops/selection.ts';
+import { organizeHandlers } from './ops/organize.ts';
+import { formatHandlers } from './ops/format.ts';
+import { layoutHandlers } from './ops/layout.ts';
+import { textHandlers } from './ops/text.ts';
+import { contentHandlers } from './ops/content.ts';
+import { tableHandlers } from './ops/table.ts';
+import { chartHandlers, watchCharts } from './charts/chart.ts';
+import { formulas } from './formula/service.ts';
+import type { FunctionDef } from './formula/functions.ts';
+
+export * from './types.ts';
+export { Engine } from './engine.ts';
+export { createDocument, DEFAULT_THEME } from './document.ts';
+export { EditorError } from './util.ts';
+
+export const MODULES: Record<string, Record<string, Handler>> = {
+  basic: basicHandlers,
+  history: historyHandlers,
+  selection: selectionHandlers,
+  organize: organizeHandlers,
+  format: formatHandlers,
+  layout: layoutHandlers,
+  text: textHandlers,
+  content: contentHandlers,
+  table: tableHandlers,
+  chart: chartHandlers,
+};
+
+export function createEngine(doc: DocumentModel, options?: EngineOptions) {
+  const handlers: Record<string, Handler> = {};
+  for (const [mod, list] of Object.entries(MODULES)) {
+    for (const [name, h] of Object.entries(list)) {
+      if (handlers[name]) throw new Error(`Operação ${name} registrada duas vezes (${mod}).`);
+      handlers[name] = h;
+    }
+  }
+  const engine = new Engine(doc, handlers, options);
+  watchCharts(engine);
+  return engine;
+}
+
+/** Função personalizada para as fórmulas (código do próprio sistema, nunca vindo do documento). */
+export function registerFunction(engine: Engine, def: FunctionDef) {
+  formulas(engine).registry.register({ ...def, category: def.category ?? 'CUSTOM' });
+}
+
+export { chartData } from './charts/chart.ts';
+export { resolveStyle } from './ops/format.ts';
+export { formulas } from './formula/service.ts';
