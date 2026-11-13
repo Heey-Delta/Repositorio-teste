@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**300 funcionalidades** · ✅ 300 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**318 funcionalidades** · ✅ 318 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
@@ -13,7 +13,7 @@
 | 03 | Estrutura e organização | Organizar hierarquias | 17 | 0 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 18 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 23 | 0 | 0 |
-| 06 | Tabelas e dados | Organizar informações | 21 | 0 | 0 |
+| 06 | Tabelas e dados | Organizar informações | 39 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 20 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
 | 09 | Layout e composição | Organizar espaços | 22 | 0 | 0 |
@@ -42,8 +42,8 @@
 | Comentários e colaboração (`COLLAB`) | 1 | 14 |
 | Importação e exportação (`IO`) | 1 | 12 |
 | Visualização e navegação (`VIEW`) | 1 | 15 |
-| Tabelas e dados (`TABLE`) | 2 | 26 |
-| Cálculos e fórmulas (`FORMULA`) | 2 | 21 |
+| Tabelas e dados (`TABLE`) | 2 | 38 |
+| Cálculos e fórmulas (`FORMULA`) | 2 | 27 |
 | Visualização de dados (`CHART`) | 2 | 11 |
 | Diagramas (`DIAGRAM`) | 2 | 4 |
 | Layout e composição (`PAGE`) | 2 | 17 |
@@ -224,6 +224,26 @@
 | ✅ | F06.19 | Estilos de tabela | TABLE | `TABLE_STYLES` `TABLE_STYLE` | style, headerRow, totalRow, firstColumn, lastColumn, bandedRows, bandedColumns | Galeria (Grade, Simples, Azul, Laranja, Verde, Cinza, Escura, Destaque) e opções: cabeçalho, total, 1ª/última coluna, faixas. B2. |
 | ✅ | F06.20 | Ajuste automático | TABLE | `TABLE_AUTOFIT` | mode, width | Pelo conteúdo, pela janela ou largura fixa. B2. |
 | ✅ | F06.21 | Propriedades da tabela | TABLE | `TABLE_PROPERTIES` | repeatHeader, align, allowRowBreak, caption | Repetir cabeçalho em cada página, alinhamento, quebra de linha entre páginas, legenda. B2. |
+| | | **C2 · Grade e planilhas** | | | | |
+| ✅ | F06.22 | Congelar painéis | TABLE | `FREEZE_PANES` | rows, columns | Linhas e colunas fixas ao rolar. C2. |
+| ✅ | F06.23 | Ocultar e reexibir linhas/colunas | TABLE | `HIDE_ROWS` `SHOW_ROWS` `HIDE_COLUMNS` `SHOW_COLUMNS` | rows \| columns | Por intervalo ("3:7", "B:D"). C2. |
+| ✅ | F06.24 | Agrupar e estrutura de tópicos | TABLE | `GROUP_LINES` `UNGROUP_LINES` `COLLAPSE_GROUP` `EXPAND_GROUP` | axis, range \| groupId | Até 8 níveis; recolher oculta as linhas/colunas. C2. |
+| ✅ | F06.25 | Autoajustar colunas | TABLE | `AUTOFIT_COLUMNS` | columns | Largura pelo texto exibido (já formatado). C2. |
+| ✅ | F06.26 | Subtotais | TABLE | `SUBTOTALS` | range, groupBy, fn, columns | Linha de total por grupo, total geral e grupos recolhíveis. C2. |
+| ✅ | F06.27 | Propriedades da planilha | TABLE | `SHEET_PROPERTIES` | hidden, tabColor, name | Ocultar/reexibir, cor da guia, renomear. C2. |
+| ✅ | F06.28 | Proteger planilha e bloquear células | TABLE | `PROTECT_SHEET` `UNPROTECT_SHEET` `LOCK_CELLS` | password, allow \| range, locked, hideFormula | Só células desbloqueadas mudam; senha opcional; ocultar fórmula. C2. |
+| ✅ | F06.29 | Tabela estruturada | TABLE | `CREATE_SHEET_TABLE` | range, name, style, totalRow, totals | Nome, estilo, linha de totais e nomes por coluna para as fórmulas (Tabela_Coluna). C2. |
+| ✅ | F06.30 | Remover duplicatas | TABLE | `REMOVE_DUPLICATES` | range, columns, header | Por todas ou algumas colunas. C2. |
+| | | **C2 · Análise** | | | | |
+| ✅ | F06.31 | Tabela dinâmica | TABLE | `PIVOT_TABLE` `REFRESH_PIVOT` | source, rows, columns, values, filters, dest | Linhas, colunas, valores (soma, média, contagem, mín, máx, distintos), filtros e totais; atualizar. C2. |
+| ✅ | F06.32 | Atingir meta | FORMULA | `GOAL_SEEK` | setCell, toValue, byChanging | Ajusta uma célula até a fórmula chegar ao valor. C2. |
+| ✅ | F06.33 | Gerenciador de cenários | FORMULA | `ADD_SCENARIO` `DELETE_SCENARIO` `APPLY_SCENARIO` `SCENARIO_SUMMARY` | name, cells \| resultCells | Conjuntos de valores, aplicar e resumo comparativo. C2. |
+| ✅ | F06.34 | Tabela de dados (1 e 2 variáveis) | FORMULA | `DATA_TABLE` | formulaCell, inputCell, values, inputCell2, values2 | Resultado da fórmula para cada valor de entrada. C2. |
+| ✅ | F06.35 | Estatística descritiva e regressão | FORMULA | `DESCRIPTIVE_STATS` `REGRESSION` | range \| y, x | Média, mediana, moda, desvio, quartis, assimetria, curtose; reta, R², erro padrão. C2. |
+| ✅ | F06.36 | Planilha de previsão | FORMULA | `FORECAST_SERIES` | range, periods, method | Linear, suavização exponencial (com tendência) ou média móvel. C2. |
+| ✅ | F06.37 | Rastrear precedentes e dependentes | FORMULA | `TRACE_PRECEDENTS` `TRACE_DEPENDENTS` | cell | De onde a fórmula tira os dados e quem usa a célula. C2. |
+| ✅ | F06.38 | Transformar dados (estilo Power Query) | TABLE | `TRANSFORM_DATA` `REFRESH_QUERY` | source \| rows, steps, dest, save | 20 etapas: selecionar/remover/renomear/dividir/mesclar colunas, filtrar, substituir, coluna personalizada e condicional, tipos, preencher, ordenar, duplicatas, transpor, agrupar, pivotar, despivotar, anexar e mesclar consultas. C2. |
+| ✅ | F06.39 | Preenchimento relâmpago | TABLE | `FLASH_FILL` | source, target | Aprende com exemplos: palavras, iniciais, maiúsculas, dígitos, e-mail, sobrenome. C2. |
 
 ## 07. Cálculos e fórmulas
 

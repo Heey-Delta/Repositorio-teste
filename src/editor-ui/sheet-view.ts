@@ -57,13 +57,21 @@ export class SheetView {
     const colW = (c: number) => Number(s.data.columns?.[c]?.width ?? s.data.colWidths?.[c] ?? 100);
     const t = h('table', { class: 'sh-table' });
     t.append(h('tr', {}, h('th', { class: 'sh-corner' }), ...Array.from({ length: C }, (_, i) => h('th', { scope: 'col', style: `width:${colW(i + 1)}px`, class: i + 1 === act.col ? 'is-active' : '' }, indexToCol(i + 1)))));
+    // linhas/colunas ocultas (ou de grupos recolhidos) não aparecem; as congeladas ficam presas no topo/à esquerda
+    const hiddenR = new Set<number>(s.data.hiddenRows ?? []), hiddenC = new Set<number>(s.data.hiddenColumns ?? []);
+    const fz = s.data.frozen ?? { rows: 0, columns: 0 };
+    if (hiddenC.size) t.querySelectorAll('tr:first-child th').forEach((th, i) => { if (hiddenC.has(i)) (th as HTMLElement).style.display = 'none'; });
     for (let r = 1; r <= R; r++) {
+      if (hiddenR.has(r)) continue;
       const tr = h('tr', {}, h('th', { scope: 'row', class: r === act.row ? 'is-active' : '' }, String(r)));
+      if (r <= fz.rows) { tr.classList.add('is-frozen'); tr.style.setProperty('--fz-top', `${r * 23}px`); }
       for (let c = 1; c <= C; c++) {
+        if (hiddenC.has(c)) continue;
         const addr = toAddress({ row: r, col: c });
         const cell = cells[addr];
         const shown = cell ? (cell.error ? cell.error.code : cell.calculatedValue ?? cell.value ?? '') : '';
         const td = h('td', { 'data-cell': addr, role: 'gridcell', 'aria-selected': addr === this.active() ? 'true' : null });
+        if (c <= fz.columns) { td.classList.add('is-frozen-col'); td.style.left = `${44 + Array.from({ length: c - 1 }, (_, k) => colW(k + 1)).reduce((a, b) => a + b, 0)}px`; }
         // formato numérico da célula (moeda, data, %, máscaras…), com a cor que o formato pedir ([Vermelho])
         const fmt = cell?.error ? null : formatValue(shown, (cell?.styleOverrides as any)?.numberFormat);
         td.textContent = fmt ? fmt.text : String(shown);

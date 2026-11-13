@@ -32,6 +32,7 @@ import { storageHandlers } from './storage.ts';
 import { wordHandlers } from './ops/word.ts';
 import { objectHandlers } from './ops/objects.ts';
 import { documentToolHandlers, installProtection } from './ops/document-tools.ts';
+import { sheetToolHandlers, installSheetProtection } from './ops/sheet-tools.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -83,6 +84,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   word: wordHandlers,
   objects: objectHandlers,
   documentTools: documentToolHandlers,
+  sheetTools: sheetToolHandlers,
   storage: storageHandlers as Record<string, Handler>,
 };
 
@@ -100,6 +102,7 @@ export function createEngine(doc: DocumentModel, options?: EngineOptions) {
   installAutomation(engine);
   installView(engine);
   installProtection(engine);
+  installSheetProtection(engine);
   engine.services.makeEngine = (app: DocumentModel['document']['application']) => createEngine(createDocument(app), options);
   return engine;
 }
