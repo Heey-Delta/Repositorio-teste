@@ -144,6 +144,7 @@ export class SyncSession {
   constructor(engine: Engine, clientId: string = engine.user?.id ?? 'local') {
     this.engine = engine;
     this.clientId = clientId;
+    engine.ensureIdSuffix(clientId);
     this.off = engine.on('change', (ev: any) => {
       if (ev.source === 'remote') return;
       const changes: Change[] | undefined = ev.source === 'execute' ? ev.transaction.changes : ev.applied;

@@ -198,3 +198,39 @@ export const redirects = pgTable('redirects', {
   active: boolean('active').notNull().default(true),
   createdAt: created(),
 });
+
+// ---------------------------------------------------------------- editor unificado (documentos, apresentações, planilhas)
+// O documento inteiro fica em JSON (o motor é a fonte da verdade); `version` sobe a cada gravação e serve para a
+// concorrência otimista (grava só se ninguém salvou antes). As ações guardam o que mudou em cada gravação
+// (recuperação e auditoria) e servem de relé para a colaboração (ordem = seq).
+export const editorDocuments = pgTable('editor_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  application: text('application').notNull(),
+  doc: jsonb('doc').notNull(),
+  version: integer('version').notNull().default(1),
+  owner: text('owner').notNull(),
+  createdAt: created(),
+  updatedAt: updated(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (t) => [index('editor_documents_owner').on(t.owner, t.updatedAt)]);
+
+export const editorVersions = pgTable('editor_versions', {
+  id: serial('id').primaryKey(),
+  documentId: uuid('document_id').notNull().references(() => editorDocuments.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(),
+  doc: jsonb('doc').notNull(),
+  createdBy: text('created_by'),
+  createdAt: created(),
+}, (t) => [index('editor_versions_doc').on(t.documentId, t.createdAt)]);
+
+export const editorActions = pgTable('editor_actions', {
+  seq: bigint('seq', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
+  documentId: uuid('document_id').notNull().references(() => editorDocuments.id, { onDelete: 'cascade' }),
+  kind: text('kind').notNull(),            // 'save' (gravação) | 'sync' (transação de colaborador)
+  clientId: text('client_id'),
+  version: integer('version'),
+  entries: jsonb('entries').notNull(),
+  login: text('login'),
+  createdAt: created(),
+}, (t) => [index('editor_actions_doc').on(t.documentId, t.seq)]);

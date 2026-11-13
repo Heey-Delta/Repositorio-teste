@@ -93,7 +93,14 @@ export class Engine {
     if (this.isLocked(id)) fail('LOCKED', `Elemento ${id} está bloqueado. Desbloqueie para alterar.`);
   }
 
-  newId(type: string): string { return nextId(this.doc, type); }
+  /** sufixo dos IDs desta sessão: com dois editores no mesmo documento, cada um cria IDs que o outro nunca cria */
+  idSuffix = '';
+  newId(type: string): string { const id = nextId(this.doc, type); return this.idSuffix ? `${id}_${this.idSuffix}` : id; }
+  /** Liga o sufixo (colaboração/salvamento compartilhado). Usa o id do usuário + um pedaço aleatório (duas abas). */
+  ensureIdSuffix(hint = this.user?.id ?? '') {
+    if (!this.idSuffix) this.idSuffix = `${hint.replace(/[^A-Za-z0-9]/g, '').slice(0, 6)}${Math.random().toString(36).slice(2, 6)}`.toUpperCase();
+    return this.idSuffix;
+  }
 
   // ---------------------------------------------------------------- primitivas (só dentro de transação)
 

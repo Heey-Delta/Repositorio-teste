@@ -16,7 +16,7 @@ export const historyHandlers: Record<string, Handler> = {
     return e.run(op);
   },
 
-  CREATE_VERSION: (e, op) => { const s = e.snapshot(op.payload?.label); return { id: s.id, label: s.label, timestamp: s.timestamp }; },
+  CREATE_VERSION: (e, op) => { const s = e.snapshot(op.payload?.label); e.afterCommit(() => e.emit('version', { id: s.id, label: s.label, timestamp: s.timestamp })); return { id: s.id, label: s.label, timestamp: s.timestamp }; },
   RESTORE_VERSION: (e, op) => { e.restoreSnapshot(op.targetId ?? fail('INVALID_PAYLOAD', 'Informe a versão (targetId).')); return true; },
   LIST_VERSIONS: (e) => e.snapshots.map((s) => ({ id: s.id, label: s.label, timestamp: s.timestamp })),
   LIST_HISTORY: (e) => ({

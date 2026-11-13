@@ -139,7 +139,7 @@ Cada passo usa o anterior. ✅ concluído · 🔨 em andamento · ⬜ a fazer.
 | ✅ 11 | Importação e exportação (JSON, TXT, MD, HTML, CSV, SVG, DOCX, XLSX, PPTX, PDF), impressão | F16 |
 | ✅ 12 | Automação: macros, scripts, automações por evento, atalhos, extensões, webhooks, funções do usuário | F17, F07.10 |
 | ✅ 13 | Visualização e navegação: modos, zoom, navegação, painéis, várias janelas, leitura assistida | F18, F09.12 |
-| ⬜ 14 | Persistência no banco e salvamento automático | F14.04, F14.09 |
+| ✅ 14 | Persistência no banco e salvamento automático | F14.04, F14.09 |
 | ⬜ 15 | Interface: renderizador e editores de documento, apresentação e planilha | Camada 3 |
 
 A situação de cada funcionalidade é atualizada no catálogo (`src/editor-core/catalog.ts`) ao fim de cada etapa;

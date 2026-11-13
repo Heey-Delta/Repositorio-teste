@@ -28,6 +28,7 @@ import { versionHandlers } from './ops/versions.ts';
 import { ioHandlers } from './ops/io.ts';
 import { automationHandlers, installAutomation } from './ops/automation.ts';
 import { viewHandlers, installView } from './ops/view.ts';
+import { storageHandlers } from './storage.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -43,6 +44,8 @@ export type { Issue, SpellProvider, TranslateProvider } from './ops/review.ts';
 export { SyncSession, roleOf } from './ops/collab.ts';
 export type { RemoteTransaction, Role } from './ops/collab.ts';
 export { merge3, mergeList } from './util.ts';
+export { MemoryStore, HttpStore, AutoSaver, SyncClient, openStored } from './storage.ts';
+export type { DocumentStore, StoredDocument, SaveResult, SaveState, Timer } from './storage.ts';
 export { exportDocument, importFile, openFile, convertFiles, parseFile, printLayout, formatOf, FORMATS } from './ops/io.ts';
 export { readDocument, buildFromModel } from './io/model.ts';
 export { runScript, callService, installCodeExtension, normalizeKeys, eventsOf } from './ops/automation.ts';
@@ -74,6 +77,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   io: ioHandlers,
   automation: automationHandlers,
   view: viewHandlers,
+  storage: storageHandlers as Record<string, Handler>,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
