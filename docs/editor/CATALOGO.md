@@ -2,7 +2,7 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 240 prontas · 🟡 4 parciais · ⬜ 16 a fazer
+**260 funcionalidades** · ✅ 255 prontas · 🟡 4 parciais · ⬜ 1 a fazer
 
 ## Resumo por categoria
 
@@ -16,7 +16,7 @@
 | 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
 | 07 | Cálculos e fórmulas | Processar informações | 16 | 0 | 0 |
 | 08 | Visualização de dados | Representar informações | 15 | 0 | 0 |
-| 09 | Layout e composição | Organizar espaços | 15 | 0 | 1 |
+| 09 | Layout e composição | Organizar espaços | 16 | 0 | 0 |
 | 10 | Temas e estilos | Padronizar aparência | 12 | 0 | 0 |
 | 11 | Animações e transições | Controlar movimento | 13 | 0 | 0 |
 | 12 | Revisão e validação | Verificar conteúdo | 13 | 0 | 0 |
@@ -25,7 +25,7 @@
 | 15 | Referências e elementos automáticos | Vincular informações | 11 | 0 | 0 |
 | 16 | Importação e exportação | Gerenciar formatos | 11 | 1 | 0 |
 | 17 | Automação e extensibilidade | Ampliar capacidades | 9 | 0 | 0 |
-| 18 | Visualização e navegação | Controlar a experiência | 0 | 0 | 14 |
+| 18 | Visualização e navegação | Controlar a experiência | 14 | 0 | 0 |
 
 ## Motores
 
@@ -253,7 +253,7 @@
 | ✅ | F09.10 | Configurar impressão | PAGE | `SET_PRINT` | range, copies, scale, fitToPage, gridlines, headings, repeatRows | Intervalo, cópias, escala, ajustar à página, linhas de grade e cabeçalhos de planilha. |
 | | | **Organização visual** | | | | |
 | ✅ | F09.11 | Utilizar grade | OBJECTS | `SET_GRID` | enabled, size, snap | Grade de alinhamento. |
-| ⬜ | F09.12 | Utilizar régua | VIEW | `SET_VIEW` | ruler, unit | Régua com unidade (cm, pol, px). Etapa 13. |
+| ✅ | F09.12 | Utilizar régua | VIEW | `SET_VIEW` `RULER` | showRuler, rulerUnit | Régua com unidade (cm, pol, px). Escala acompanha o zoom; margens e recuos do parágrafo (Etapa 13). |
 | ✅ | F09.13 | Utilizar guias | OBJECTS | `ADD_GUIDE` `MOVE_GUIDE` `REMOVE_GUIDE` |  | Guias horizontais e verticais. |
 | ✅ | F09.14 | Definir alinhamentos | OBJECTS | `ALIGN` `UPDATE_LAYOUT` |  | Alinhamento de objetos e do contêiner. |
 | ✅ | F09.15 | Configurar espaçamento entre elementos | OBJECTS | `DISTRIBUTE` `UPDATE_LAYOUT` |  | Distribuir ou definir gap. |
@@ -393,17 +393,17 @@
 
 | | ID | Funcionalidade | Motor | Operações | Parâmetros | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
-| ⬜ | F18.01 | Modo de edição | VIEW | `SET_VIEW` | mode: EDIT | Edição normal. Etapa 13. |
-| ⬜ | F18.02 | Modo de leitura | VIEW | `SET_VIEW` | mode: READ | Só leitura (bloqueia operações que alteram). Etapa 13. |
-| ⬜ | F18.03 | Modo de apresentação | VIEW | `SET_VIEW` `ANIMATION_STEPS` | mode: PRESENT | Slides em sequência com animações. Depende de F11.13. Etapa 13. |
-| ⬜ | F18.04 | Zoom | VIEW | `SET_VIEW` | zoom \| fit | 10% a 500%, ajustar à largura/página. Etapa 13. |
-| ⬜ | F18.05 | Navegação por páginas | VIEW | `GO_TO` | page | Ir para a página N. Depende de F09.07. Etapa 13. |
-| ⬜ | F18.06 | Navegação por seções | VIEW | `GO_TO` | targetId | Ir para seção/título. Etapa 13. |
-| ⬜ | F18.07 | Navegação por planilhas | VIEW | `GO_TO` `SET_ACTIVE_SURFACE` | surfaceId | Trocar planilha/slide ativo. Etapa 13. |
-| ⬜ | F18.08 | Painel de navegação | VIEW | `NAVIGATION_TREE` |  | Estrutura (títulos, slides, planilhas) para o painel. Etapa 13. |
-| ⬜ | F18.09 | Painel de seleção | VIEW | `SELECTION_PANEL` | surfaceId | Camadas do slide com nome, visível e bloqueado. Etapa 13. |
-| ⬜ | F18.10 | Tela cheia | VIEW | `SET_VIEW` | fullscreen | Estado de tela cheia. Etapa 13. |
-| ⬜ | F18.11 | Múltiplas janelas | VIEW | `OPEN_VIEW` `CLOSE_VIEW` |  | Várias visões do mesmo documento (cada uma com zoom, superfície e rolagem). Etapa 13. |
-| ⬜ | F18.12 | Navegação por teclado | VIEW | `NAVIGATE` | direction | Próximo/anterior elemento, célula, slide. Depende de F17.04. Etapa 13. |
-| ⬜ | F18.13 | Leitura assistida | VIEW | `READING_ORDER` | surfaceId | Texto em ordem de leitura para leitor de tela/voz. Etapa 13. |
-| ⬜ | F18.14 | Exibição de elementos auxiliares | VIEW | `SET_VIEW` | showGrid, showGuides, showRuler, showMarks | Grade, guias, régua, marcas de formatação. Etapa 13. |
+| ✅ | F18.01 | Modo de edição | VIEW | `SET_VIEW` | mode: EDIT | Edição normal. Etapa 13. |
+| ✅ | F18.02 | Modo de leitura | VIEW | `SET_VIEW` | mode: READ | Só leitura (bloqueia operações que alteram). Bloqueio pelo efeito (como as permissões); comentários continuam (Etapa 13). |
+| ✅ | F18.03 | Modo de apresentação | VIEW | `SET_VIEW` `PRESENT_START` `PRESENT_NEXT` `PRESENT_PREV` `PRESENT_GOTO` `PRESENT_END` | mode: PRESENT | Slides em sequência com animações. Depende de F11.13. Etapa 13. |
+| ✅ | F18.04 | Zoom | VIEW | `SET_VIEW` | zoom \| fit | 10% a 500%, ajustar à largura/página. Etapa 13. |
+| ✅ | F18.05 | Navegação por páginas | VIEW | `GO_TO` | page | Ir para a página N. Depende de F09.07. Etapa 13. |
+| ✅ | F18.06 | Navegação por seções | VIEW | `GO_TO` | targetId | Ir para seção/título. Etapa 13. |
+| ✅ | F18.07 | Navegação por planilhas | VIEW | `GO_TO` `SET_ACTIVE_SURFACE` | surfaceId | Trocar planilha/slide ativo. Etapa 13. |
+| ✅ | F18.08 | Painel de navegação | VIEW | `NAVIGATION_TREE` |  | Estrutura (títulos, slides, planilhas) para o painel. Etapa 13. |
+| ✅ | F18.09 | Painel de seleção | VIEW | `SELECTION_PANEL` | surfaceId | Camadas do slide com nome, visível e bloqueado. Etapa 13. |
+| ✅ | F18.10 | Tela cheia | VIEW | `SET_VIEW` | fullscreen | Estado de tela cheia. Etapa 13. |
+| ✅ | F18.11 | Múltiplas janelas | VIEW | `OPEN_VIEW` `SWITCH_VIEW` `UPDATE_VIEW` `CLOSE_VIEW` `LIST_VIEWS` |  | Várias visões do mesmo documento (cada uma com zoom, superfície e rolagem). Etapa 13. |
+| ✅ | F18.12 | Navegação por teclado | VIEW | `NAVIGATE` | direction | Próximo/anterior elemento, célula, slide. Depende de F17.04. Etapa 13. |
+| ✅ | F18.13 | Leitura assistida | VIEW | `READING_ORDER` | surfaceId | Texto em ordem de leitura para leitor de tela/voz. Etapa 13. |
+| ✅ | F18.14 | Exibição de elementos auxiliares | VIEW | `SET_VIEW` | showGrid, showGuides, showRuler, showMarks | Grade, guias, régua, marcas de formatação. Etapa 13. |

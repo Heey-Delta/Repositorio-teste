@@ -154,6 +154,12 @@ export interface EditorState {
   mode: 'EDIT' | 'READ' | 'PRESENT';
   zoom: number;
   activeTool: string;
+  /** elementos auxiliares, régua e tela cheia (Etapa 13) */
+  view?: { showGrid: boolean; showGuides: boolean; showRuler: boolean; showMarks: boolean; rulerUnit: 'CM' | 'IN' | 'PX' | 'PT'; fullscreen: boolean };
+  /** célula ativa da planilha (navegação por teclado) */
+  activeCell?: string | null;
+  /** apresentação em andamento */
+  present?: { slideIds: string[]; index: number; step: number } | null;
 }
 
 export interface ClipboardItem {

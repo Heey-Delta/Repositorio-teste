@@ -27,6 +27,7 @@ import { collabHandlers, installCollaboration } from './ops/collab.ts';
 import { versionHandlers } from './ops/versions.ts';
 import { ioHandlers } from './ops/io.ts';
 import { automationHandlers, installAutomation } from './ops/automation.ts';
+import { viewHandlers, installView } from './ops/view.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -72,6 +73,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   versions: versionHandlers,
   io: ioHandlers,
   automation: automationHandlers,
+  view: viewHandlers,
 };
 
 export function createEngine(doc: DocumentModel, options?: EngineOptions) {
@@ -86,6 +88,7 @@ export function createEngine(doc: DocumentModel, options?: EngineOptions) {
   watchCharts(engine);
   installCollaboration(engine);
   installAutomation(engine);
+  installView(engine);
   engine.services.makeEngine = (app: DocumentModel['document']['application']) => createEngine(createDocument(app), options);
   return engine;
 }
