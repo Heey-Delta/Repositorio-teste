@@ -87,8 +87,8 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       }),
       ...textTools, color('Preenchimento', (c) => fmt({ fill: c })), color('Contorno', (c) => fmt({ stroke: c, strokeWidth: 3 })), sep(),
       btn('⇡', 'Trazer para frente', () => run({ type: 'BRING_TO_FRONT', targetIds: e.state.selection.selectedIds })), btn('⇣', 'Enviar para trás', () => run({ type: 'SEND_TO_BACK', targetIds: e.state.selection.selectedIds })),
-      btn('⧉', 'Duplicar (Ctrl+D)', () => run({ type: 'DUPLICATE', targetIds: e.state.selection.selectedIds })), btn('🗑', 'Excluir', () => run({ type: 'DELETE', targetIds: e.state.selection.selectedIds })), sep(),
-      btn('▶ Apresentar', 'Apresentar desde o início (F5)', () => present(e, 'start'), { class: 'ed-btn ed-primary' }));
+      btn('⧉', 'Duplicar (Ctrl+D)', () => run({ type: 'DUPLICATE', targetIds: e.state.selection.selectedIds })), btn('Excluir', 'Excluir', () => run({ type: 'DELETE', targetIds: e.state.selection.selectedIds })), sep(),
+      btn('Apresentar', 'Apresentar desde o início (F5)', () => present(e, 'start'), { class: 'ed-btn ed-primary' }));
   } else {
     toolbar.append(...common, ...textTools.slice(0, 2), color('Cor do texto', (c) => fmt({ color: c })), color('Preenchimento', (c) => fmt({ fill: c })), sep(),
       btn('⯇', 'Alinhar à esquerda', () => fmt({ align: 'LEFT' })), btn('≡', 'Centralizar', () => fmt({ align: 'CENTER' })), btn('⯈', 'Alinhar à direita', () => fmt({ align: 'RIGHT' })), sep(),
