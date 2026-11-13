@@ -1,0 +1,417 @@
+{
+  "format": "hallan-editor-document",
+  "version": 1,
+  "document": {
+    "document": {
+      "id": "DOC_000001",
+      "type": "DOCUMENT",
+      "name": "Publicação com tabela e círculo",
+      "application": "DOCUMENT_EDITOR",
+      "rootId": "SEC_000002",
+      "themeId": "THEME_001",
+      "createdAt": "2026-11-13T04:41:24.513Z",
+      "updatedAt": "2026-11-13T04:41:24.522Z",
+      "seq": 43,
+      "settings": {
+        "grid": {
+          "enabled": false,
+          "size": 10,
+          "snap": true
+        },
+        "guides": [],
+        "names": {},
+        "page": {
+          "width": 794,
+          "height": 1123,
+          "orientation": "PORTRAIT",
+          "margins": {
+            "top": 96,
+            "right": 96,
+            "bottom": 96,
+            "left": 96
+          }
+        }
+      }
+    },
+    "nodes": {
+      "SEC_000002": {
+        "id": "SEC_000002",
+        "type": "SECTION",
+        "parentId": null,
+        "children": [
+          "BLK_000003"
+        ],
+        "order": 0,
+        "data": {},
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW",
+          "direction": "VERTICAL"
+        },
+        "metadata": {}
+      },
+      "BLK_000003": {
+        "id": "BLK_000003",
+        "type": "BLOCK",
+        "parentId": "SEC_000002",
+        "children": [
+          "TXT_000005",
+          "TXT_000007",
+          "TBL_000037",
+          "TXT_000039",
+          "SHP_000041",
+          "TXT_000043"
+        ],
+        "order": 0,
+        "data": {},
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW",
+          "direction": "VERTICAL",
+          "gap": 12
+        },
+        "metadata": {}
+      },
+      "TXT_000005": {
+        "id": "TXT_000005",
+        "type": "TEXT",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 0,
+        "data": {
+          "textType": "TITLE",
+          "runs": [
+            {
+              "id": "RUN_000004",
+              "text": "Resultado do trimestre",
+              "format": {}
+            }
+          ]
+        },
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW"
+        },
+        "metadata": {}
+      },
+      "TXT_000007": {
+        "id": "TXT_000007",
+        "type": "TEXT",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 1,
+        "data": {
+          "textType": "PARAGRAPH",
+          "runs": [
+            {
+              "id": "RUN_000006",
+              "text": "A tabela abaixo resume as vendas por produto. O total é uma fórmula: se um valor mudar, ele se recalcula sozinho.",
+              "format": {}
+            }
+          ]
+        },
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW"
+        },
+        "metadata": {}
+      },
+      "TBL_000037": {
+        "id": "TBL_000037",
+        "type": "TABLE",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 2,
+        "data": {
+          "columns": [
+            {
+              "id": "COL_000008",
+              "width": 120
+            },
+            {
+              "id": "COL_000009",
+              "width": 120
+            },
+            {
+              "id": "COL_000010",
+              "width": 120
+            },
+            {
+              "id": "COL_000011",
+              "width": 120
+            }
+          ],
+          "rows": [
+            {
+              "id": "ROW_000012",
+              "cells": [
+                {
+                  "id": "CELL_000013",
+                  "value": "Produto"
+                },
+                {
+                  "id": "CELL_000014",
+                  "value": "Unidades"
+                },
+                {
+                  "id": "CELL_000015",
+                  "value": "Preço (R$)"
+                },
+                {
+                  "id": "CELL_000016",
+                  "value": "Receita (R$)"
+                }
+              ]
+            },
+            {
+              "id": "ROW_000017",
+              "cells": [
+                {
+                  "id": "CELL_000018",
+                  "value": "Notebook"
+                },
+                {
+                  "id": "CELL_000019",
+                  "value": 12
+                },
+                {
+                  "id": "CELL_000020",
+                  "value": 3500
+                },
+                {
+                  "id": "CELL_000021",
+                  "value": null,
+                  "formula": "=B2*C2",
+                  "calculatedValue": 42000,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "id": "ROW_000022",
+              "cells": [
+                {
+                  "id": "CELL_000023",
+                  "value": "Monitor"
+                },
+                {
+                  "id": "CELL_000024",
+                  "value": 30
+                },
+                {
+                  "id": "CELL_000025",
+                  "value": 1200
+                },
+                {
+                  "id": "CELL_000026",
+                  "value": null,
+                  "formula": "=B3*C3",
+                  "calculatedValue": 36000,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "id": "ROW_000027",
+              "cells": [
+                {
+                  "id": "CELL_000028",
+                  "value": "Mouse"
+                },
+                {
+                  "id": "CELL_000029",
+                  "value": 85
+                },
+                {
+                  "id": "CELL_000030",
+                  "value": 80
+                },
+                {
+                  "id": "CELL_000031",
+                  "value": null,
+                  "formula": "=B4*C4",
+                  "calculatedValue": 6800,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "id": "ROW_000032",
+              "cells": [
+                {
+                  "id": "CELL_000033",
+                  "value": "Total"
+                },
+                {
+                  "id": "CELL_000034",
+                  "value": null,
+                  "formula": "=SOMA(B2:B4)",
+                  "calculatedValue": 127,
+                  "error": null
+                },
+                {
+                  "id": "CELL_000035",
+                  "value": null
+                },
+                {
+                  "id": "CELL_000036",
+                  "value": null,
+                  "formula": "=SOMA(D2:D4)",
+                  "calculatedValue": 84800,
+                  "error": null
+                }
+              ]
+            }
+          ],
+          "header": true,
+          "filter": null
+        },
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW"
+        },
+        "metadata": {}
+      },
+      "TXT_000039": {
+        "id": "TXT_000039",
+        "type": "TEXT",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 3,
+        "data": {
+          "textType": "HEADING_2",
+          "runs": [
+            {
+              "id": "RUN_000038",
+              "text": "Meta atingida",
+              "format": {}
+            }
+          ]
+        },
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW"
+        },
+        "metadata": {}
+      },
+      "SHP_000041": {
+        "id": "SHP_000041",
+        "type": "SHAPE",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 4,
+        "data": {
+          "shapeType": "CIRCLE",
+          "runs": [
+            {
+              "id": "RUN_000040",
+              "text": "112%",
+              "format": {}
+            }
+          ]
+        },
+        "styleId": null,
+        "styleOverrides": {
+          "fill": "#FBBF00",
+          "fontSize": 24,
+          "bold": true,
+          "color": "#000000"
+        },
+        "layout": {
+          "mode": "FLOW",
+          "width": 180,
+          "height": 180
+        },
+        "metadata": {}
+      },
+      "TXT_000043": {
+        "id": "TXT_000043",
+        "type": "TEXT",
+        "parentId": "BLK_000003",
+        "children": [],
+        "order": 5,
+        "data": {
+          "textType": "PARAGRAPH",
+          "runs": [
+            {
+              "id": "RUN_000042",
+              "text": "O círculo destaca o percentual da meta alcançado no período.",
+              "format": {}
+            }
+          ]
+        },
+        "styleId": null,
+        "styleOverrides": {},
+        "layout": {
+          "mode": "FLOW"
+        },
+        "metadata": {}
+      }
+    },
+    "assets": {},
+    "styles": {},
+    "themes": {
+      "THEME_001": {
+        "id": "THEME_001",
+        "name": "Padrão",
+        "colors": {
+          "primary": "#2563EB",
+          "secondary": "#64748B",
+          "accent": "#FBBF00",
+          "background": "#FFFFFF",
+          "text": "#1E293B",
+          "border": "#CBD5E1"
+        },
+        "fonts": {
+          "heading": "Arial",
+          "body": "Arial"
+        },
+        "defaults": {
+          "*": {
+            "opacity": 1
+          },
+          "TEXT": {
+            "fontFamily": "theme:font.body",
+            "fontSize": 12,
+            "color": "theme:text",
+            "lineHeight": 1.4,
+            "align": "LEFT"
+          },
+          "SHAPE": {
+            "fill": "theme:primary",
+            "stroke": "theme:border",
+            "strokeWidth": 1
+          },
+          "LINE": {
+            "stroke": "theme:text",
+            "strokeWidth": 1
+          },
+          "TABLE": {
+            "fontFamily": "theme:font.body",
+            "fontSize": 11,
+            "color": "theme:text",
+            "stroke": "theme:border",
+            "strokeWidth": 1
+          },
+          "CHART": {
+            "fontFamily": "theme:font.body",
+            "fontSize": 11,
+            "color": "theme:text",
+            "fill": "theme:background"
+          },
+          "SURFACE": {
+            "fill": "theme:background"
+          }
+        }
+      }
+    },
+    "comments": {},
+    "revisions": {}
+  }
+}
