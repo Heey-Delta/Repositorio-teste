@@ -2,7 +2,9 @@
 // da colaboração. O conteúdo é o JSON do motor (src/editor-core); aqui só se confere a forma e a integridade.
 import { and, desc, eq, gt, isNull, max, ne, sql } from 'drizzle-orm';
 import { db, schema as s } from '../db/client';
-import { SaveError } from './posts';
+import { SaveError, slugify } from './posts';
+import { createEngine } from '../editor-core/index.ts';
+import { exportDocument } from '../editor-core/ops/io.ts';
 import { createDocument } from '../editor-core/document.ts';
 import { checkIntegrity } from '../editor-core/ops/versions.ts';
 import type { Application, DocumentModel } from '../editor-core/types.ts';
@@ -97,4 +99,50 @@ export async function syncEditorDocument(id: string, input: { clientId: string; 
   const [{ top }] = await db().select({ top: max(s.editorActions.seq) }).from(s.editorActions).where(and(eq(s.editorActions.documentId, id), eq(s.editorActions.kind, 'sync')));
   const seq = incoming.length === 500 ? incoming[499].seq : Math.max(Number(input.since) || 0, Number(top ?? 0));
   return { seq, incoming: incoming.map((r) => r.entries) };
+}
+
+// ---------------------------------------------------------------- publicar no site (/p/<slug>)
+
+const pubOf = (r: { slug: string; title: string; indexable: boolean; publishedAt: Date; updatedAt: Date }) => ({ slug: r.slug, url: `/p/${r.slug}`, title: r.title, indexable: r.indexable, publishedAt: r.publishedAt.toISOString(), updatedAt: r.updatedAt.toISOString() });
+
+export async function getPublication(id: string) {
+  const [r] = await db().select().from(s.editorPublications).where(eq(s.editorPublications.documentId, idOk(id)));
+  return r ? pubOf(r) : null;
+}
+
+/** Gera o HTML a partir da versão GRAVADA e publica (ou atualiza). O endereço não muda ao republicar. */
+export async function publishEditorDocument(id: string, input: { indexable?: boolean; slug?: string }) {
+  const d = await loadEditorDocument(id);
+  const e = createEngine(d.doc);
+  const indexable = Boolean(input.indexable);
+  const title = d.doc.document.name;
+  const meta = `<meta charset="utf-8">\n${indexable ? '' : '<meta name="robots" content="noindex, nofollow">\n'}<link rel="icon" href="/favicon.svg" type="image/svg+xml">`;
+  const html = String(exportDocument(e, 'HTML').data).replace('<meta charset="utf-8">', meta);
+  const current = await getPublication(id);
+  let slug = current?.slug;
+  const wanted = input.slug ? slugify(input.slug) : undefined;
+  if (!slug || (wanted && wanted !== slug)) {
+    const base = wanted || slugify(title) || 'documento';
+    slug = base;
+    for (let k = 2; ; k++) {
+      const [taken] = await db().select({ id: s.editorPublications.documentId }).from(s.editorPublications).where(eq(s.editorPublications.slug, slug));
+      if (!taken || taken.id === id) break;
+      slug = `${base}-${k}`;
+    }
+  }
+  const [r] = await db().insert(s.editorPublications).values({ slug, documentId: id, title, html, indexable })
+    .onConflictDoUpdate({ target: s.editorPublications.documentId, set: { slug, title, html, indexable, updatedAt: new Date() } })
+    .returning();
+  return pubOf(r);
+}
+
+export async function unpublishEditorDocument(id: string) {
+  const r = await db().delete(s.editorPublications).where(eq(s.editorPublications.documentId, idOk(id))).returning({ slug: s.editorPublications.slug });
+  if (!r.length) throw new SaveError('Este documento não está publicado.', undefined, 404);
+}
+
+export async function publicationBySlug(slug: string) {
+  if (!/^[a-z0-9-]{1,120}$/.test(slug)) return null;
+  const [r] = await db().select({ html: s.editorPublications.html, updatedAt: s.editorPublications.updatedAt }).from(s.editorPublications).where(eq(s.editorPublications.slug, slug));
+  return r ?? null;
 }

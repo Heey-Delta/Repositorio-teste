@@ -94,7 +94,7 @@ export async function boot(root: HTMLElement, id: string, login: string) {
     ['review', 'Revisão', reviewPanel],
     ...(app === 'PRESENTATION_EDITOR' ? [['anim', 'Animações', animPanel] as [string, string, () => Node[]]] : []),
     ['versions', 'Versões', versionsPanel],
-    ['files', 'Arquivo', filesPanel],
+    ['files', 'Publicar e arquivo', filesPanel],
   ];
   let currentPanel = 'nav';
   const drawPanel = () => {
@@ -175,6 +175,37 @@ export async function boot(root: HTMLElement, id: string, login: string) {
     return [btn('Criar versão', 'Guardar uma fotografia do documento', () => { const label = prompt('Nome da versão:', `Versão de ${new Date().toLocaleDateString('pt-BR')}`); if (label) { run({ type: 'CREATE_VERSION', payload: { label } }); setTimeout(drawPanel, 800); } }, { class: 'ed-btn ed-primary' }), list];
   }
 
+  /** Publicar no site: grava o que falta, gera a página pública e mostra o endereço. */
+  function publishSection(): Node[] {
+    const api = `/api/editor/documents/${encodeURIComponent(id)}/publish`;
+    const state = h('p', { class: 'ed-muted', role: 'status' }, 'Verificando…');
+    const google = h('input', { type: 'checkbox', id: 'edPubGoogle' });
+    const actions = h('div', { class: 'ed-row' });
+    const call = async (method: string, body?: unknown) => {
+      const r = await fetch(api, { method, headers: body ? { 'content-type': 'application/json' } : {}, ...(body ? { body: JSON.stringify(body) } : {}) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error ?? `Erro ${r.status}`);
+      return data;
+    };
+    const show = (pub: any) => {
+      google.checked = Boolean(pub?.indexable);
+      state.replaceChildren(...(pub
+        ? ['Publicado em ', h('a', { href: pub.url, target: '_blank', rel: 'noopener', class: 'ed-link' }, `${location.origin}${pub.url}`), ` · atualizado ${new Date(pub.updatedAt).toLocaleString('pt-BR')}${pub.indexable ? '' : ' · fora do Google'}`]
+        : ['Ainda não publicado. Só você vê este documento.']));
+      actions.replaceChildren(
+        btn(pub ? 'Atualizar publicação' : 'Publicar no site', pub ? 'Publicar de novo com as últimas alterações' : 'Criar a página pública deste documento', async () => {
+          state.textContent = 'Salvando e publicando…';
+          try { await saver.flush(); const p = await call('POST', { indexable: google.checked }); show(p); toast('Publicado.'); } catch (x) { state.textContent = (x as Error).message; }
+        }, { class: 'ed-btn ed-primary' }),
+        ...(pub ? [
+          btn('Copiar link', 'Copiar o endereço público', () => { void navigator.clipboard?.writeText(`${location.origin}${pub.url}`).then(() => toast('Link copiado.')); }),
+          btn('Despublicar', 'Tirar a página do ar', async () => { if (!confirm('Tirar a página do ar?')) return; try { await call('DELETE'); show(null); toast('A página saiu do ar.'); } catch (x) { toast((x as Error).message, 'error'); } }),
+        ] : []));
+    };
+    call('GET').then(show).catch((x) => { state.textContent = `Não foi possível ver a publicação: ${(x as Error).message}`; });
+    return [h('h3', {}, 'Publicar no site'), state, h('label', { class: 'ed-check', for: 'edPubGoogle' }, google, ' Aparecer no Google'), actions];
+  }
+
   function filesPanel(): Node[] {
     const formats = app === 'SPREADSHEET_EDITOR' ? ['XLSX', 'CSV', 'PDF', 'HTML', 'JSON'] : app === 'PRESENTATION_EDITOR' ? ['PPTX', 'PDF', 'HTML', 'SVG', 'PNG', 'JSON'] : ['DOCX', 'PDF', 'MD', 'HTML', 'TXT', 'JSON'];
     const exp = async (f: string) => {
@@ -190,6 +221,7 @@ export async function boot(root: HTMLElement, id: string, login: string) {
       } catch (x) { toast((x as Error).message, 'error'); }
     };
     return [
+      ...publishSection(),
       h('h3', {}, 'Exportar'), h('div', { class: 'ed-grid2' }, ...formats.map((f) => btn(f, `Baixar em ${f}`, () => exp(f)))),
       h('h3', {}, 'Importar para este documento'),
       btn('Escolher arquivo…', 'Importar conteúdo de um arquivo', () => pickFile('.docx,.xlsx,.pptx,.md,.html,.htm,.txt,.csv,.json', async (f) => { try { await importFile(e, { name: f.name, data: await readBytes(f) }); render(); toast(`“${f.name}” importado.`); } catch (x) { toast((x as Error).message, 'error'); } })),

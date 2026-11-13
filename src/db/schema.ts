@@ -234,3 +234,15 @@ export const editorActions = pgTable('editor_actions', {
   login: text('login'),
   createdAt: created(),
 }, (t) => [index('editor_actions_doc').on(t.documentId, t.seq)]);
+
+// Documentos do editor publicados no site (/p/<slug>): o HTML é gerado na hora de publicar a partir da versão
+// gravada; republicar atualiza. `indexable` decide se o Google pode indexar (padrão: não).
+export const editorPublications = pgTable('editor_publications', {
+  slug: text('slug').primaryKey(),
+  documentId: uuid('document_id').notNull().unique().references(() => editorDocuments.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  html: text('html').notNull(),
+  indexable: boolean('indexable').notNull().default(false),
+  publishedAt: created(),
+  updatedAt: updated(),
+});
