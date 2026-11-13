@@ -37,21 +37,26 @@ const FIELDS: Record<BlockName, { title: string; fields: Field[]; defaults: Reco
   },
 };
 
+// mesmas cores, fontes e campos do admin (shared.css): fundo preto, linhas cinza, rótulos discretos e o amarelo de destaque
 const CSS = `
-.bd{border:1px solid #2b2b2b;border-radius:10px;background:#0a0a0a;color:#f2f2ee;padding:0;width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
+.bd{border:1px solid var(--line,#2B2B2B);border-radius:8px;background:var(--bg,#000);color:var(--ink,#F2F2EE);padding:0;width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);font-family:var(--font-sans,Arial,Helvetica,sans-serif)}
 .bd::backdrop{background:rgb(0 0 0/.7)}
-.bd form{display:grid;grid-template-columns:1fr;gap:12px;padding:16px}
+.bd form{display:grid;grid-template-columns:1fr;gap:16px;padding:20px}
 @media(min-width:760px){.bd form{grid-template-columns:1fr 1fr}}
-.bd h2{margin:0;font-size:16px;grid-column:1/-1}
-.bd label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#a6a6a0}
-.bd input,.bd select,.bd textarea{background:#000;color:#f2f2ee;border:1px solid #2b2b2b;border-radius:6px;padding:8px;font:14px/1.4 ui-monospace,monospace}
-.bd input[type=color]{padding:2px;height:40px}
-.bd small{color:#7c7c78;font-size:12px;line-height:1.4}
-.bd .bd-prev{background:#fff;border-radius:8px;min-height:120px;display:grid;place-items:center;padding:8px;overflow:auto;color:#111}
-.bd .bd-prev svg{max-width:100%;height:auto}
+.bd h2{margin:0;grid-column:1/-1;font-family:var(--font-display,Anton,Impact,sans-serif);font-size:24px;font-weight:400;line-height:1;text-transform:uppercase}
+.bd label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted,#A6A6A0)}
+.bd input,.bd select,.bd textarea{width:100%;box-sizing:border-box;background:var(--bg,#000);color:var(--ink,#F2F2EE);border:1px solid var(--line,#2B2B2B);border-radius:6px;padding:8px 12px;font:14px/1.5 var(--font-sans,Arial,Helvetica,sans-serif)}
+.bd input,.bd select{min-height:40px}
+.bd input:focus-visible,.bd select:focus-visible,.bd textarea:focus-visible{outline:none;border-color:var(--accent,#FBBF00)}
+.bd input[type=color]{padding:3px;width:64px}
+.bd small{color:var(--muted,#A6A6A0);font-size:12px;line-height:1.4;opacity:.8}
+.bd .bd-prev{border:1px solid var(--line,#2B2B2B);min-height:140px;display:grid;place-items:center;padding:12px;overflow:auto}
+.bd .bd-prev figure{margin:0;border:0;padding:0;width:100%}
+.bd .bd-prev svg{max-width:100%;height:auto;display:block;margin:auto}
 .bd .bd-row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
-.bd button{min-height:40px;padding:0 16px;border-radius:6px;border:1px solid #2b2b2b;background:transparent;color:#f2f2ee;cursor:pointer}
-.bd button.bd-ok{background:#FBBF00;color:#000;border-color:#FBBF00;font-weight:700}`;
+.bd button{min-height:40px;padding:0 20px;border-radius:6px;border:1px solid var(--line,#2B2B2B);background:transparent;color:var(--ink,#F2F2EE);cursor:pointer;font:14px var(--font-sans,Arial,Helvetica,sans-serif)}
+.bd button:hover{border-color:var(--ink,#F2F2EE)}
+.bd button.bd-ok{background:var(--accent,#FBBF00);color:#000;border-color:var(--accent,#FBBF00);font-weight:700}`;
 
 /** Abre a janela; devolve os atributos (ou null se cancelar). */
 export function openBlockDialog(kind: BlockName, current?: Record<string, unknown>): Promise<Record<string, string> | null> {

@@ -36,8 +36,8 @@ const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
 const tools = [
   ['h2', 'Título de seção', 'H2'], ['h3', 'Subtítulo', 'H3'], ['bold', 'Negrito', 'B'], ['italic', 'Itálico', 'I'],
   ['link', 'Link', 'Link'], ['image', 'Imagem', 'Imagem'], ['bullet', 'Lista', '•'], ['ordered', 'Lista numerada', '1.'], ['quote', 'Citação', '❝'],
-  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', '📊 Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
-  ['math', 'Inserir equação', '∑ Equação'], ['circle', 'Inserir círculo de destaque', '◯ Círculo'],
+  ['code', 'Código', '</>'], ['hr', 'Divisória', '—'], ['table', 'Inserir tabela', 'Tabela'], ['chart', 'Inserir gráfico', 'Gráfico'], ['diagram', 'Inserir diagrama (organograma, fluxograma…)', 'Diagrama'],
+  ['math', 'Inserir equação', 'Equação'], ['circle', 'Inserir círculo de destaque', 'Círculo'],
   ['undo', 'Desfazer', '↶'], ['redo', 'Refazer', '↷'],
 ];
 // aparecem só com o cursor dentro de uma tabela
@@ -69,7 +69,7 @@ const noPressed = ['undo', 'redo', 'link', 'hr', 'table', 'chart', 'diagram', 'm
         <span class="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden="true"></span>
         {tableTools.map(([cmd, name, glyph]) => (
           <button type="button" data-cmd={cmd} aria-label={name} title={name}
-            class="tool min-h-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-accent hover:bg-[#141414]">{glyph}</button>
+            class="tool min-h-9 min-w-9 shrink-0 cursor-pointer rounded-[4px] px-2 text-[13px] text-muted hover:bg-[#141414] hover:text-ink">{glyph}</button>
         ))}
       </span>
     </div>

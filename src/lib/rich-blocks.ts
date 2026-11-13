@@ -6,7 +6,14 @@
 // O editor (Tiptap) e o site (marked) usam estas funções: o que se vê no editor é o que vai ao ar.
 // Os desenhos vêm do motor do editor (src/editor-core): gráficos e diagramas em SVG, equações em MathML (KaTeX).
 import katex from 'katex';
-import { chartSvg, diagramSvg } from '../editor-core/io/svg.ts';
+import { chartSvg, diagramSvg, type SvgTheme } from '../editor-core/io/svg.ts';
+
+/** Mesmas cores e fonte do site (shared.css): fundo do texto, tinta, cinza, linhas e o amarelo de destaque. */
+export const SITE_THEME: SvgTheme = {
+  bg: 'none', ink: '#F2F2EE', muted: '#A6A6A0', grid: '#2B2B2B', axis: '#5C5C58', font: 'Arial, Helvetica, sans-serif',
+  nodeFill: '#000000', nodeStroke: '#FBBF00', link: '#A6A6A0', sliceStroke: '#000000',
+  palette: ['#FBBF00', '#F2F2EE', '#A6A6A0', '#8A6A00', '#5C5C58', '#FFE08A'],
+};
 import { layoutDiagram } from '../editor-core/ops/diagram.ts';
 import type { ChartData } from '../editor-core/charts/chart.ts';
 import { circleHtml, parseCircleAttrs } from './circle-block.ts';
@@ -47,7 +54,7 @@ export function chartHtml(a: Partial<ChartAttrs>) {
   const { categories, series } = parseChartData(a.data ?? '');
   if (!series.length || !categories.length) return `<figure class="lab-chart lab-chart-empty"><p>Gráfico sem dados.</p></figure>`;
   const d: ChartData = { chartType: type as ChartData['chartType'], categories, series: series.map((s, i) => ({ id: `s${i}`, name: s.name, values: s.values, visible: true, axis: 'PRIMARY' })), warnings: [] };
-  const svg = chartSvg(d, a.title ?? '', 640, 360).replace('<svg ', `<svg role="img" aria-label="${esc(a.title || 'Gráfico')}" `);
+  const svg = chartSvg(d, a.title ?? '', 640, 360, SITE_THEME).replace('<svg ', `<svg role="img" aria-label="${esc(a.title || 'Gráfico')}" `);
   return `<figure class="lab-chart">${svg}</figure>`;
 }
 
@@ -76,7 +83,7 @@ export function diagramHtml(a: Partial<DiagramAttrs>) {
   const items = outlineItems(a.outline ?? '');
   if (!items.length) return `<figure class="lab-diagram lab-chart-empty"><p>Diagrama sem tópicos.</p></figure>`;
   const d = layoutDiagram({ diagramType: type, items, connections: [] });
-  const svg = diagramSvg(d).replace('<svg ', `<svg role="img" aria-label="${esc(items.map((x) => x.label).join(', '))}" `);
+  const svg = diagramSvg(d, SITE_THEME).replace('<svg ', `<svg role="img" aria-label="${esc(items.map((x) => x.label).join(', '))}" `);
   return `<figure class="lab-diagram">${svg}</figure>`;
 }
 
