@@ -291,6 +291,37 @@ export class FormulaService {
   }
 }
 
+export interface Rect { r1: number; c1: number; r2: number; c2: number }
+
+/**
+ * Células recortadas e coladas em outro lugar: as fórmulas que apontavam para elas passam a apontar para o destino
+ * (como nas planilhas). Referências e intervalos totalmente dentro do bloco movido acompanham; os outros ficam.
+ */
+export function moveReferences(fs: FormulaService, e: Engine, srcSheetId: string, rect: Rect, destSheetId: string, dr: number, dc: number) {
+  const destName = String(e.get(destSheetId).data.name);
+  const inside = (r: RefPart) => r.row >= rect.r1 && r.row <= rect.r2 && r.col >= rect.c1 && r.col <= rect.c2;
+  for (const s of fs.sheets()) {
+    for (const [addr, c] of Object.entries<SheetCell>(s.data.cells ?? {})) {
+      if (!c.formula) continue;
+      const a = fs.parseCached(c.formula);
+      if (a instanceof Error) continue;
+      const points = (name: string | null) => (name === null ? s.id === srcSheetId : fs.sheetByName(name)?.id === srcSheetId);
+      const sheetFor = (name: string | null) => (destSheetId === srcSheetId ? name : s.id === destSheetId ? null : destName);
+      let changed = false;
+      const walk = (x: Ast): Ast => {
+        if (x.k === 'ref' && points(x.sheet) && inside(x)) { changed = true; return { ...x, sheet: sheetFor(x.sheet), row: x.row + dr, col: x.col + dc }; }
+        if (x.k === 'range' && points(x.sheet) && inside(x.start) && inside(x.end)) { changed = true; return { ...x, sheet: sheetFor(x.sheet), start: { ...x.start, row: x.start.row + dr, col: x.start.col + dc }, end: { ...x.end, row: x.end.row + dr, col: x.end.col + dc } }; }
+        if (x.k === 'call') return { ...x, args: x.args.map(walk) };
+        if (x.k === 'un' || x.k === 'pct') return { ...x, arg: walk(x.arg) };
+        if (x.k === 'bin') return { ...x, left: walk(x.left), right: walk(x.right) };
+        return x;
+      };
+      const next = walk(a);
+      if (changed) e.touchNode(s.id).data.cells[addr].formula = '=' + stringify(next);
+    }
+  }
+}
+
 /** Serviço de fórmulas do engine (criado na primeira vez que alguém precisa). */
 export function formulas(e: Engine): FormulaService {
   return (e.services.formulas ??= new FormulaService(e));

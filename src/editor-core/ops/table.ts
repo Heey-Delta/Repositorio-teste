@@ -7,7 +7,7 @@ import type { EditorNode } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
 import type { SheetCell, ValidationRule } from '../formula/service.ts';
 import type { Scalar } from '../formula/functions.ts';
-import { formulas, isSheet } from '../formula/service.ts';
+import { formulas, isSheet, moveReferences } from '../formula/service.ts';
 import { evaluate } from '../formula/evaluate.ts';
 import { err, ERROR_MESSAGES, isErr } from '../formula/functions.ts';
 import { colToIndex, indexToCol, parse, parseAddress, parseRange, toAddress } from '../formula/parse.ts';
@@ -683,3 +683,91 @@ export const tableHandlers: Record<string, Handler> = {
 };
 
 tableHandlers.UPDATE_CELL = tableHandlers.SET_CELL;   // nome usado na especificação
+
+// ---------------------------------------------------------------- copiar e colar células
+
+function snapshotCells(e: Engine, n: EditorNode, r: { r1: number; c1: number; r2: number; c2: number }) {
+  const matrix = [];
+  for (let row = r.r1; row <= r.r2; row++) {
+    const line = [];
+    for (let col = r.c1; col <= r.c2; col++) {
+      const c = readCell(e, n, row, col);
+      const style = n.type === 'TABLE' ? tableCell(n, row, col).styleOverrides : cellsMap(n)[toAddress({ row, col })]?.styleOverrides;
+      line.push({ value: c.value, formula: c.formula, display: visible(c.display), ...(style ? { styleOverrides: clone(style) } : {}) });
+    }
+    matrix.push(line);
+  }
+  return matrix;
+}
+
+function copyCells(e: Engine, op: any, operation: 'COPY' | 'CUT') {
+  const n = target(e, op.targetId, false);
+  const r = rangeOf(n, op.payload ?? {});
+  e.state.clipboard = { operation, sourceParentId: n.id, items: [], cells: { sourceId: n.id, origin: { row: r.r1, col: r.c1 }, matrix: snapshotCells(e, n, r) } };
+  e.emit('clipboard', { operation, cells: (r.r2 - r.r1 + 1) * (r.c2 - r.c1 + 1) });
+  return { rows: r.r2 - r.r1 + 1, columns: r.c2 - r.c1 + 1 };
+}
+
+const quoteSheetName = (name: string) => (/^[A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_.]*$/.test(name) ? name : `'${name.replace(/'/g, "''")}'`);
+
+Object.assign(tableHandlers, {
+  /** Copia um intervalo de células (valores, fórmulas e formatação). */
+  COPY_CELLS: (e: Engine, op: any) => copyCells(e, op, 'COPY'),
+  /** Recorta: as células de origem só são limpas quando a colagem dá certo. */
+  CUT_CELLS: (e: Engine, op: any) => copyCells(e, op, 'CUT'),
+
+  /**
+   * PASTE_CELLS { cell, mode?, transpose? } no destino (targetId):
+   *   ALL (padrão): valores, fórmulas (referências relativas ajustadas) e formatação
+   *   VALUES: só os resultados · FORMULAS: fórmulas e valores, sem formatação · FORMAT_ONLY: só a formatação
+   *   LINK: fórmulas que apontam para as células de origem (=Planilha1!A1), só de planilha para planilha
+   *   transpose: true troca linhas por colunas.
+   */
+  PASTE_CELLS: (e: Engine, op: any) => {
+    const cb = e.state.clipboard?.cells ?? fail('EMPTY_CLIPBOARD', 'Copie células primeiro.');
+    const n = target(e, op.targetId ?? cb!.sourceId);
+    const start = posOf(n, op.payload ?? { cell: 'A1' });
+    const mode = op.payload?.mode ?? 'ALL';
+    if (!['ALL', 'VALUES', 'FORMULAS', 'FORMAT_ONLY', 'LINK'].includes(mode)) fail('INVALID_PAYLOAD', 'Modo: ALL, VALUES, FORMULAS, FORMAT_ONLY ou LINK.');
+    const transpose = Boolean(op.payload?.transpose);
+    const source = e.get(cb!.sourceId);
+    if (mode === 'LINK' && (!isSheet(source) || !isSheet(n))) fail('INVALID_OPERATION', 'Colar como vínculo vale entre planilhas.');
+    const fs = formulas(e);
+    const changed: string[] = [];
+    cb!.matrix.forEach((line, i) => line.forEach((src, j) => {
+      const row = start.row + (transpose ? j : i), col = start.col + (transpose ? i : j);
+      const from = { row: cb!.origin.row + i, col: cb!.origin.col + j };
+      if (mode === 'FORMAT_ONLY' || mode === 'ALL') {
+        const style = src.styleOverrides ?? null;
+        if (n.type === 'TABLE') { const c = tableCell(n, row, col); if (style) c.styleOverrides = clone(style); else delete c.styleOverrides; }
+        else if (style || mode === 'FORMAT_ONLY') { const cells = cellsMap(n), a = toAddress({ row, col }); cells[a] = { ...(cells[a] ?? { value: null }), ...(style ? { styleOverrides: clone(style) } : {}) }; }
+      }
+      if (mode === 'FORMAT_ONLY') return;
+      if (mode === 'LINK') writeCell(e, n, row, col, null, { formula: `=${quoteSheetName(String(source.data.name))}!${toAddress(from)}` });
+      else if (mode === 'VALUES') writeCell(e, n, row, col, src.display as Scalar);
+      else if (src.formula) writeCell(e, n, row, col, null, { formula: fs.shift(src.formula, row - from.row, col - from.col) });
+      else writeCell(e, n, row, col, src.value as Scalar);
+      changed.push(toAddress({ row, col }));
+    }));
+    // recorte concluído: limpa a origem (o que não foi sobrescrito pelo próprio destino)
+    if (e.state.clipboard!.operation === 'CUT' && mode === 'ALL') {
+      const src = e.touchNode(cb!.sourceId);
+      cb!.matrix.forEach((line, i) => line.forEach((_, j) => {
+        const row = cb!.origin.row + i, col = cb!.origin.col + j;
+        if (src.id === n.id && changed.includes(toAddress({ row, col }))) return;
+        if (src.type === 'TABLE') { const c = tableCell(src, row, col); c.value = null; delete c.formula; delete c.calculatedValue; delete c.error; delete c.styleOverrides; }
+        else delete cellsMap(src)[toAddress({ row, col })];
+        if (src.id === n.id) changed.push(toAddress({ row, col }));
+      }));
+      // quem apontava para as células recortadas passa a apontar para o novo lugar
+      if (isSheet(src) && isSheet(n) && !transpose) {
+        const rect = { r1: cb!.origin.row, c1: cb!.origin.col, r2: cb!.origin.row + cb!.matrix.length - 1, c2: cb!.origin.col + cb!.matrix[0].length - 1 };
+        moveReferences(fs, e, src.id, rect, n.id, start.row - cb!.origin.row, start.col - cb!.origin.col);
+      }
+      if (src.id !== n.id) afterWrite(e, src, cb!.matrix.flatMap((line, i) => line.map((_, j) => toAddress({ row: cb!.origin.row + i, col: cb!.origin.col + j }))));
+      e.state.clipboard = null;
+    }
+    afterWrite(e, n, changed);
+    return { rows: transpose ? cb!.matrix[0].length : cb!.matrix.length, columns: transpose ? cb!.matrix.length : cb!.matrix[0].length };
+  },
+});

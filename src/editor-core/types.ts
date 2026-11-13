@@ -145,10 +145,18 @@ export interface ClipboardItem {
   nodes: Record<string, EditorNode>;
 }
 
+/** Cópia de um intervalo de células (planilha ou tabela): valores, fórmulas e formatação, linha × coluna. */
+export interface CellClipboard {
+  sourceId: string;
+  origin: { row: number; col: number };
+  matrix: { value: unknown; formula: string | null; display: unknown; styleOverrides?: Record<string, unknown> }[][];
+}
+
 export interface Clipboard {
   operation: 'COPY' | 'CUT';
   sourceParentId: string | null;
   items: ClipboardItem[];
+  cells?: CellClipboard;
 }
 
 /** Operação universal: tudo o que muda (ou consulta) o documento passa por aqui. */

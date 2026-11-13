@@ -2,13 +2,13 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 147 prontas · 🟡 22 parciais · ⬜ 91 a fazer
+**260 funcionalidades** · ✅ 149 prontas · 🟡 21 parciais · ⬜ 90 a fazer
 
 ## Resumo por categoria
 
 | ID | Categoria | Responsabilidade | ✅ | 🟡 | ⬜ |
 | --- | --- | --- | --- | --- | --- |
-| 01 | Edição de conteúdo | Criar e modificar conteúdo | 14 | 1 | 1 |
+| 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
 | 02 | Formatação | Definir aparência | 27 | 3 | 0 |
 | 03 | Estrutura e organização | Organizar hierarquias | 12 | 1 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 11 | 5 | 0 |
@@ -63,8 +63,8 @@
 | ✅ | F01.04 | Copiar | SELECTION | `COPY` | targetIds? | Guarda uma cópia da seleção na área de transferência. |
 | ✅ | F01.05 | Recortar | SELECTION | `CUT` | targetIds? | Copia e remove; a cópia completa fica guardada e dá para desfazer. Depende de F01.04. |
 | ✅ | F01.06 | Colar | SELECTION | `PASTE` `PASTE_TEXT` | parentId?, index? | Insere o conteúdo copiado com IDs novos e relações internas remapeadas. Depende de F01.04. |
-| 🟡 | F01.07 | Colar especial | SELECTION | `PASTE` | mode: TEXT_ONLY\|FORMAT_ONLY\|VALUES\|TRANSPOSE\|LINK | Colar só texto, só formatação, só valores, transposto ou como vínculo. Depende de F01.06. Faltam VALUES, TRANSPOSE e LINK (Etapa 02). |
-| ⬜ | F01.08 | Arrastar e soltar | SELECTION | `DROP` | targetIds, destinationId, x?, y?, index?, files? | Solta elementos (ou arquivos) num destino: reposiciona ou muda de contêiner. Depende de F05.01. Etapa 02. |
+| ✅ | F01.07 | Colar especial | SELECTION | `PASTE` `COPY_CELLS` `CUT_CELLS` `PASTE_CELLS` | mode: TEXT_ONLY\|FORMAT_ONLY\|LINK\|VALUES\|FORMULAS\|ALL, transpose | Elementos: só texto, só formatação, como vínculo. Células: tudo, só valores, só fórmulas, só formatação, transposto, vínculo; recortar move e atualiza referências. Depende de F01.06. |
+| ✅ | F01.08 | Arrastar e soltar | SELECTION | `DROP` | targetIds, destinationId, x?, y?, index?, copy?, files? | Solta elementos (ou arquivos) num destino: reposiciona, muda de contêiner ou de ordem; com copy solta uma cópia. Depende de F05.01. |
 | ✅ | F01.09 | Excluir conteúdo | CORE | `DELETE` `CLEAR_CELL` | targetIds | Remove elementos (com descendentes) tratando referências. |
 | ✅ | F01.10 | Desfazer | HISTORY | `UNDO` |  | Reverte a última transação. |
 | ✅ | F01.11 | Refazer | HISTORY | `REDO` |  | Reaplica a transação desfeita. |

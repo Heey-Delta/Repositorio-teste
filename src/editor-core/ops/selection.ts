@@ -4,7 +4,7 @@
 // internas remapeadas; arquivos (assets) não são duplicados, a cópia aponta para o mesmo assetId.
 import type { EditorNode, Operation } from '../types.ts';
 import type { Engine, Handler } from '../engine.ts';
-import { box, cloneSubtree, createNode, insertSubtree, removeSubtree, subtreeOf, translate } from './basic.ts';
+import { attach as attachNode, box, cloneSubtree, createNode, detach as detachNode, insertSubtree, removeSubtree, subtreeOf, translate } from './basic.ts';
 import { canContain } from '../schema.ts';
 import { remapReferences } from '../refs.ts';
 import { clone, fail } from '../util.ts';
@@ -110,8 +110,22 @@ export const selectionHandlers: Record<string, Handler> = {
    */
   PASTE: (e, op) => {
     const cb = e.state.clipboard;
+    // cópia de células (planilha/tabela): colar normal, só valores, fórmulas, formatação, transposto ou vínculo
+    if (cb?.cells) return e.run({ type: 'PASTE_CELLS', targetId: op.targetId ?? op.payload?.targetId, payload: op.payload });
     if (!cb?.items.length) fail('EMPTY_CLIPBOARD', 'A área de transferência está vazia.');
     const mode = op.payload?.mode ?? 'ALL';
+    if (mode === 'VALUES' || op.payload?.transpose) fail('INVALID_OPERATION', 'Colar só valores ou transposto vale para células de planilha ou tabela.');
+    if (mode === 'LINK') {
+      // colar como vínculo: um link para cada original (que precisa continuar existindo)
+      const parentId = contextParent(e, op.payload?.parentId);
+      const created = cb!.items.map((item) => {
+        const src = e.find(item.rootId) ?? fail('NOT_FOUND', 'O original não existe mais; não dá para colar como vínculo.');
+        const label = Array.isArray(src!.data.runs) ? src!.data.runs.map((r: any) => r.text).join('') : `${src!.type} ${src!.id}`;
+        return createNode(e, { parentId, nodeType: 'LINK', data: { url: null, targetId: src!.id, title: label, runs: [{ id: e.newId('RUN'), text: label, format: {} }] }, layout: e.get(parentId).layout.mode === 'ABSOLUTE' ? { mode: 'ABSOLUTE', x: 40, y: 40, width: 240, height: 30 } : { mode: 'FLOW' }, index: op.payload?.index }).id;
+      });
+      setSelection(e, created);
+      return created;
+    }
     if (mode === 'FORMAT_ONLY') {
       const src = cb!.items[0].nodes[cb!.items[0].rootId];
       return targetsOf(e, op).map((id) => {
@@ -149,6 +163,66 @@ export const selectionHandlers: Record<string, Handler> = {
     if (cb!.operation === 'CUT') e.state.clipboard = null;   // recorte só se conclui depois de colar com sucesso
     setSelection(e, created);
     return created;
+  },
+
+  /**
+   * Arrastar e soltar: DROP { destinationId, index?, x?, y?, copy?, files? }.
+   * - Elementos (targetIds ou seleção): mudam de contêiner (e de ordem) e/ou de posição; com copy: true, solta uma cópia.
+   *   Vários objetos mantêm a distância entre eles: o primeiro vai para (x, y) e os outros acompanham.
+   * - Arquivos (files): entram na biblioteca do documento e viram imagem, vídeo ou áudio no ponto onde foram soltos.
+   */
+  DROP: (e, op) => {
+    const p = op.payload ?? {};
+    const dest = e.get(p.destinationId ?? fail('INVALID_PAYLOAD', 'Informe destinationId (onde soltar).'));
+    e.assertEditable(dest.id);
+    const spatial = dest.layout.mode === 'ABSOLUTE' || dest.type === 'GROUP';
+    if (Array.isArray(p.files) && p.files.length) {
+      const kinds: Record<string, string> = { image: 'IMAGE', video: 'VIDEO', audio: 'AUDIO' };
+      const created = p.files.map((f: any, i: number) => {
+        const kind = kinds[String(f.mimeType ?? '').split('/')[0]];
+        if (!kind) fail('VALIDATION', `Não dá para soltar "${f.name}" aqui: use imagem, vídeo ou áudio.`);
+        const assetId = e.run({ type: 'IMPORT_ASSET', payload: { ...f, type: kind } });
+        const layout = spatial ? { x: (p.x ?? 40) + i * 20, y: (p.y ?? 40) + i * 20 } : undefined;
+        return e.run({ type: 'INSERT_CONTENT', payload: { contentType: kind, parentId: dest.id, index: p.index, layout, data: kind === 'IMAGE' ? { assetId, alt: f.alt ?? '' } : { assetId } } }).id;
+      });
+      setSelection(e, created);
+      return created;
+    }
+    const ids = targetsOf(e, op);
+    const first = box(e.get(ids[0]));
+    let index: number | undefined = p.index;
+    const result = ids.map((id) => {
+      e.assertEditable(id);
+      let nid = id;
+      const before = box(e.get(id));
+      if (p.copy) {
+        const sub = cloneSubtree(e, subtreeOf(e, id), id);
+        nid = insertSubtree(e, sub, dest.id, index).id;
+      } else if (e.get(id).parentId !== dest.id || index !== undefined) {
+        if (id === dest.id || e.descendants(id).includes(dest.id)) fail('INVALID_PARENT', 'Não dá para soltar um elemento dentro dele mesmo.');
+        if (!canContain(dest.type, e.get(id).type)) fail('INVALID_PARENT', `${e.get(id).type} não pode ficar dentro de ${dest.type}.`);
+        detachNode(e, id);
+        const moved = e.touchNode(id);
+        moved.layout.zIndex = undefined;
+        attachNode(e, moved, dest.id, index);
+      }
+      const n = e.get(nid);
+      if (spatial && p.x !== undefined && p.y !== undefined) {
+        if (n.layout.mode !== 'ABSOLUTE' && n.type !== 'GROUP') {
+          const t = e.touchNode(nid);
+          t.layout = { ...t.layout, mode: 'ABSOLUTE', width: typeof t.layout.width === 'number' ? t.layout.width : 400, height: typeof t.layout.height === 'number' ? t.layout.height : 60 };
+        }
+        const cur = box(e.get(nid));
+        translate(e, nid, p.x + (before.x - first.x) - cur.x, p.y + (before.y - first.y) - cur.y);
+      } else if (!spatial && e.get(nid).layout.mode === 'ABSOLUTE') {
+        const t = e.touchNode(nid);   // entrou num fluxo de texto: passa a acompanhar o fluxo
+        t.layout = { mode: 'FLOW', width: t.layout.width, height: t.layout.height };
+      }
+      if (index !== undefined) index++;
+      return nid;
+    });
+    setSelection(e, result);
+    return result;
   },
 
   /** Cola texto puro vindo de fora do editor: cada linha vira um parágrafo. */
