@@ -187,7 +187,7 @@ export function toPdf(m: ImportModel, page: { width: number; height: number; mar
         for (const it of b.items) {
           counters.length = it.level + 1; counters[it.level] = (counters[it.level] ?? 0) + 1;
           const indent = 14 + it.level * 18;
-          const mark = b.listType === 'NUMBERED' ? `${counters.slice(0, it.level + 1).join('.')}.` : ['•', '–', '·'][it.level % 3];
+          const mark = it.label ?? (b.listType === 'NUMBERED' ? `${counters.slice(0, it.level + 1).join('.')}.` : ['•', '–', '·'][it.level % 3]);
           const lines = wrap(it.runs, content - indent - 6, 11);
           room(lines[0].height);
           const mf: Font = { bold: false, italic: false, mono: false, size: 11, color: [0.12, 0.16, 0.23] };

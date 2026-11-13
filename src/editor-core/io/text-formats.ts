@@ -24,7 +24,7 @@ export function toTxt(m: ImportModel): string {
   const blocks = (bs: BlockM[]) => {
     for (const b of bs) {
       if (b.kind === 'text') out.push(plain(b.runs));
-      else if (b.kind === 'list') { const n: number[] = []; out.push(b.items.map((it) => { n.length = it.level + 1; n[it.level] = (n[it.level] ?? 0) + 1; return `${'  '.repeat(it.level)}${b.listType === 'NUMBERED' ? `${n[it.level]}.` : '-'} ${plain(it.runs)}`; }).join('\n')); }
+      else if (b.kind === 'list') { const n: number[] = []; out.push(b.items.map((it) => { n.length = it.level + 1; n[it.level] = (n[it.level] ?? 0) + 1; return `${'  '.repeat(it.level)}${it.label ?? (b.listType === 'NUMBERED' ? `${n[it.level]}.` : '-')} ${plain(it.runs)}`; }).join('\n')); }
       else if (b.kind === 'table') out.push(b.rows.map((r) => r.map(show).join('\t')).join('\n'));
       else if (b.kind === 'image') out.push(`[Imagem${b.alt ? `: ${b.alt}` : ''}]`);
       else if (b.kind === 'shape') { if (b.runs?.length) out.push(plain(b.runs)); }

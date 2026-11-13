@@ -39,7 +39,7 @@ test('documento: ida e volta por DOCX, Markdown, HTML e JSON mantém estrutura e
   }
   const md = summary(await reopen(exportDocument(e, 'MD').data, 'x.md'));
   assert.deepEqual(md, want.map((x) => x.replace(/^TITLE:/, 'HEADING_1:')), 'Markdown não distingue título de título 1');
-  assert.match(exportDocument(e, 'TXT').data as string, /^Relatório de Ação\n\nIntrodução\n\nTexto com negrito, itálico e acentos: ção, €\.\n\n1\. Primeiro\n  1\. Sub\n2\. Segundo/);
+  assert.match(exportDocument(e, 'TXT').data as string, /^Relatório de Ação\n\nIntrodução\n\nTexto com negrito, itálico e acentos: ção, €\.\n\n1\. Primeiro\n  a\. Sub\n2\. Segundo/);
 });
 
 test('planilha: XLSX com fórmulas em inglês e volta em português; CSV com ; e vírgula decimal', async () => {

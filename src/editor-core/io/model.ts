@@ -8,12 +8,13 @@ import { textOf } from '../ops/text.ts';
 import { readCell } from '../ops/table.ts';
 import { chartData } from '../charts/chart.ts';
 import { clone } from '../util.ts';
+import { listLabelsIn } from '../ops/word.ts';
 
 export type Scalar = string | number | boolean | null;
 export interface RunM { text: string; format?: Record<string, unknown> }
 export type BlockM =
   | { kind: 'text'; textType?: string; runs: RunM[] }
-  | { kind: 'list'; listType: 'BULLET' | 'NUMBERED'; items: { level: number; runs: RunM[] }[] }
+  | { kind: 'list'; listType: 'BULLET' | 'NUMBERED'; items: { level: number; runs: RunM[]; label?: string }[] }
   | { kind: 'table'; header?: boolean; rows: Scalar[][] }
   | { kind: 'image'; alt: string; source?: string; width?: number; height?: number }
   | { kind: 'shape'; shapeType: string; width: number; height: number; fill?: string; color?: string; bold?: boolean; fontSize?: number; runs?: RunM[] }
@@ -100,18 +101,19 @@ export function readDocument(e: Engine, scope?: string): ImportModel {
       if (n.type === 'REGION' && ['HEADER', 'FOOTER'].includes(n.data.regionType)) return;
       if (n.type === 'SURFACE' && n.data.surfaceType !== 'PAGE' && app !== 'DOCUMENT_EDITOR') return;
       if (n.type === 'LIST') {
-        const items: { level: number; runs: RunM[] }[] = [];
+        const items: { level: number; runs: RunM[]; label?: string }[] = [];
         const collect = (lid: string, base: number) => {
+          const labels = listLabelsIn(doc, lid);
           for (const iid of doc.nodes[lid].children) {
             const it = doc.nodes[iid];
             const level = base + (it.data.level ?? 0);
             const txt = it.children.map((c) => doc.nodes[c]).find((c) => Array.isArray(c?.data.runs));
-            items.push({ level, runs: txt ? runsOf(txt) : [{ text: '' }] });
+            items.push({ level, runs: txt ? runsOf(txt) : [{ text: '' }], label: labels[iid] });
             for (const c of it.children) if (doc.nodes[c]?.type === 'LIST') collect(c, level + 1);
           }
         };
         collect(n.id, 0);
-        blocks.push({ kind: 'list', listType: n.data.listType === 'NUMBERED' ? 'NUMBERED' : 'BULLET', items });
+        blocks.push({ kind: 'list', listType: n.data.listType === 'BULLET' ? 'BULLET' : 'NUMBERED', items });
         return;
       }
       if (['SECTION', 'BLOCK', 'REGION', 'GROUP', 'SURFACE'].includes(n.type)) { n.children.forEach(walk); return; }

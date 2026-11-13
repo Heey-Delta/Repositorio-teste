@@ -29,6 +29,7 @@ import { ioHandlers } from './ops/io.ts';
 import { automationHandlers, installAutomation } from './ops/automation.ts';
 import { viewHandlers, installView } from './ops/view.ts';
 import { storageHandlers } from './storage.ts';
+import { wordHandlers } from './ops/word.ts';
 import { formulas } from './formula/service.ts';
 import type { FunctionDef } from './formula/functions.ts';
 
@@ -77,6 +78,7 @@ export const MODULES: Record<string, Record<string, Handler>> = {
   io: ioHandlers,
   automation: automationHandlers,
   view: viewHandlers,
+  word: wordHandlers,
   storage: storageHandlers as Record<string, Handler>,
 };
 
@@ -107,3 +109,4 @@ export { resolveStyle } from './ops/format.ts';
 export { formulas } from './formula/service.ts';
 export { paginate, estimateMeasure } from './ops/page.ts';
 export { fieldText, formatCitation, formatReference } from './ops/reference.ts';
+export { listLabels, formatNumber, roman, alpha, BUILTIN_STYLES, SPECIAL_CHARACTERS, NUMBER_FORMATS } from './ops/word.ts';

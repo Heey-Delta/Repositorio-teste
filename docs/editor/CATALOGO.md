@@ -2,15 +2,15 @@
 
 > Gerado de `src/editor-core/catalog.ts` com `npm run catalog:editor`. Não edite à mão.
 
-**260 funcionalidades** · ✅ 260 prontas · 🟡 0 parciais · ⬜ 0 a fazer
+**273 funcionalidades** · ✅ 273 prontas · 🟡 0 parciais · ⬜ 0 a fazer
 
 ## Resumo por categoria
 
 | ID | Categoria | Responsabilidade | ✅ | 🟡 | ⬜ |
 | --- | --- | --- | --- | --- | --- |
 | 01 | Edição de conteúdo | Criar e modificar conteúdo | 16 | 0 | 0 |
-| 02 | Formatação | Definir aparência | 30 | 0 | 0 |
-| 03 | Estrutura e organização | Organizar hierarquias | 13 | 0 | 0 |
+| 02 | Formatação | Definir aparência | 39 | 0 | 0 |
+| 03 | Estrutura e organização | Organizar hierarquias | 17 | 0 | 0 |
 | 04 | Inserção de elementos | Adicionar componentes | 16 | 0 | 0 |
 | 05 | Manipulação de objetos | Transformar e posicionar | 17 | 0 | 0 |
 | 06 | Tabelas e dados | Organizar informações | 17 | 0 | 0 |
@@ -34,9 +34,9 @@
 | Núcleo de operações (`CORE`) | 1 | 4 |
 | Seleção e área de transferência (`SELECTION`) | 1 | 7 |
 | Histórico e versões (`HISTORY`) | 1 | 11 |
-| Hierarquia e organização (`ORGANIZE`) | 1 | 15 |
-| Formatação, estilos e temas (`FORMAT`) | 1 | 42 |
-| Inserção de conteúdo (`CONTENT`) | 1 | 10 |
+| Hierarquia e organização (`ORGANIZE`) | 1 | 19 |
+| Formatação, estilos e temas (`FORMAT`) | 1 | 50 |
+| Inserção de conteúdo (`CONTENT`) | 1 | 11 |
 | Texto (`TEXT`) | 1 | 5 |
 | Manipulação de objetos (`OBJECTS`) | 1 | 20 |
 | Comentários e colaboração (`COLLAB`) | 1 | 11 |
@@ -111,6 +111,16 @@
 | ✅ | F02.28 | Estilos predefinidos | FORMAT | `APPLY_STYLE` | styleId | Aplicar um estilo do documento. |
 | ✅ | F02.29 | Copiar formatação | FORMAT | `COPY_FORMAT` `PASTE_FORMAT` |  | Pincel de formatação. |
 | ✅ | F02.30 | Remover formatação | FORMAT | `CLEAR_FORMAT` |  | Remove ajustes individuais (mantém o estilo). |
+| | | **B1 · Processador de texto** | | | | |
+| ✅ | F02.31 | Efeitos de fonte avançados | FORMAT | `FORMAT` | underlineStyle, underlineColor, doubleStrike, smallCaps, textOutline, textShadow, scale, hidden, kerning, language | Sublinhado duplo/ondulado/pontilhado com cor, tachado duplo, versalete, contorno, sombra, escala, texto oculto, kerning, idioma. B1. |
+| ✅ | F02.32 | Quebras de linha e página do parágrafo | FORMAT | `FORMAT` | keepWithNext, keepTogether, pageBreakBefore, widowControl | Manter com o próximo, manter linhas juntas, quebra de página antes, controle de viúvas e órfãs. B1. |
+| ✅ | F02.33 | Tabulações | FORMAT | `FORMAT` | tabStops: [{ position, align, leader }] | Paradas à esquerda, centro, direita, decimal e barra, com preenchimento. B1. |
+| ✅ | F02.34 | Letra capitular | FORMAT | `FORMAT` | dropCap: { mode, lines } | Capitular no texto ou na margem. B1. |
+| ✅ | F02.35 | Nível de tópico e entrelinhas exato | FORMAT | `FORMAT` | outlineLevel, lineSpacingRule | Nível de tópico (painel de navegação/sumário) e regra do entrelinhas. B1. |
+| ✅ | F02.36 | Estilos prontos | FORMAT | `INSTALL_BUILTIN_STYLES` `LIST_STYLES` | names? | Normal, Título, Subtítulo, Título 1–6, Citação, Legenda, Código, Ênfase… B1. |
+| ✅ | F02.37 | Inspetor de estilos | FORMAT | `STYLE_INSPECTOR` | targetId | De onde vem cada propriedade: tema, estilo ou ajuste direto. B1. |
+| ✅ | F02.38 | Selecionar formatação semelhante | FORMAT | `SELECT_SIMILAR` | targetId | Seleciona todo texto com o mesmo estilo e ajustes. B1. |
+| ✅ | F02.39 | Caracteres especiais | CONTENT | `SPECIAL_CHARACTERS` |  | Travessão, espaço e hífen inseparáveis, ©, ®, aspas, símbolos matemáticos e moedas. B1. |
 
 ## 03. Estrutura e organização
 
@@ -129,6 +139,11 @@
 | ✅ | F03.11 | Desagrupar elementos | ORGANIZE | `UNGROUP` | targetIds | Desfaz o grupo preservando os filhos. |
 | ✅ | F03.12 | Ocultar elementos | ORGANIZE | `HIDE` `SHOW` |  | Marca como invisível (o renderizador não desenha). |
 | ✅ | F03.13 | Expandir e recolher estruturas | ORGANIZE | `COLLAPSE` `EXPAND` |  | Recolhe seções/listas no painel e na tela. Depende de F18.08. Na tela: título recolhido esconde o conteúdo até o próximo título do mesmo nível (Etapa 15). |
+| | | **B1 · Listas** | | | | |
+| ✅ | F03.14 | Formatos de numeração | ORGANIZE | `LIST_SET_FORMAT` `LIST_LABELS` | numberFormat, levelFormats, separator | 1, 01, a, A, i, I, 1º e marcadores (•, ◦, ▪, –, ➢, ✓) por nível, com separador. B1. |
+| ✅ | F03.15 | Reiniciar numeração | ORGANIZE | `LIST_RESTART` | start | Recomeça em 1 (ou outro número); num item do meio divide a lista. B1. |
+| ✅ | F03.16 | Continuar numeração | ORGANIZE | `LIST_CONTINUE` | fromId? | Segue a contagem da lista anterior. B1. |
+| ✅ | F03.17 | Classificar parágrafos | ORGANIZE | `SORT_PARAGRAPHS` | ids, by, order | A→Z, Z→A, por número ou data. B1. |
 
 ## 04. Inserção de elementos
 

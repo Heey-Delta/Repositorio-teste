@@ -137,3 +137,5 @@
   .sl-thumb { width: 120px; flex: none; }
   .ed-page { padding: 32px 24px; min-height: 70dvh; }
 }
+.ed-list li { position: relative; }
+.ed-list li[data-label]:not([data-label=""])::before { content: attr(data-label); position: absolute; right: 100%; top: 0; margin-right: .5em; white-space: nowrap; color: inherit; }

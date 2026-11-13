@@ -7,6 +7,7 @@ import { chartData } from '../editor-core/charts/chart.ts';
 import { chartSvg, diagramSvg } from '../editor-core/io/svg.ts';
 import katex from 'katex';
 import { slideItem } from './slide-view.ts';
+import { listLabelsIn } from '../editor-core/ops/word.ts';
 
 export interface TextPoint { id: string; offset: number }
 export interface TextRange { start: TextPoint; end: TextPoint; collapsed: boolean }
@@ -75,9 +76,11 @@ export class DocView {
           const tag = n.data.listType === 'NUMBERED' ? 'ol' : 'ul';
           const list = document.createElement(tag);
           list.className = 'ed-list';
+          const labels = listLabelsIn(doc, n.id);
           for (const iid of n.children) {
             const it = doc.nodes[iid];
-            const li = h('li', { style: `margin-left:${(it.data.level ?? 0) * 24}px` });
+            // o rótulo vem do motor (1., a), IV., 1.2., •…): a lista do navegador não sabe continuar nem usar formatos por nível
+            const li = h('li', { style: `margin-left:${(it.data.level ?? 0) * 24}px;list-style:none`, 'data-label': labels[iid] ?? '' });
             const kids: Node[] = [];
             it.children.forEach((c) => block(doc.nodes[c], kids));
             li.append(...kids);

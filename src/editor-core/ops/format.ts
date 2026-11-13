@@ -13,7 +13,12 @@ const TEXT_PROPS = [
   'fontFamily', 'fontSize', 'bold', 'italic', 'underline', 'strike', 'color', 'highlight', 'textTransform',
   'baseline', 'letterSpacing', 'align', 'lineHeight', 'spaceBefore', 'spaceAfter', 'indentLeft', 'indentRight',
   'indentFirstLine', 'direction', 'verticalAlign',
+  // B1 · caractere: tipo e cor do sublinhado, tachado duplo, versalete, contorno, sombra, escala, oculto, kerning, idioma
+  'underlineStyle', 'underlineColor', 'doubleStrike', 'smallCaps', 'textOutline', 'textShadow', 'scale', 'hidden', 'kerning', 'language', 'noProof',
+  // B1 · parágrafo: quebras (manter com o próximo, linhas juntas, quebra antes, viúvas/órfãs), tabulações, capitular, nível de tópico
+  'keepWithNext', 'keepTogether', 'pageBreakBefore', 'widowControl', 'tabStops', 'dropCap', 'outlineLevel', 'lineSpacingRule',
 ];
+export const UNDERLINE_STYLES = ['SINGLE', 'DOUBLE', 'THICK', 'DOTTED', 'DASHED', 'WAVY', 'WORDS'];
 const BOX_PROPS = ['fill', 'stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'radius', 'shadow', 'blur', 'border', 'effects'];
 const LINE_PROPS = ['stroke', 'strokeWidth', 'strokeStyle', 'opacity', 'arrowStart', 'arrowEnd', 'shadow'];
 const TABLE_PROPS = ['cellPadding', 'headerFill', 'bandedRows'];
@@ -94,6 +99,24 @@ export function validateProps(type: NodeType | null, props: Record<string, unkno
     if (k === 'baseline' && !['NORMAL', 'SUPERSCRIPT', 'SUBSCRIPT'].includes(v as string)) fail('VALIDATION', 'Sobrescrito/subscrito: NORMAL, SUPERSCRIPT ou SUBSCRIPT.');
     if (k === 'direction' && !['LTR', 'RTL', 'VERTICAL'].includes(v as string)) fail('VALIDATION', 'Direção do texto: LTR, RTL ou VERTICAL.');
     if (k === 'verticalAlign' && !['TOP', 'MIDDLE', 'BOTTOM'].includes(v as string)) fail('VALIDATION', 'Alinhamento vertical: TOP, MIDDLE ou BOTTOM.');
+    if (k === 'underlineStyle' && !UNDERLINE_STYLES.includes(v as string)) fail('VALIDATION', `Sublinhado: ${UNDERLINE_STYLES.join(', ')}.`);
+    if (k === 'underlineColor' && (typeof v !== 'string' || !COLOR.test(v))) fail('VALIDATION', `Cor inválida em ${k}: ${String(v)}.`);
+    if (['doubleStrike', 'smallCaps', 'textOutline', 'hidden', 'noProof', 'keepWithNext', 'keepTogether', 'pageBreakBefore', 'widowControl'].includes(k) && typeof v !== 'boolean') fail('VALIDATION', `${k} é sim/não (true/false).`);
+    if (k === 'scale' && (typeof v !== 'number' || v < 1 || v > 600)) fail('VALIDATION', 'Escala do caractere vai de 1 a 600 (%).');
+    if (k === 'kerning' && (typeof v !== 'number' || v < 0)) fail('VALIDATION', 'Kerning: tamanho mínimo da fonte (pt), 0 desliga.');
+    if (k === 'language' && (typeof v !== 'string' || !/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(v))) fail('VALIDATION', 'Idioma no formato pt-BR, en-US…');
+    if (k === 'outlineLevel' && (!Number.isInteger(v) || (v as number) < 0 || (v as number) > 9)) fail('VALIDATION', 'Nível de tópico: 0 (corpo do texto) a 9.');
+    if (k === 'lineSpacingRule' && !['MULTIPLE', 'EXACT', 'AT_LEAST'].includes(v as string)) fail('VALIDATION', 'Regra do entrelinhas: MULTIPLE, EXACT ou AT_LEAST.');
+    if (k === 'textShadow' && v !== false) validateShadow(v);
+    if (k === 'dropCap' && v !== false && (typeof v !== 'object' || !['DROPPED', 'IN_MARGIN'].includes((v as any).mode) || !((v as any).lines >= 2 && (v as any).lines <= 10))) fail('VALIDATION', 'Capitular: { mode: DROPPED|IN_MARGIN, lines: 2–10 }.');
+    if (k === 'tabStops') {
+      if (!Array.isArray(v)) fail('VALIDATION', 'Tabulações: lista de { position, align, leader }.');
+      for (const t of v as any[]) {
+        if (typeof t?.position !== 'number' || t.position < 0) fail('VALIDATION', 'Posição da tabulação precisa ser um número ≥ 0.');
+        if (t.align && !['LEFT', 'CENTER', 'RIGHT', 'DECIMAL', 'BAR'].includes(t.align)) fail('VALIDATION', 'Tabulação: LEFT, CENTER, RIGHT, DECIMAL ou BAR.');
+        if (t.leader && !['NONE', 'DOTS', 'DASHES', 'LINE'].includes(t.leader)) fail('VALIDATION', 'Preenchimento da tabulação: NONE, DOTS, DASHES ou LINE.');
+      }
+    }
     if (k === 'border') validateBorder(v);
     if (k === 'shadow') validateShadow(v);
     if (k === 'effects') validateEffects(v);
