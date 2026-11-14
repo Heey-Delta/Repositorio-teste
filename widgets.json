@@ -12,6 +12,12 @@
       "entry": "widgets/zeta-riemann/index.html",
       "component": "ZetaRiemann",
       "required": false
+    },
+    "xadrez-5x5": {
+      "title": "Xadrez 5×5 P2P (jogo)",
+      "entry": "widgets/xadrez-5x5/index.html",
+      "component": "Xadrez5x5",
+      "required": false
     }
   }
 }

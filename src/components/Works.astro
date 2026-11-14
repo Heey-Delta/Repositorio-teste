@@ -21,8 +21,13 @@ const sites = {
   cafeteria: { title: 'Un buon caffè', kind: 'Cafeteria italiana', href: 'widgets/cidade-isometrica/cafeteria/', img: 'img/work-cafeteria.webp', alt: 'Página inicial da cafeteria: título “O café como se toma na Itália” e a cafeteria em 3D' },
   restaurante: { title: 'Kaoru Kaze', kind: 'Restaurante japonês com reservas', href: 'widgets/cidade-isometrica/restaurante/', img: 'img/work-restaurante.webp', alt: 'Página inicial do restaurante japonês Kaoru Kaze, escura, com o logo em dourado' },
 };
-// Vagas para os próximos projetos: quando tiver um, troque o item por { title, kind, href, img, alt } e ele vira um card de site.
-const next = [1, 2, 3];
+// Vagas para os próximos projetos: quando tiver um, troque o item por { title, kind, href, img, alt, cta } e ele vira um card de site.
+// 1ª vaga: Xadrez 5×5 P2P (widget em public/widgets/xadrez-5x5/, ver widgets.json). O card inteiro leva ao jogo.
+const next = [
+  { title: 'Xadrez 5×5 P2P', kind: 'Jogo de estratégia direto entre navegadores · 2026', href: 'widgets/xadrez-5x5/', img: 'img/work-xadrez.webp', alt: 'Partida de Xadrez 5×5 em 3D: tabuleiro com reis e peões, card da peça selecionada com vida, dano e hash, e o painel do jogador', cta: 'Jogar' },
+  2,
+  3,
+];
 const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full border border-line text-ink transition-[border-color,color,opacity] hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink';
 ---
 <section id="works" class="relative z-30 border-b border-line" aria-labelledby="works-title">
@@ -65,7 +70,19 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
       </article>
       <!-- vagas para os próximos projetos -->
       <div class="contents lg:grid lg:grid-rows-3 lg:gap-6">
-        {next.map((n) => (
+        {next.map((n) => typeof n === 'object' ? (
+          <article class="works-card group relative flex min-h-[460px] min-w-[88%] shrink-0 snap-start flex-col overflow-hidden rounded-3xl border border-line bg-surface sm:min-w-[70%] lg:min-h-0 lg:min-w-0">
+            <span class="relative block min-h-0 flex-1 overflow-hidden border-b border-line bg-[#0e1520]"><img src={n.img} alt={n.alt} width="960" height="600" loading="lazy" decoding="async" class="absolute inset-0 size-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none" /></span>
+            <div class="flex items-end justify-between gap-3 p-4 lg:px-5 lg:py-4">
+              <div class="flex min-w-0 flex-col gap-1">
+                <h3 class="m-0 font-display text-[26px] leading-none uppercase lg:text-[22px]">{n.title}</h3>
+                <p class="m-0 text-[13px] text-muted">{n.kind}</p>
+              </div>
+              <!-- link "esticado": o card inteiro é clicável -->
+              <a href={n.href} class="link-ui shrink-0 text-[11px] after:absolute after:inset-0 after:content-['']">{n.cta}</a>
+            </div>
+          </article>
+        ) : (
           <article class="works-card flex min-h-[460px] min-w-[88%] shrink-0 snap-start flex-col overflow-hidden rounded-3xl border border-dashed border-line sm:min-w-[70%] lg:min-h-0 lg:min-w-0">
             <span class="next-slot block min-h-0 flex-1 border-b border-dashed border-line" aria-hidden="true"></span>
             <div class="flex items-end justify-between gap-3 p-4 lg:px-5 lg:py-4">

@@ -119,3 +119,14 @@ admin (`/admin/`); as páginas do Lab são geradas no build a partir delas. As c
 - **Configurações:** `/admin/configuracoes/` confere a saúde do sistema (banco, login, Deploy Hook, Blob, tarefa diária), atualiza o site na hora, lista e encerra sessões e mostra o registro de ações e de logins.
 - **Imagens:** capa e imagens no texto são enviadas pelo editor. O navegador reduz para até 2000 px e converte para WebP; o servidor confere o tipo real do arquivo (JPG, PNG, WebP, AVIF, GIF ou PDF; SVG não) e exige texto alternativo. Os arquivos ficam no Vercel Blob (store `hallan-lab-midia`) e a lista em `/admin/midia/`.
 - **Variáveis no Vercel:** `DATABASE_URL` (criada pela Neon), `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_GITHUB_ID`, `BLOB_READ_WRITE_TOKEN` (criada pelo Blob), `CRON_SECRET` e `VERCEL_DEPLOY_HOOK_URL`. O OAuth App do GitHub usa o retorno `https://hallan-dante.vercel.app/api/auth/callback`.
+
+## Xadrez 5×5 P2P (1ª vaga ao lado da cidade)
+
+O primeiro card ao lado da cidade em `#works` leva ao jogo **Xadrez 5×5 P2P**, em `public/widgets/xadrez-5x5/` (copiado como está para `dist/`).
+O card vem da lista `next` em `src/components/Works.astro` (`{ title, kind, href, img, alt, cta }`); a captura é `public/img/work-xadrez.webp` (960×600).
+
+- HTML, CSS e JavaScript puros, sem build. Partida com robô ou com amigo por WebRTC, sem servidor (convite por código ou QR Code).
+- Protocolo PGL: documentos assinados com Ed25519, parser estrito e motor de regras determinístico nos dois navegadores.
+- O 3D usa o **mesmo** `widgets/cidade-isometrica/vendor/three-r128.min.js` da cidade. Sem WebGL, o jogo mostra o tabuleiro 2D.
+- Peças 3D e cartas vêm do artefato "Xadrez 5×5 — modelos 3D low poly".
+- O código-fonte completo, os testes (`node tests/*.test.js`) e a especificação (`project.md`) ficam no pacote do jogo; aqui vai só o que roda no navegador.

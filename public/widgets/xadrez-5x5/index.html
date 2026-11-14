@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Xadrez 5×5 P2P · Hallan</title>
+  <meta name="description" content="Jogo de estratégia 5×5 com peças de xadrez, apostas e compra de peças, jogado direto entre dois navegadores (P2P), sem servidor.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- HUD de fichas: canto superior direito (project.md §4.7) -->
+  <div id="hud" class="hud" aria-label="Suas fichas">
+    <div class="hud-row"><span class="coin coin-gold" aria-hidden="true"></span><span id="hud-gold">0</span></div>
+    <div class="hud-row"><span class="coin coin-silver" aria-hidden="true"></span><span id="hud-silver">3</span></div>
+  </div>
+
+  <!-- 1. Tela inicial: só o tabuleiro e o botão -->
+  <section id="screen-home" class="screen active">
+    <a class="back-site" href="../../#works">← Portfólio</a>
+    <div id="home-board" class="home-board" aria-label="Tabuleiro 5×5"></div>
+    <button id="btn-start" class="btn btn-primary btn-big">Iniciar partida</button>
+  </section>
+
+  <!-- 2. Nome da sessão -->
+  <section id="screen-name" class="screen">
+    <div class="panel">
+      <h2>Como você quer ser chamado?</h2>
+      <p class="muted">O nome vale só para esta sessão. Até 16 letras, números, espaço, "-" ou "_".</p>
+      <input id="in-name" class="input" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Seu nome">
+      <p id="name-err" class="err" hidden></p>
+      <div class="row">
+        <button id="btn-name-back" class="btn">Voltar</button>
+        <button id="btn-name-ok" class="btn btn-primary">Continuar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Modo de jogo -->
+  <section id="screen-mode" class="screen">
+    <div class="panel">
+      <h2>Olá, <span id="mode-name"></span></h2>
+      <button id="btn-bot" class="btn btn-primary btn-block">Jogar com robô</button>
+      <p class="muted small">Treino: não usa nem altera sua carteira.</p>
+      <button id="btn-friend" class="btn btn-primary btn-block">Jogar com amigo</button>
+      <div class="buyin">
+        <label for="in-buyin">Trazer da carteira para a partida com amigo: <b><span id="buyin-val">0</span> ficha(s)</b></label>
+        <input id="in-buyin" type="range" min="0" max="10" step="1" value="0">
+        <p class="muted small">Máximo de 10 fichas. O adversário vê esse valor como "não verificado".</p>
+      </div>
+      <button id="btn-mode-back" class="btn">Voltar</button>
+    </div>
+  </section>
+
+  <!-- 4. Conexão com amigo -->
+  <section id="screen-friend" class="screen">
+    <div class="panel wide">
+      <div class="tabs">
+        <button id="tab-host" class="tab active">Criar convite</button>
+        <button id="tab-join" class="tab">Tenho um código</button>
+      </div>
+
+      <div id="pane-host" class="pane">
+        <p id="host-status" class="muted">Gerando chaves e convite…</p>
+        <div id="host-share" hidden>
+          <p><b>1.</b> Envie este código (ou o QR Code) para o seu amigo:</p>
+          <canvas id="host-qr" class="qr"></canvas>
+          <textarea id="host-code" class="code" readonly></textarea>
+          <button id="btn-copy-host" class="btn">Copiar código</button>
+          <p class="fp">Seu fingerprint: <b id="host-fp"></b></p>
+          <p><b>2.</b> Cole aqui o código de resposta do amigo:</p>
+          <textarea id="host-answer" class="code" placeholder="PGL1.…"></textarea>
+          <button id="btn-host-connect" class="btn btn-primary">Conectar</button>
+        </div>
+      </div>
+
+      <div id="pane-join" class="pane" hidden>
+        <p><b>1.</b> Cole o código do convite que você recebeu:</p>
+        <textarea id="join-invite" class="code" placeholder="PGL1.…"></textarea>
+        <button id="btn-join-read" class="btn btn-primary">Ler convite</button>
+        <div id="join-confirm" hidden>
+          <p>Convite de <b id="join-host-name"></b><br>Fingerprint dele: <b id="join-host-fp"></b></p>
+          <p class="muted small">Confira o fingerprint com o seu amigo por outro canal (ligação ou mensagem).</p>
+          <button id="btn-join-accept" class="btn btn-primary">Aceitar e gerar resposta</button>
+        </div>
+        <div id="join-share" hidden>
+          <p><b>2.</b> Envie esta resposta para o seu amigo:</p>
+          <canvas id="join-qr" class="qr"></canvas>
+          <textarea id="join-code" class="code" readonly></textarea>
+          <button id="btn-copy-join" class="btn">Copiar resposta</button>
+          <p class="fp">Seu fingerprint: <b id="join-fp"></b></p>
+          <p class="muted">Aguardando o amigo conectar…</p>
+        </div>
+      </div>
+      <p id="friend-err" class="err" hidden></p>
+      <button id="btn-friend-back" class="btn">Voltar</button>
+    </div>
+  </section>
+
+  <!-- 5. Partida: mesa de jogo -->
+  <section id="screen-game" class="screen">
+    <div class="table">
+      <!-- Topo: meus recursos (esq.) · vez + adversário (centro) · minhas vitórias (dir.) -->
+      <header class="t-top">
+        <div class="t-res" aria-label="Seus recursos">
+          <div class="res energy" title="Energia">
+            <span class="ico" data-icon="bolt"></span>
+            <div class="ebar"><i id="me-ebar"></i></div>
+            <b id="me-energy">10</b><small>/15</small>
+          </div>
+          <div class="res coins" title="Moedas livres">
+            <span class="coin coin-silver" aria-hidden="true"></span><b id="me-coins">3</b>
+          </div>
+          <div class="res pot" title="Pote apostado (bônus de dano)">
+            <span class="stack" aria-hidden="true"><i></i><i></i><i></i></span><b id="me-pot">0</b><small id="me-bonus">+0%</small>
+          </div>
+        </div>
+        <div class="t-mid">
+          <div id="turn-banner" class="turn-banner">—</div>
+          <div id="foe-strip" class="foe-strip"></div>
+        </div>
+        <div id="t-wins" class="t-wins" title="Vitórias (fichas douradas)" hidden>
+          <span class="coin coin-gold big" aria-hidden="true"></span><b id="wins-n">0</b>
+        </div>
+      </header>
+
+      <!-- Centro: tabuleiro -->
+      <main class="t-board">
+        <div id="board" class="board" role="grid" aria-label="Tabuleiro"></div>
+        <div id="board3d" class="board3d" hidden></div>
+        <button id="btn-view" class="view-btn" hidden>2D</button>
+      </main>
+
+      <!-- Abaixo do tabuleiro: jogadas do turno + card da peça -->
+      <section class="t-under">
+        <div class="slots" aria-label="Jogadas deste turno">
+          <div class="slot" data-slot="buy"><span class="ico" data-icon="cards"></span><span class="s-name">Comprar</span><span class="s-val"></span></div>
+          <div class="slot" data-slot="move"><span class="ico" data-icon="move"></span><span class="s-name">Mover</span><span class="s-val"></span></div>
+          <div class="slot" data-slot="attack"><span class="ico" data-icon="sword"></span><span class="s-name">Atacar</span><span class="s-val"></span></div>
+          <button id="btn-undo" class="btn sm ghost" title="Desfazer última jogada">Desfazer</button>
+        </div>
+        <div id="piece-card" class="piece-card" hidden></div>
+        <details class="pgl-box">
+          <summary>Turno em PGL</summary>
+          <pre id="pgl-preview" class="pgl"></pre>
+        </details>
+      </section>
+
+      <!-- Base: aposta · mão de cartas · baralho · finalizar -->
+      <footer class="t-hand">
+        <div class="stake" title="Apostar fichas no pote">
+          <button id="btn-stake-minus" class="round">−</button>
+          <div class="stake-chip"><span class="coin coin-silver"></span><b id="stake-n">0</b></div>
+          <button id="btn-stake-plus" class="round">+</button>
+          <small id="stake-info"></small>
+        </div>
+        <div id="hand" class="hand" aria-label="Sua mão"></div>
+        <div class="deck-wrap">
+          <button id="deck" class="deck" title="Comprar cartas (2 moedas + 1 energia cada)">
+            <span class="d-back"></span><span class="d-back"></span><span class="d-back"></span>
+            <span class="d-label">Comprar <b id="buy-n">1</b></span>
+          </button>
+          <div class="deck-n">
+            <button id="btn-buy-minus" class="round sm">−</button>
+            <button id="btn-buy-plus" class="round sm">+</button>
+          </div>
+        </div>
+        <button id="btn-end" class="btn btn-primary end-btn">Finalizar turno</button>
+      </footer>
+    </div>
+    <div id="drag-ghost" class="drag-ghost" hidden></div>
+  </section>
+
+  <!-- Sobreposições -->
+  <div id="overlay" class="overlay" hidden>
+    <div class="panel">
+      <h2 id="ov-title"></h2>
+      <p id="ov-text"></p>
+      <div id="ov-coins" class="ov-coins" hidden>
+        <div class="hud-row"><span class="coin coin-gold" aria-hidden="true"></span><span id="ov-gold"></span></div>
+        <div class="hud-row"><span class="coin coin-silver" aria-hidden="true"></span><span id="ov-silver"></span></div>
+      </div>
+      <button id="ov-btn" class="btn btn-primary">Voltar ao início</button>
+    </div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="js/util.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/pgl.js"></script>
+  <script src="js/cryptolayer.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/protocol.js"></script>
+  <script src="js/bot.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/p2p.js"></script>
+  <!-- Three.js r128: o mesmo arquivo da Cidade Isométrica (fica no cache de quem já visitou o portfólio). -->
+  <script src="../cidade-isometrica/vendor/three-r128.min.js"></script>
+  <script src="js/pieceart.js"></script>
+  <script src="js/board3d.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
