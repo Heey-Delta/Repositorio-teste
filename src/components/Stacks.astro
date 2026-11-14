@@ -38,12 +38,11 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
           <h3 class="label-ui text-[11px] text-muted lg:text-xs">Stacks</h3>
           <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Arraste, jogue e clique para conhecer</p>
         </div>
-        <div id="stackBox" class={`${box} touch-none select-none`}>
+        <div id="stackBox" class={`${box} select-none`}>
           <!-- fundo: o mesmo degradê na cor de destaque do fundo da cidade (mais forte embaixo, some até o topo) -->
           <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
-          <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-accent"></span>Já já elas caem</p>
           {stacks.map((s, i) => (
-            <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-accent focus-visible:border-accent active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
+            <button type="button" class="stack-ball absolute top-0 left-0 grid touch-none cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-accent focus-visible:border-accent active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
             </button>
           ))}
@@ -84,9 +83,6 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
 </section>
 <style is:global>
   .stack-ball { will-change: transform; transition: border-color .15s; }
-  .wait-dot { animation: wait-pulse 1.2s ease-in-out infinite; }
-  @keyframes wait-pulse { 50% { opacity: .25; } }
-  @media (prefers-reduced-motion: reduce) { .wait-dot { animation: none; } }
   #stackCard.open { display: grid; }
   #courseBox::-webkit-scrollbar { display: none; }
   .courses-fade { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
@@ -221,7 +217,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
     // só anima com a caixa na tela e depois da liberação (5 s após a entrada da cidade)
     var released = false, inView = !window.IntersectionObserver;
     function go() { if (released && inView) start(); }
-    window.addEventListener('hallan:stacks', function () { released = true; var w = document.getElementById('stackWait'); if (w) w.remove(); go(); });
+    window.addEventListener('hallan:stacks', function () { released = true; go(); });
     if (window.IntersectionObserver) new IntersectionObserver(function (en) {
       inView = en[0].isIntersecting; if (inView) go(); else stop();
     }, { threshold: 0.15 }).observe(box);
