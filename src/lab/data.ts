@@ -60,8 +60,9 @@ export const formats = ['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion'] a
 // Caminho relativo até a raiz do site, a partir da profundidade da página (os links precisam ser relativos, ver astro.config)
 export const up = (depth: number) => (depth === 0 ? './' : '../'.repeat(depth));
 
-// data curta dos artigos (13 nov); o ano só aparece quando não é o atual
-export const fmtDateShort = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', ...(d.getUTCFullYear() === new Date().getUTCFullYear() ? {} : { year: 'numeric' }), timeZone: 'UTC' }).replace(/\./g, '').replace(/ de /g, ' ');
+// data curta dos artigos (13 nov), no horário de Brasília; o ano só aparece quando não é o atual
+const yearSP = (d: Date) => d.toLocaleDateString('pt-BR', { year: 'numeric', timeZone: 'America/Sao_Paulo' });
+export const fmtDateShort = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', ...(yearSP(d) === yearSP(new Date()) ? {} : { year: 'numeric' }), timeZone: 'America/Sao_Paulo' }).replace(/\./g, '').replace(/ de /g, ' ');
 // palavras do texto, sem blocos de código/dados, endereços de links e marcação
 export const countWords = (md: string) => md
   .replace(/```[\s\S]*?```/g, ' ').replace(/\]\([^)]*\)/g, ' ').replace(/https?:\/\/\S+/g, ' ').replace(/<[^>]+>/g, ' ')
