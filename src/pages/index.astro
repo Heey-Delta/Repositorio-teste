@@ -9,13 +9,14 @@ import Stacks from '../components/Stacks.astro';
 import About from '../components/About.astro';
 import Services from '../components/Services.astro';
 import Process from '../components/Process.astro';
+import Faq from '../components/Faq.astro';
 import Lab from '../components/Lab.astro';
 import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 import DevPanel from '../components/DevPanel.astro';
 import Visibility from '../components/Visibility.astro';
 import { getAuthor, authorLd } from '../lib/lab-public';
-import { services } from '../lib/site';
+import { services, faq } from '../lib/site';
 
 
 // SEO da página inicial: título e descrição que dizem o que você faz, endereço canônico, imagem de compartilhamento
@@ -35,6 +36,10 @@ const jsonld = [
       '@type': 'OfferCatalog', name: 'Serviços',
       itemListElement: services.map((sv) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: sv.name, description: `${sv.desc} ${sv.how}` } })),
     },
+  },
+  {
+    '@context': 'https://schema.org', '@type': 'FAQPage', '@id': `${home}#duvidas`,
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   },
 ];
 ---
@@ -79,9 +84,26 @@ const jsonld = [
     <About />
     <Services />
     <Process />
+    <Faq />
     <Contact />
   </main>
   <Footer />
+  <script is:inline>
+    // Entrada suave das seções ao rolar: marca os blocos, esconde só os que ainda estão abaixo da tela e mostra cada um
+    // quando chega a 12% da altura visível. Sem IntersectionObserver ou com "reduzir movimento", tudo aparece direto.
+    (function () {
+      if (!window.IntersectionObserver || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var sel = ['#works > div > div:first-child', '#lab h2', '#lab h2 ~ *', '#stacks h2', '#about h2', '#about h2 ~ *', '#process h2', '#process h2 ~ p', '#process .proc-deck', '#contact h2', '#contact h2 ~ p', '#contactForm'];
+      sel.forEach(function (s) { document.querySelectorAll(s).forEach(function (el, i) { el.classList.add('rv'); if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', (i * 80) + 'ms'); }); });
+      var els = [].slice.call(document.querySelectorAll('main .rv'));
+      els.forEach(function (el) { if (el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); });
+      document.documentElement.classList.add('rv-on');
+      var io = new IntersectionObserver(function (en) {
+        en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -12% 0px' });
+      els.forEach(function (el) { if (!el.classList.contains('in')) io.observe(el); });
+    })();
+  </script>
   <Visibility />
   <DevPanel />
 </Base>

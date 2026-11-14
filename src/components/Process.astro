@@ -33,7 +33,7 @@ const deck: Deck = {
   <div class="wrap grid gap-6 py-8 lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
     <div class="flex flex-col gap-3.5 lg:gap-5">
       <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/Processo</h2>
-      <p class="text-[13px] text-muted lg:max-w-[260px] lg:text-[15px]">Do primeiro papo ao site no ar, em cinco etapas. Passe os slides para ver cada uma.</p>
+      <p class="text-[13px] text-muted lg:max-w-[260px] lg:text-[15px]">Do primeiro papo ao site no ar, em cinco etapas. Passe os slides para ver como é trabalhar comigo.</p>
     </div>
     <div class="proc-deck flex min-w-0 flex-col gap-4">
       <Fragment set:html={slidesHtml({ deck: JSON.stringify(deck), width: '', align: 'center' })} />
@@ -47,6 +47,9 @@ const deck: Deck = {
 <style is:global>
   .proc-deck .lab-deck { width: 100% !important; max-width: none !important; margin: 0 !important; border-radius: 24px; overflow: hidden; background: #000; }
   .proc-deck .lab-si-img { object-fit: contain; }
+  .proc-deck [aria-live] > p { transition: opacity .3s ease, transform .3s cubic-bezier(.2, .8, .2, 1); }
+  .proc-deck [aria-live].swap > p { opacity: 0; transform: translateY(6px); }
+  @media (prefers-reduced-motion: reduce) { .proc-deck [aria-live] > p { transition: none; } }
 </style>
 <script is:inline define:vars={{ steps: steps.map((s) => ({ name: s.name, text: s.text })) }}>
   (function () {
@@ -58,9 +61,16 @@ const deck: Deck = {
     function sync() {
       var i = at(); if (count) count.textContent = (i + 1) + ' / ' + total;
       if (i === cur) return; cur = i;
-      name.textContent = String(i + 1).padStart(2, '0') + ' · ' + steps[i].name;
-      text.textContent = steps[i].text;
+      // o texto de baixo troca com um fade curto, acompanhando o slide
+      box.classList.add('swap');
+      clearTimeout(swapT);
+      swapT = setTimeout(function () {
+        name.textContent = String(cur + 1).padStart(2, '0') + ' · ' + steps[cur].name;
+        text.textContent = steps[cur].text;
+        box.classList.remove('swap');
+      }, 180);
     }
+    var box = text.parentElement, swapT = 0;
     var p = deck.querySelector('[data-deck-prev]'), n = deck.querySelector('[data-deck-next]');
     if (p) p.addEventListener('click', function () { go(at() - 1); });
     if (n) n.addEventListener('click', function () { go(at() + 1); });

@@ -29,7 +29,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
   <div class="wrap flex flex-col gap-5 py-8 lg:gap-10 lg:py-16">
     <div class="flex items-end justify-between gap-6">
       <h2 id="works-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/Trabalhos</h2>
-      <p class="hidden max-w-[300px] text-[15px] text-muted lg:block">Uma cidade 3D interativa. Clique numa casa para ver o site que mora nela.</p>
+      <p class="hidden max-w-[300px] text-[15px] text-muted lg:block">Montei uma cidade em 3D para mostrar meus projetos. Clique numa casa e conheça o site que mora nela.</p>
       <div class="flex items-center gap-2 lg:hidden">
         <button type="button" id="worksPrev" class={arrow} aria-label="Projeto anterior"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
         <span id="worksCount" class="label-ui min-w-[64px] text-center text-[11px] tabular-nums" aria-live="polite">01 / 04</span>
@@ -48,8 +48,8 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
             <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Fly Presentations</h3>
-            <p class="label-ui text-[11px] text-muted lg:text-xs">Cidade 3D interativa · 2026</p>
-            <a href="widgets/cidade-isometrica/index.html" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">Abrir em tela cheia →</a>
+            <p class="label-ui text-[11px] text-muted lg:text-xs">Uma cidade em 3D para explorar · 2026</p>
+            <a href="widgets/cidade-isometrica/index.html" class="link-ui mt-1.5 self-start text-[11px] lg:text-xs">Ver em tela cheia</a>
           </div>
         </div>
         <!-- card do site, na lateral da cidade (abre ao clicar numa casa), com 16 px de margem: raio 24 − 16 = 8 -->
@@ -58,7 +58,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
           <div class="flex flex-col gap-1.5 p-4 lg:p-5">
             <h3 id="siteCardTitle" class="m-0 font-display text-[26px] leading-none uppercase"></h3>
             <p id="siteCardKind" class="m-0 text-[13px] text-muted"></p>
-            <a id="siteCardLink" href="#" class="link-ui mt-2 self-start text-[11px] lg:text-xs">Ver site →</a>
+            <a id="siteCardLink" href="#" class="link-ui mt-2 self-start text-[11px] lg:text-xs">Visitar o site</a>
           </div>
           <button type="button" id="siteCardClose" class="label-ui absolute top-2.5 right-2.5 cursor-pointer rounded-full bg-bg/85 px-3 py-1.5 text-[11px] text-ink hover:text-accent" aria-label="Fechar">Fechar ✕</button>
         </aside>
@@ -70,10 +70,10 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
             <span class="next-slot block min-h-0 flex-1 border-b border-dashed border-line" aria-hidden="true"></span>
             <div class="flex items-end justify-between gap-3 p-4 lg:px-5 lg:py-4">
               <div class="flex min-w-0 flex-col gap-1">
-                <h3 class="m-0 font-display text-[26px] leading-none uppercase lg:text-[22px]">Próximo projeto</h3>
-                <p class="m-0 text-[13px] text-muted">Vaga aberta</p>
+                <h3 class="m-0 font-display text-[26px] leading-none uppercase lg:text-[22px]">O próximo pode ser seu</h3>
+                <p class="m-0 text-[13px] text-muted">Tenho espaço para novos projetos</p>
               </div>
-              <a href="#contact" class="link-ui shrink-0 text-[11px]">Pode ser o seu →</a>
+              <a href="#contact" class="link-ui shrink-0 text-[11px]">Vamos conversar</a>
             </div>
           </article>
         ))}

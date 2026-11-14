@@ -1,47 +1,60 @@
 ---
-// Serviços em 3 combos: cada card diz para quem é, o que entrega (com uma linha sobre cada serviço) e leva ao contato.
-// O do meio é o destaque (fundo amarelo). Embaixo, o que vale para todos os combos.
-import { services, combos } from '../lib/site';
-const byName = Object.fromEntries(services.map((s) => [s.name, s]));
-const promises = [
-  'Design e código feitos pela mesma pessoa, sem ruído no meio do caminho.',
-  'Você aprova cada etapa antes de seguir para a próxima.',
-  'Site publicado, rápido e pronto para aparecer no Google.',
-];
+// Serviços em 3 combos. Cada card tem: a promessa, para quem é, os serviços que entram (etiquetas), o que a pessoa
+// recebe, prazo e investimento (aparecem quando preenchidos em src/lib/site.ts; vazios, dizem que vão na proposta)
+// e o botão de contato. O do meio é o destaque (fundo amarelo). Embaixo, o que vale para todos os combos.
+import { combos, promises } from '../lib/site';
 ---
 <section id="services" class="border-b border-line" aria-labelledby="services-title">
   <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+    <div class="rv flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
       <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/Serviços</h2>
-      <p class="max-w-[440px] text-[13px] text-muted lg:text-[15px]">Três caminhos, do primeiro rascunho ao site no ar. Escolha o que combina com o momento do seu negócio.</p>
+      <p class="max-w-[460px] text-[13px] text-muted lg:text-[15px]">Organizei o que eu faço em três caminhos. Escolha o que combina com o momento do seu negócio, e o resto a gente ajusta conversando.</p>
     </div>
     <ol class="m-0 grid list-none gap-4 p-0 lg:grid-cols-3 lg:gap-6">
       {combos.map((c, i) => {
         const hi = i === 1;
+        const soft = hi ? 'text-black/70' : 'text-muted';
+        const rule = hi ? 'border-black/20' : 'border-line';
         return (
-          <li class:list={['flex flex-col gap-6 rounded-3xl border p-6 lg:p-8', hi ? 'border-accent bg-accent text-black' : 'border-line bg-surface']}>
+          <li class:list={['combo rv flex flex-col gap-6 rounded-3xl border p-6 lg:p-8', hi ? 'border-accent bg-accent text-black' : 'border-line bg-surface']} style={`--d:${i * 90}ms`}>
             <div class="flex flex-col gap-3">
               <span class:list={['text-[13px] tabular-nums', hi ? 'text-black/60' : 'text-muted']}>{String(i + 1).padStart(2, '0')} / {String(combos.length).padStart(2, '0')}</span>
               <h3 class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">{c.name}</h3>
               <p class="m-0 text-[15px] lg:text-[17px]">{c.pitch}</p>
+              <p class:list={['m-0 text-[13px]', soft]}>Para {c.for.charAt(0).toLowerCase() + c.for.slice(1)}</p>
             </div>
-            <ul class:list={['m-0 flex list-none flex-col border-t p-0', hi ? 'border-black/20' : 'border-line']}>
-              {c.items.map((name) => (
-                <li class:list={['flex flex-col gap-1 border-b py-3', hi ? 'border-black/20' : 'border-line']}>
-                  <span class="flex items-baseline gap-2 text-[15px] font-bold"><span aria-hidden="true" class={hi ? 'text-black' : 'text-accent'}>✓</span>{name}</span>
-                  <span class:list={['pl-[22px] text-[13px]', hi ? 'text-black/70' : 'text-muted']}>{byName[name]?.desc}</span>
-                </li>
-              ))}
+            <ul class="m-0 flex list-none flex-wrap gap-2 p-0" aria-label="Serviços incluídos">
+              {c.items.map((name) => <li class:list={['rounded-full border px-3 py-1 text-[12px]', hi ? 'border-black/30' : 'border-line text-ink']}>{name}</li>)}
             </ul>
-            <p class:list={['m-0 text-[13px]', hi ? 'text-black/70' : 'text-muted']}><span class="font-bold">Ideal para:</span> {c.for}</p>
-            <a href="#contact" class:list={['label-ui mt-auto inline-flex min-h-12 items-center justify-center px-6 text-xs font-bold', hi ? 'bg-black text-accent hover:bg-black/85' : 'border border-ink text-ink hover:border-accent hover:text-accent']}>Quero o combo {c.name} →</a>
+            <div class:list={['flex flex-col gap-3 border-t pt-5', rule]}>
+              <p class:list={['label-ui m-0 text-[11px]', soft]}>Você recebe</p>
+              <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+                {c.gets.map((g) => <li class="flex gap-2.5 text-[14px] leading-snug"><span aria-hidden="true" class={hi ? 'text-black' : 'text-accent'}>✓</span><span>{g}</span></li>)}
+              </ul>
+            </div>
+            <dl class:list={['m-0 grid grid-cols-2 gap-3 border-t pt-5 text-[13px]', rule]}>
+              <div class="flex flex-col gap-1"><dt class:list={['label-ui text-[11px]', soft]}>Prazo</dt><dd class="m-0 tabular-nums">{c.deadline || 'Definido na proposta'}</dd></div>
+              <div class="flex flex-col gap-1"><dt class:list={['label-ui text-[11px]', soft]}>Investimento</dt><dd class="m-0 tabular-nums">{c.price || 'Proposta fechada'}</dd></div>
+            </dl>
+            <a href="#contact" data-combo={c.name} class:list={['combo-cta label-ui mt-auto inline-flex min-h-12 items-center justify-center px-6 text-xs font-bold', hi ? 'bg-black text-accent hover:bg-black/85' : 'border border-ink text-ink hover:border-accent hover:text-accent']}>Quero o combo {c.name}</a>
           </li>
         );
       })}
     </ol>
-    <div class="grid gap-3 border-t border-line pt-6 lg:grid-cols-[auto_1fr_1fr_1fr] lg:items-start lg:gap-10">
+    <div class="rv flex flex-col gap-5 border-t border-line pt-6">
       <p class="label-ui m-0 text-[11px] text-muted">Em todos os combos</p>
-      {promises.map((p) => <p class="m-0 text-[13px] lg:text-[15px]">{p}</p>)}
+      <ul class="m-0 grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        {promises.map((p) => <li class="flex flex-col gap-1.5"><span class="text-[15px] font-bold">{p.title}</span><span class="text-[13px] text-muted lg:text-[14px]">{p.text}</span></li>)}
+      </ul>
     </div>
   </div>
 </section>
+<script is:inline>
+  // "Quero o combo X": já deixa o combo escrito no campo de mensagem do contato
+  document.querySelectorAll('.combo-cta').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var msg = document.getElementById('c-msg'); if (!msg || msg.value.trim()) return;
+      msg.value = 'Olá! Tenho interesse no combo ' + a.dataset.combo + '. ';
+    });
+  });
+</script>

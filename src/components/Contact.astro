@@ -15,7 +15,7 @@ const channels = [
     <div class="flex flex-col justify-between gap-10 lg:gap-12">
       <div class="flex flex-col gap-4 lg:gap-7">
         <h2 id="contact-title" class="font-display text-[clamp(52px,16vw,72px)] leading-[0.98] uppercase lg:text-[clamp(84px,7.2vw,104px)]">Tem um<br>projeto<br><span class="text-accent">em mente?</span></h2>
-        <p class="max-w-[300px] text-base text-muted lg:max-w-[340px] lg:text-lg">Conte o que você precisa e eu respondo com os próximos passos.</p>
+        <p class="max-w-[300px] text-base text-muted lg:max-w-[340px] lg:text-lg">Me conta o que você tem em mente. Eu leio cada mensagem com calma e respondo com os próximos passos.</p>
       </div>
       <div class="flex flex-wrap gap-x-14 gap-y-5">
         {channels.map((c) => (
@@ -40,12 +40,12 @@ const channels = [
         <input id="c-phone" type="tel" class={`${field} tabular-nums`} placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel" required>
       </div>
       <div class="flex flex-col gap-1.5">
-        <label for="c-msg" class={label}>O que você precisa?</label>
+        <label for="c-msg" class={label}>Conte sobre o seu projeto</label>
         <textarea id="c-msg" class={`${field} h-[160px] resize-none py-3 lg:h-[200px]`} placeholder="Ex.: um site para a minha pizzaria, com cardápio e pedido pelo WhatsApp." required></textarea>
       </div>
       <div class="flex flex-col gap-3">
         <button type="submit" class="label-ui inline-flex min-h-14 cursor-pointer items-center justify-center gap-3 bg-accent px-8 text-[13px] font-bold text-black hover:brightness-110 disabled:cursor-wait sm:self-start">
-          <span class="send-spin hidden size-4 rounded-full border-2 border-black/25 border-t-black" aria-hidden="true"></span><span class="send-label">Enviar mensagem →</span>
+          <span class="send-spin hidden size-4 rounded-full border-2 border-black/25 border-t-black" aria-hidden="true"></span><span class="send-label">Enviar mensagem</span>
         </button>
         <p id="contactMsg" class="m-0 min-h-6 text-sm text-accent" role="status" aria-live="polite"></p>
         <a id="contactFallback" href="#" target="_blank" rel="noopener" class="label-ui hidden self-start border border-ink px-5 py-3 text-xs hover:border-accent hover:text-accent">Enviar pelo Google Forms ↗</a>
@@ -82,7 +82,7 @@ const channels = [
     });
     function sending(on) {
       busy = on; btn.disabled = on; spin.classList.toggle('hidden', !on);
-      btnLabel.textContent = on ? 'Enviando…' : 'Enviar mensagem →';
+      btnLabel.textContent = on ? 'Enviando…' : 'Enviar mensagem';
     }
     // máscara do telefone: (00) 00000-0000 ou (00) 0000-0000
     form['c-phone'].addEventListener('input', function () {
@@ -95,20 +95,20 @@ const channels = [
       e.preventDefault(); if (busy) return;
       var v = { name: form['c-name'].value.trim(), mail: form['c-mail'].value.trim(), phone: form['c-phone'].value.trim(), msg: form['c-msg'].value.trim() };
       var digits = v.phone.replace(/\D/g, '');
-      if (!v.name) return wrong(form['c-name'], 'Preencha o seu nome.');
+      if (!v.name) return wrong(form['c-name'], 'Como posso te chamar? Falta o seu nome.');
       // e-mail válido: regra do próprio navegador (type=email) + domínio com ponto e terminação de 2 letras ou mais
-      if (!form['c-mail'].checkValidity() || !/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)*\.[a-z]{2,}$/i.test(v.mail)) return wrong(form['c-mail'], 'Digite um e-mail válido (ex.: voce@exemplo.com).');
-      if (digits.length < 10 || digits.length > 13) return wrong(form['c-phone'], 'Digite um telefone válido, com DDD.');
-      if (v.msg.length < 10) return wrong(form['c-msg'], 'Conte um pouco mais sobre o que você precisa.');
+      if (!form['c-mail'].checkValidity() || !/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)*\.[a-z]{2,}$/i.test(v.mail)) return wrong(form['c-mail'], 'Esse e-mail parece incompleto. Confere para mim? (ex.: voce@exemplo.com)');
+      if (digits.length < 10 || digits.length > 13) return wrong(form['c-phone'], 'Faltou o DDD ou algum número do telefone.');
+      if (v.msg.length < 10) return wrong(form['c-msg'], 'Me conta um pouco mais sobre o projeto.');
       if (!ENTRY.name || !ENTRY.mail || !ENTRY.phone || !ENTRY.msg) { say('Formulário ainda não configurado: faltam os códigos das perguntas.', true); return; }
       var body = new URLSearchParams();
       body.set(ENTRY.name, v.name); body.set(ENTRY.mail, v.mail); body.set(ENTRY.phone, v.phone); body.set(ENTRY.msg, v.msg);
       fallback.classList.add('hidden');
       sending(true); out.textContent = '';
       fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: body }).then(function () {
-        form.reset(); say('✓ Obrigado, ' + v.name + '! Recebi sua mensagem e respondo em breve.');
+        form.reset(); say('✓ Obrigado, ' + v.name + '! Sua mensagem chegou direitinho. Já já eu te respondo.');
       }, function () {
-        say('O envio direto foi bloqueado neste navegador. Use o botão abaixo: o formulário abre já preenchido, é só enviar.', true);
+        say('Este navegador bloqueou o envio direto. Sem problema: o botão abaixo abre o formulário já preenchido, é só enviar.', true);
         fallback.href = FORM_URL.replace('/formResponse', '/viewform') + '?usp=pp_url&' + body.toString();
         fallback.classList.remove('hidden');
       }).then(function () { sending(false); });
