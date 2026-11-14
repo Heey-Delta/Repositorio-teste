@@ -5,7 +5,7 @@ const links = [['#works', 'Trabalhos'], ['lab/', 'Laboratório'], ['#stacks', 'S
   <!-- fundo do cabeçalho: vidro "falso" (quase opaco, com um brilho leve), sem desfoque real, que pesa a cada rolagem -->
   <div class="glass-bar absolute inset-0 -z-10" aria-hidden="true"></div>
   <div class="wrap flex h-16 items-center justify-between gap-3 xl:grid xl:h-[72px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6">
-    <a href="#top" class="font-display text-[28px] leading-none lg:text-[30px]" aria-label="/HALLAN, voltar ao topo">/HALLAN</a>
+    <a href="#top" class="font-display text-[28px] leading-none lg:text-[30px]" aria-label="Hallan, voltar ao topo"><span class="text-accent">/</span>HAS</a>
     <nav class="hidden gap-6 xl:flex 2xl:gap-9" aria-label="Principal">
       {links.map(([href, label]) => <a href={href} class="label-ui whitespace-nowrap text-ink hover:text-accent">{label}</a>)}
     </nav>

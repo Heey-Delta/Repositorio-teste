@@ -48,7 +48,7 @@ const jsonld = [{
   <section class="lf-top" aria-labelledby="lab-title">
     <div class="wrap grid grid-cols-[minmax(0,1fr)] gap-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-12 lg:py-12">
       <div class="flex min-w-0 flex-col gap-5 lg:gap-6">
-        <h1 id="lab-title" class="lf-title">/ Experimental <span class="text-accent">Lab</span></h1>
+        <h1 id="lab-title" class="lf-title">/Experimental <span class="text-accent">Lab</span></h1>
         <p class="m-0 max-w-[460px] text-[15px] text-muted lg:text-base">Experimentos, ensaios e pesquisas sobre design, tecnologia e percepção. Os volumes reúnem os textos por assunto, na ordem de leitura.</p>
         <button type="button" class="lf-search" data-open-search aria-controls="labSearch">
           <LabIcon name="search" class="size-5 shrink-0" />
@@ -72,7 +72,7 @@ const jsonld = [{
   {!all.length && (
     <section class="lf-sec">
       <div class="wrap flex flex-col items-start gap-3">
-        <h2 class="lf-h2">/ Em breve</h2>
+        <h2 class="lf-h2">/Em breve</h2>
         <p class="m-0 max-w-[480px] text-[15px] text-muted">Os primeiros experimentos e notas estão sendo escritos. Enquanto isso, veja os trabalhos no portfólio.</p>
         <a href="/#works" class="lf-more">Ver os trabalhos</a>
       </div>
@@ -84,7 +84,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="today-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><h2 id="today-title" class="lf-h2 lf-h2--sm">/ Publicado hoje</h2><p class="lf-sub">{todayName}</p></div>
+          <div><h2 id="today-title" class="lf-h2 lf-h2--sm">/Publicado hoje</h2><p class="lf-sub">{todayName}</p></div>
         </div>
         <Rail size="today" label="Publicado hoje" loop={today.length > 3}>
           {today.map((c, i) => <li class="rail-item"><FeedCard c={c} eager={i < 3} /></li>)}
@@ -98,7 +98,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="vol-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><h2 id="vol-title" class="lf-h2">/ Volumes</h2><p class="lf-sub">Textos reunidos por assunto, na ordem de leitura.</p></div>
+          <div><h2 id="vol-title" class="lf-h2">/Volumes</h2><p class="lf-sub">Textos reunidos por assunto, na ordem de leitura.</p></div>
           <a href="/lab/volumes/" class="lf-more">Ver todos</a>
         </div>
         <Rail size="vol" label="Volumes" loop={volumes.length > 2}>
@@ -113,7 +113,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="hype-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><h2 id="hype-title" class="lf-h2 lf-h2--sm">/ Top hypados</h2><p class="lf-sub">As mais curtidas.</p></div>
+          <div><h2 id="hype-title" class="lf-h2 lf-h2--sm">/Top hypados</h2><p class="lf-sub">As mais curtidas.</p></div>
         </div>
         <Rail size="card" label="Top hypados" loop={hype.length > 3}>
           {hype.map((c, i) => <li class="rail-item"><FeedCard c={c} variant="hype" rank={i + 1} /></li>)}
@@ -127,7 +127,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="month-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><h2 id="month-title" class="lf-h2 lf-h2--sm">/ Este mês</h2><p class="lf-sub">{monthName[0].toUpperCase() + monthName.slice(1)}, sem as de hoje.</p></div>
+          <div><h2 id="month-title" class="lf-h2 lf-h2--sm">/Este mês</h2><p class="lf-sub">{monthName[0].toUpperCase() + monthName.slice(1)}, sem as de hoje.</p></div>
         </div>
         <Rail size="card" label="Publicado este mês" loop={month.length > 3}>
           {month.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}
@@ -141,7 +141,7 @@ const jsonld = [{
     <section class="lf-sec" aria-labelledby="all-title">
       <div class="wrap">
         <div class="lf-head">
-          <div><h2 id="all-title" class="lf-h2 lf-h2--sm">/ Todas as publicações</h2><p class="lf-sub">{all.length} {all.length === 1 ? 'publicação' : 'publicações'}, da mais nova para a mais antiga.</p></div>
+          <div><h2 id="all-title" class="lf-h2 lf-h2--sm">/Todas as publicações</h2><p class="lf-sub">{all.length} {all.length === 1 ? 'publicação' : 'publicações'}, da mais nova para a mais antiga.</p></div>
           <a href="/lab/rss.xml" class="lf-more">RSS</a>
         </div>
         <ul class="lf-list" id="feedList" aria-live="polite">

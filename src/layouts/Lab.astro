@@ -63,7 +63,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
 
   <header class="sticky top-0 z-50 border-b border-line bg-bg/95">
     <div class="wrap flex h-16 items-center justify-between gap-4">
-      <a href={root} class="font-display text-[26px] leading-none" aria-label="/HALLAN, voltar ao site">/HALLAN</a>
+      <a href={root} class="font-display text-[26px] leading-none" aria-label="Hallan, voltar ao site"><span class="text-accent">/</span>HAS</a>
       <nav class="hidden items-center gap-5 xl:flex" aria-label="Laboratório">
         {nav.map((n) => (
           <a href={n.href} class:list={['label-ui flex items-center gap-2 text-[11px] whitespace-nowrap hover:text-accent', n.slug === current ? 'text-accent' : 'text-ink']} aria-current={n.slug === current ? 'page' : undefined}>
