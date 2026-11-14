@@ -26,7 +26,7 @@
     energyStart: 10,
     energyMax: 15,
     chipsStartUnits: 6, // 3 fichas
-    chipsPerTurnUnits: 1, // +0,5 ficha
+    chipsPerTurnUnits: 2, // +1 ficha por turno próprio
     energyPerTurn: 1,
     buyChipsUnits: 4, // 2 fichas por sorteio
     buyEnergy: 1,

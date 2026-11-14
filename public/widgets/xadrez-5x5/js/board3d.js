@@ -194,7 +194,13 @@
 
   /* ================= Tela inicial: tabuleiro girando com os dois reis ================= */
   function createHome(container) {
-    const S = makeScene(container);
+    // distância da câmera que faz o tabuleiro inteiro caber em qualquer proporção de tela
+    let dist = 330;
+    const S = makeScene(container, (cam) => {
+      const v = THREE.MathUtils.degToRad(cam.fov);
+      const hf = 2 * Math.atan(Math.tan(v / 2) * cam.aspect);
+      dist = Math.max(330, 175 / Math.tan(hf / 2) + 40);
+    });
     for (const [coord, color] of [['A3', 'white'], ['E3', 'black']]) {
       const k = makePiece('rei', color);
       k.position.copy(sqPos(coord));
@@ -207,7 +213,7 @@
       if (now - last < 33) return;
       last = now;
       t += 0.007;
-      S.camera.position.set(Math.sin(t) * 330, 250, Math.cos(t) * 330);
+      S.camera.position.set(Math.sin(t) * dist, dist * 0.76, Math.cos(t) * dist);
       S.camera.lookAt(0, 15, 0);
       S.renderer.render(S.scene, S.camera);
     };
@@ -218,7 +224,7 @@
   }
 
   /* ================= Tabuleiro da partida ================= */
-  const HL = { move: 0x2e7d50, place: 0x2e6eaa, target: 0xe0645a, sel: 0xf0c96a, last: 0xf0c96a };
+  const HL = { move: 0x30d158, place: 0x0a84ff, target: 0xff453a, sel: 0xffd60a, last: 0xffd60a };
 
   function createBoard(container, opts) {
     const flip = !!(opts && opts.flip);
@@ -230,7 +236,7 @@
       const hf = 2 * Math.atan(Math.tan(v / 2) * cam.aspect);
       const R = 146; // meia largura do tabuleiro com moldura
       const el = THREE.MathUtils.degToRad(58);
-      const d = Math.max(R / Math.tan(hf / 2), (R * 1.05) / Math.tan(v / 2)) + 70;
+      const d = Math.max(R / Math.tan(hf / 2), (R * 1.32) / Math.tan(v / 2)) + 18; // vertical inclui a altura das peças do fundo
       cam.position.set(0, d * Math.sin(el), camZ * d * Math.cos(el));
       cam.lookAt(0, 8, camZ * 12);
     };
@@ -253,6 +259,7 @@
     }
 
     const pieces = new Map(); // id → { obj, label, target:Vector3 }
+    let actionable = new Set();
     let clickCb = null;
 
     // Clique → casa (ignora arrastes)
@@ -266,13 +273,18 @@
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, S.camera);
-      const objs = [...Object.values(S.squares)];
-      for (const p of pieces.values()) objs.push(p.obj);
-      const hit = ray.intersectObjects(objs, true)[0];
-      if (!hit) return;
-      let o = hit.object;
-      while (o && !o.userData.coord && o.parent) o = o.parent;
-      if (o && o.userData.coord && clickCb) clickCb(o.userData.coord);
+      // Casa sob o dedo (só o tabuleiro) e peça sob o dedo (só as peças).
+      const sqHit = ray.intersectObjects(Object.values(S.squares), false)[0];
+      const sq = sqHit ? sqHit.object.userData.coord : null;
+      const pcHit = ray.intersectObjects([...pieces.values()].map((p) => p.obj), true)[0];
+      let pc = null;
+      if (pcHit) { let o = pcHit.object; while (o && !o.userData.coord && o.parent) o = o.parent; pc = o && o.userData.coord; }
+      // Prioridade: alvo/peça acionável > casa acionável (mesmo escondida atrás de uma peça alta) > peça > casa.
+      let coord = sq;
+      if (pc && actionable.has(pc)) coord = pc;
+      else if (sq && actionable.has(sq)) coord = sq;
+      else if (pc) coord = pc;
+      if (coord && clickCb) clickCb(coord);
     });
 
     function update(st, hl, dmgOf) {
@@ -311,13 +323,14 @@
         S.scene.remove(e.obj); e.label.remove(); pieces.delete(id);
       }
       // Destaques
+      actionable = new Set([...(hl.moves || []), ...(hl.places || []), ...(hl.targets || [])]);
       for (const c in marks) marks[c].visible = false;
       const paint = (list, color, op) => (list || []).forEach((c) => { const m = marks[c]; if (!m) return; m.material.color.copy(srgb(color)); m.material.opacity = op; m.visible = true; });
-      paint(hl.last, HL.last, 0.28);
-      paint(hl.moves, HL.move, 0.55);
-      paint(hl.places, HL.place, 0.5);
-      paint(hl.targets, HL.target, 0.6);
-      if (hl.sel) paint([hl.sel], HL.sel, 0.6);
+      paint(hl.last, HL.last, 0.18);
+      paint(hl.moves, HL.move, 0.42);
+      paint(hl.places, HL.place, 0.42);
+      paint(hl.targets, HL.target, 0.5);
+      if (hl.sel) paint([hl.sel], HL.sel, 0.45);
       markDirty();
     }
 

@@ -29,6 +29,7 @@
     heart: 'M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z',
     cards: 'M4 5h10v15H4zM9 2h11v15h-3V5H9z',
     move: 'M12 2l4 4h-3v5h5V8l4 4-4 4v-3h-5v5h3l-4 4-4-4h3v-5H6v3l-4-4 4-4v3h5V6H8z',
+    undo: 'M9 5 3 11l6 6v-4h6a4 4 0 0 1 0 8h-2v2h2a6 6 0 0 0 0-12H9V5z',
   };
   const $ = (id) => document.getElementById(id);
   function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -142,6 +143,9 @@
         this.render();
       };
       $('btn-end').onclick = () => this._end();
+      $('btn-pgl').onclick = () => { $('pgl-sheet').hidden = false; };
+      $('btn-pgl-close').onclick = () => { $('pgl-sheet').hidden = true; };
+      $('pgl-sheet').onclick = (e) => { if (e.target.id === 'pgl-sheet') $('pgl-sheet').hidden = true; };
     }
     async _buy() {
       if (!this.canAct() || this.used('buy') || this.s.state.pending) return;
@@ -403,9 +407,12 @@
     _renderPieceCard(st) {
       const box = $('piece-card');
       const pc = this.sel && this.sel.type === 'piece' ? st.pieces[this.sel.id] : null;
-      if (!pc) { box.hidden = true; return; }
-      box.hidden = false;
       box.replaceChildren();
+      box.classList.toggle('empty', !pc);
+      if (!pc) {
+        box.append(el('div', 'pc-empty', 'Toque numa peça para ver vida, dano, alcance e hash. Arraste uma carta até o tabuleiro para posicioná-la.'));
+        return;
+      }
       const mine = pc.owner === this.s.role;
       const art = el('div', 'pc-art');
       art.append(PGL.pieceArt.svg(pc.kind, pc.owner, pc.owner === 'P1'));

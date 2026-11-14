@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <title>Xadrez 5×5 P2P · Hallan</title>
@@ -11,6 +13,8 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Papel de parede (estilo iOS escuro): manchas de cor desfocadas atrás do vidro -->
+  <div class="wallpaper" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
   <!-- HUD de fichas: canto superior direito (project.md §4.7) -->
   <div id="hud" class="hud" aria-label="Suas fichas">
     <div class="hud-row"><span class="coin coin-gold" aria-hidden="true"></span><span id="hud-gold">0</span></div>
@@ -139,13 +143,11 @@
           <div class="slot" data-slot="buy"><span class="ico" data-icon="cards"></span><span class="s-name">Comprar</span><span class="s-val"></span></div>
           <div class="slot" data-slot="move"><span class="ico" data-icon="move"></span><span class="s-name">Mover</span><span class="s-val"></span></div>
           <div class="slot" data-slot="attack"><span class="ico" data-icon="sword"></span><span class="s-name">Atacar</span><span class="s-val"></span></div>
-          <button id="btn-undo" class="btn sm ghost" title="Desfazer última jogada">Desfazer</button>
+          <button id="btn-pgl" class="chip-btn" title="Ver o turno traduzido em PGL">PGL</button>
+          <button id="btn-undo" class="chip-btn" title="Desfazer última jogada" aria-label="Desfazer"><span class="ico" data-icon="undo"></span></button>
         </div>
-        <div id="piece-card" class="piece-card" hidden></div>
-        <details class="pgl-box">
-          <summary>Turno em PGL</summary>
-          <pre id="pgl-preview" class="pgl"></pre>
-        </details>
+        <!-- espaço sempre reservado: abrir/fechar o card não muda o tamanho do tabuleiro -->
+        <div id="piece-card" class="piece-card"></div>
       </section>
 
       <!-- Base: aposta · mão de cartas · baralho · finalizar -->
@@ -171,6 +173,15 @@
       </footer>
     </div>
     <div id="drag-ghost" class="drag-ghost" hidden></div>
+    <!-- Folha do PGL (abre por cima, sem empurrar o layout) -->
+    <div id="pgl-sheet" class="sheet" hidden>
+      <div class="sheet-card">
+        <div class="sheet-grab" aria-hidden="true"></div>
+        <div class="sheet-head"><b>Turno em PGL</b><button id="btn-pgl-close" class="chip-btn">Fechar</button></div>
+        <p class="muted small">É isto que será assinado e enviado ao adversário quando você finalizar o turno.</p>
+        <pre id="pgl-preview" class="pgl"></pre>
+      </div>
+    </div>
   </section>
 
   <!-- Sobreposições -->
@@ -197,7 +208,7 @@
   <script src="js/wallet.js"></script>
   <script src="js/qr.js"></script>
   <script src="js/p2p.js"></script>
-  <!-- Three.js r128: o mesmo arquivo da Cidade Isométrica (fica no cache de quem já visitou o portfólio). -->
+  <!-- Three.js r128 local (mesma cópia usada no site, em widgets/cidade-isometrica/vendor). -->
   <script src="../cidade-isometrica/vendor/three-r128.min.js"></script>
   <script src="js/pieceart.js"></script>
   <script src="js/board3d.js"></script>
