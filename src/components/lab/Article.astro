@@ -11,7 +11,7 @@ import { layoutAttrs } from '../../lib/page-layout';
 import { volumesOfPost } from '../../lib/lab-feed';
 import LikeButton from './LikeButton.astro';
 import '../../styles/lab-feed.css';
-import { departmentBySlug, statuses, fmtDate, up } from '../../lab/data';
+import { departmentBySlug, statuses, fmtDate, fmtDateShort, countWords, fmtWords, up } from '../../lab/data';
 
 interface Props { entry: LabEntry; all: LabEntry[]; depth?: number; preview?: { status: string; editHref: string } }
 const { entry, all, depth = 3, preview } = Astro.props;
@@ -25,6 +25,7 @@ const pl = layoutAttrs(entry.data.layout);
 const vols = process.env.DATABASE_URL && entry.postId ? await volumesOfPost(entry.postId).catch(() => []) : [];
 // cada dado do texto tem página própria: a lista no fim liga todas (bom para quem lê e para os buscadores)
 const items = dataItems(entry.body);
+const words = countWords(entry.body);
 const toc = headings.filter((h) => h.depth === 2);
 const related = all.filter((e) => (e.data.code && d.related.includes(e.data.code)) || (d.code && e.data.related.includes(d.code))).filter((e) => e.id !== entry.id);
 const url = new URL(`/lab/${d.department}/${entry.id.split('/').pop()}/`, Astro.site).href;
@@ -36,7 +37,7 @@ const jsonld = [{
   ...(vols.length ? { isPartOf: vols.map((v) => ({ '@type': 'CollectionPage', name: v.title, url: new URL(`/lab/volumes/${v.slug}/`, Astro.site).href })) } : {}),
   ...(d.cover ? { image: { '@type': 'ImageObject', url: d.cover.url, caption: d.cover.alt, ...(d.cover.width ? { width: d.cover.width, height: d.cover.height } : {}) } } : {}),
   ...(d.readingMinutes ? { timeRequired: `PT${d.readingMinutes}M` } : {}),
-  wordCount: entry.body.split(/\s+/).filter(Boolean).length, isAccessibleForFree: true,
+  wordCount: words, isAccessibleForFree: true,
   about: d.areas.map((name) => ({ '@type': 'Thing', name })),
   ...(d.references.length ? { citation: d.references.map((r) => ({ '@type': 'CreativeWork', name: r.title, ...(r.url ? { url: r.url } : {}), ...(r.author ? { author: r.author } : {}), ...(r.publisher ? { publisher: r.publisher } : {}) })) } : {}),
   ...(d.attachments.length ? { associatedMedia: d.attachments.map((a) => ({ '@type': 'MediaObject', name: a.title, contentUrl: a.url, encodingFormat: a.mime, contentSize: `${a.size} B` })) } : {}),
@@ -65,7 +66,7 @@ const meta = [
         <h1 class="m-0 max-w-[980px] font-display text-[clamp(40px,11vw,56px)] leading-[0.98] uppercase lg:text-[80px]">{d.title}</h1>
         <p class="m-0 max-w-[680px] text-base text-muted lg:text-lg">{d.description}</p>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
-          <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-accent hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDate(d.date)}</time>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
+          <span>Por <a href={`${root}lab/autor/`} rel="author" class="font-bold underline-offset-4 hover:text-accent hover:underline">{d.author}</a> · <time datetime={d.date.toISOString()} class="tabular-nums">{fmtDateShort(d.date)}</time> • <span class="tabular-nums">{fmtWords(words)}</span>{d.updated && <span class="text-muted"> · atualizado em <time datetime={d.updated.toISOString()}>{fmtDate(d.updated)}</time></span>}</span>
           <button type="button" id="copyLink" data-url={url} class="label-ui inline-flex min-h-9 cursor-pointer items-center gap-2 border border-line px-3 text-[11px] hover:border-accent hover:text-accent">Copiar link</button>
           {!preview && entry.postId && <LikeButton id={entry.postId} big title={d.title} />}
         </div>

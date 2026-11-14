@@ -60,4 +60,12 @@ export const formats = ['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion'] a
 // Caminho relativo até a raiz do site, a partir da profundidade da página (os links precisam ser relativos, ver astro.config)
 export const up = (depth: number) => (depth === 0 ? './' : '../'.repeat(depth));
 
+// data curta dos artigos (13 nov); o ano só aparece quando não é o atual
+export const fmtDateShort = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', ...(d.getUTCFullYear() === new Date().getUTCFullYear() ? {} : { year: 'numeric' }), timeZone: 'UTC' }).replace(/\./g, '').replace(/ de /g, ' ');
+// palavras do texto, sem blocos de código/dados, endereços de links e marcação
+export const countWords = (md: string) => md
+  .replace(/```[\s\S]*?```/g, ' ').replace(/\]\([^)]*\)/g, ' ').replace(/https?:\/\/\S+/g, ' ').replace(/<[^>]+>/g, ' ')
+  .split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+// 15000 → 15k · 20000 → 20k · 800 → 0,8k · 17106 → 17,1k
+export const fmtWords = (n: number) => `${(Math.round(n / 100) / 10).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}k words`;
 export const fmtDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
