@@ -86,7 +86,7 @@ export function parsePseudo(src: string): PNode[] {
     const [first, ...rest] = m[1].split('.');
     node.id = !first.trim() || first.trim().toLowerCase() === 'hash' ? genId() : first.trim();
     const name = rest.join('.').trim();
-    if (name) node.name = name;
+    if (name) node.name = unesc(name);
     return (header.slice(0, m.index) + header.slice(m.index + m[0].length)).trim();
   }
   function element(): PNode {
@@ -349,7 +349,7 @@ export function pseudoToPost(src: string): { title: string; body: string } {
 const esc = (t: string) => t.replace(/\\/g, '\\\\').replace(/</g, '\\<').replace(/>/g, '\\>');
 const escRaw = (t: string) => esc(t).replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 const escCell = (t: string, sep: string) => escRaw(t).replace(/\|/g, '\\|').replace(sep === ',' ? /,/g : /$^/g, '\\,');
-const idHead = (id: string | undefined, name: string | undefined) => `{${id || 'hash'}${name ? `.${name.replace(/[{}]/g, '')}` : ''}}`;
+const idHead = (id: string | undefined, name: string | undefined) => `{${id || 'hash'}${name ? `.${escRaw(name.replace(/[{}]/g, ''))}` : ''}}`;
 const plain = (t: Tokens.TableCell) => inlineFromMd(t.text);
 
 function slideToPseudo(s: Slide, pad: string) {
@@ -421,7 +421,7 @@ function tokenToPseudo(t: Token, pad: string): string[] {
         const lines = (a.data ?? '').split(/\r?\n|\|/).map((l) => l.split(/;|\t/).map((c) => c.trim())).filter((r) => r.some(Boolean));
         const [head = [], ...body] = lines;
         const rows = body.map((r) => `${pad}  | ${r.map((x) => escCell(x, '|')).join(' | ')}`);
-        return [`${pad}<grf.${CHART_EN[a.type] ?? 'colunas'}: ${idHead(a.id, a.name)} ${esc(a.title ?? '')}( ${head.map((x) => escCell(x, ',')).join(', ')}\n${rows.join('\n')}\n${pad})>`];
+        return [`${pad}<grf.${CHART_EN[a.type] ?? 'colunas'}: ${idHead(a.id, a.name)} ${escRaw(a.title ?? '')}( ${head.map((x) => escCell(x, ',')).join(', ')}\n${rows.join('\n')}\n${pad})>`];
       }
       if (b === 'diagram') {
         const lines = (a.outline ?? '').split(/\r?\n/).filter((l) => l.trim()).map((l) => { const lead = /^\s*/.exec(l)![0].replace(/\t/g, '  ').length; return `${pad}  ${'-'.repeat(Math.floor(lead / 2))}${lead ? ' ' : ''}${escRaw(l.trim())}`; });

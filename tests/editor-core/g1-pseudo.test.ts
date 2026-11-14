@@ -135,3 +135,12 @@ test('dados dentro do slide: gráfico, tabela e diagrama ida e volta', () => {
   const model = pseudoToModel(src);
   assert.ok(model.slides?.[0].items.some((i) => i.kind === 'text' && i.runs?.[0].text.startsWith('Gráfico')));
 });
+
+test('parênteses no título e no nome do gráfico não quebram o resto do texto', () => {
+  const body = ':::chart {name="Uso (por classe)" type="BAR" title="Uso de IA (% dos usuários)" data="Classe;%&#10;A;69&#10;DE;16"} :::\n\nTexto depois [com link](https://exemplo.org/a_(b)).\n\n## Fim';
+  const back = pseudoToPost(postToPseudo('T', body)).body;
+  assert.match(back, /title="Uso de IA \(% dos usuários\)"/);
+  assert.match(back, /name="Uso \(por classe\)"/);
+  assert.match(back, /Texto depois \[com link\]\(https:\/\/exemplo\.org\/a_\(b\)\)\./);
+  assert.match(back, /## Fim/);
+});
