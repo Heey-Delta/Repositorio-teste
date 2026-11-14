@@ -2,7 +2,8 @@
 // Serviços em 3 combos. Cada card tem: a promessa, para quem é, os serviços que entram (etiquetas), o que a pessoa
 // recebe, prazo e investimento (aparecem quando preenchidos em src/lib/site.ts; vazios, dizem que vão na proposta)
 // e o botão de contato. O do meio é o destaque (fundo amarelo). Embaixo, o que vale para todos os combos.
-import { combos, promises } from '../lib/site';
+import { combos, promises, services } from '../lib/site';
+const plain = Object.fromEntries(services.map((sv) => [sv.name, sv.plain]));
 ---
 <section id="services" class="border-b border-line" aria-labelledby="services-title">
   <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
@@ -13,19 +14,25 @@ import { combos, promises } from '../lib/site';
     <ol class="m-0 grid list-none gap-4 p-0 lg:grid-cols-3 lg:gap-6">
       {combos.map((c, i) => {
         const hi = i === 1;
-        const soft = hi ? 'text-black/70' : 'text-muted';
+        const soft = hi ? 'text-black' : 'text-muted';
         const rule = hi ? 'border-black/20' : 'border-line';
         return (
           <li class:list={['combo rv flex flex-col gap-6 rounded-3xl border p-6 lg:p-8', hi ? 'border-accent bg-accent text-black' : 'border-line bg-surface']} style={`--d:${i * 90}ms`}>
             <div class="flex flex-col gap-3">
-              <span class:list={['text-[13px] tabular-nums', hi ? 'text-black/60' : 'text-muted']}>{String(i + 1).padStart(2, '0')} / {String(combos.length).padStart(2, '0')}</span>
+              <span class:list={['text-[13px] tabular-nums', soft]}>{String(i + 1).padStart(2, '0')} / {String(combos.length).padStart(2, '0')}</span>
               <h3 class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">{c.name}</h3>
               <p class="m-0 text-[15px] lg:text-[17px]">{c.pitch}</p>
               <p class:list={['m-0 text-[13px]', soft]}>Para {c.for.charAt(0).toLowerCase() + c.for.slice(1)}</p>
             </div>
-            <ul class="m-0 flex list-none flex-wrap gap-2 p-0" aria-label="Serviços incluídos">
-              {c.items.map((name) => <li class:list={['rounded-full border px-3 py-1 text-[12px]', hi ? 'border-black/30' : 'border-line text-ink']}>{name}</li>)}
-            </ul>
+            <div class="flex flex-col gap-2.5">
+              <p class:list={['m-0 text-[12px]', soft]}>Não conhece algum termo? Toque nele.</p>
+              <ul class="m-0 flex list-none flex-wrap gap-2 p-0" aria-label="Serviços incluídos">
+                {c.items.map((name) => (
+                  <li><button type="button" class:list={['svc-tag inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-[12px]', hi ? 'border-black/40 hover:bg-black hover:text-accent aria-expanded:bg-black aria-expanded:text-accent' : 'border-line text-ink hover:border-accent aria-expanded:border-accent aria-expanded:text-accent']} aria-expanded="false" data-plain={plain[name]}>{name}<span aria-hidden="true" class="text-[10px]">?</span></button></li>
+                ))}
+              </ul>
+              <p class:list={['svc-plain m-0 text-[13px] leading-snug', hi ? 'text-black' : 'text-ink']} aria-live="polite"></p>
+            </div>
             <div class:list={['flex flex-col gap-3 border-t pt-5', rule]}>
               <p class:list={['label-ui m-0 text-[11px]', soft]}>Você recebe</p>
               <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
@@ -36,7 +43,7 @@ import { combos, promises } from '../lib/site';
               <div class="flex flex-col gap-1"><dt class:list={['label-ui text-[11px]', soft]}>Prazo</dt><dd class="m-0 tabular-nums">{c.deadline || 'Definido na proposta'}</dd></div>
               <div class="flex flex-col gap-1"><dt class:list={['label-ui text-[11px]', soft]}>Investimento</dt><dd class="m-0 tabular-nums">{c.price || 'Proposta fechada'}</dd></div>
             </dl>
-            <a href="#contact" data-combo={c.name} class:list={['combo-cta label-ui mt-auto inline-flex min-h-12 items-center justify-center px-6 text-xs font-bold', hi ? 'bg-black text-accent hover:bg-black/85' : 'border border-ink text-ink hover:border-accent hover:text-accent']}>Quero o combo {c.name}</a>
+            <a href="#contact" data-combo={c.name} aria-label={`Mais informações sobre o combo ${c.name}`} class:list={['combo-cta label-ui mt-auto inline-flex min-h-12 items-center justify-center rounded-full px-6 text-xs font-bold', hi ? 'bg-black text-accent hover:bg-black/85' : 'border border-ink text-ink hover:border-accent hover:text-accent']}>Mais informações</a>
           </li>
         );
       })}
@@ -50,11 +57,30 @@ import { combos, promises } from '../lib/site';
   </div>
 </section>
 <script is:inline>
-  // "Quero o combo X": já deixa o combo escrito no campo de mensagem do contato
+  // "Mais informações": leva ao formulário com o combo já escrito na mensagem e o cursor no nome
   document.querySelectorAll('.combo-cta').forEach(function (a) {
     a.addEventListener('click', function () {
-      var msg = document.getElementById('c-msg'); if (!msg || msg.value.trim()) return;
-      msg.value = 'Olá! Tenho interesse no combo ' + a.dataset.combo + '. ';
+      var msg = document.getElementById('c-msg'), name = document.getElementById('c-name');
+      if (msg && !msg.value.trim()) msg.value = 'Olá! Quero saber mais sobre o combo ' + a.dataset.combo + '. ';
+      if (name) setTimeout(function () { name.focus({ preventScroll: true }); }, 700);
+    });
+  });
+  // etiquetas: um toque mostra o que o termo quer dizer, em palavras simples (outro toque esconde)
+  document.querySelectorAll('.svc-tag').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var card = b.closest('li.combo'), out = card.querySelector('.svc-plain'), open = b.getAttribute('aria-expanded') === 'true';
+      card.querySelectorAll('.svc-tag').forEach(function (x) { x.setAttribute('aria-expanded', 'false'); });
+      out.classList.remove('show');
+      if (open) { out.textContent = ''; return; }
+      b.setAttribute('aria-expanded', 'true');
+      out.textContent = b.firstChild.textContent + ': ' + b.dataset.plain;
+      void out.offsetWidth; out.classList.add('show');
     });
   });
 </script>
+<style is:global>
+  .svc-plain:empty { display: none; }
+  .svc-plain.show { animation: svc-plain .35s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes svc-plain { from { opacity: 0; transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .svc-plain.show { animation: none; } }
+</style>

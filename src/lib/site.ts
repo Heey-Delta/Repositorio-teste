@@ -1,12 +1,12 @@
 // Dados do site principal usados em mais de um lugar: serviços, combos e perguntas frequentes
 // (seções da home e dados estruturados para o Google).
 export const services = [
-  { name: 'Web Design', desc: 'Desenho cada página no Figma, pensando primeiro em quem abre pelo celular.', how: 'Começo pela estrutura e pelo texto, mostro para você aprovar e só depois desenho o visual final.' },
-  { name: 'Desenvolvimento Web', desc: 'Transformo o layout num site de verdade: leve, rápido e fácil de achar no Google.', how: 'Uso Astro, Tailwind e JavaScript e entrego o site publicado, pronto para atualizar.' },
-  { name: 'Landing Pages', desc: 'Uma página só, com uma oferta clara e um jeito fácil de falar com você.', how: 'Ideal para lançar um produto, um serviço ou uma campanha, pensando em quem chega pelo anúncio.' },
-  { name: 'E-commerce', desc: 'Sua loja virtual com catálogo, carrinho e pagamento.', how: 'Cuido do cadastro dos produtos até o checkout, com a compra pensada para o celular.' },
-  { name: 'Creative Dev', desc: '3D, animações e interações que fazem o seu site ficar na memória.', how: 'Como a cidade em 3D desta página, feita com Three.js.' },
-  { name: 'Branding Digital', desc: 'Logo, cores e tipografia que dão cara própria à sua marca.', how: 'Cada site da cidade tem uma identidade visual própria, criada do zero.' },
+  { name: 'Web Design', plain: 'É o desenho das páginas: onde fica cada coisa, as cores, as letras e as imagens.', desc: 'Desenho cada página no Figma, pensando primeiro em quem abre pelo celular.', how: 'Começo pela estrutura e pelo texto, mostro para você aprovar e só depois desenho o visual final.' },
+  { name: 'Desenvolvimento Web', plain: 'É transformar o desenho num site que funciona de verdade, abre rápido e aparece no Google.', desc: 'Transformo o layout num site de verdade: leve, rápido e fácil de achar no Google.', how: 'Uso Astro, Tailwind e JavaScript e entrego o site publicado, pronto para atualizar.' },
+  { name: 'Landing Pages', plain: 'É uma página única, feita para uma coisa só: fazer a pessoa te chamar ou comprar.', desc: 'Uma página só, com uma oferta clara e um jeito fácil de falar com você.', how: 'Ideal para lançar um produto, um serviço ou uma campanha, pensando em quem chega pelo anúncio.' },
+  { name: 'E-commerce', plain: 'É a loja virtual: o cliente escolhe o produto, coloca no carrinho e paga pelo próprio site.', desc: 'Sua loja virtual com catálogo, carrinho e pagamento.', how: 'Cuido do cadastro dos produtos até o checkout, com a compra pensada para o celular.' },
+  { name: 'Creative Dev', plain: 'São as animações e os detalhes interativos que dão vida e personalidade ao site.', desc: 'Animações e interações que fazem o seu site ficar na memória.', how: 'Como os detalhes animados desta página.' },
+  { name: 'Branding Digital', plain: 'É a identidade da sua marca: logo, cores e o jeito de ela se apresentar.', desc: 'Logo, cores e tipografia que dão cara própria à sua marca.', how: 'Cada site da cidade tem uma identidade visual própria, criada do zero.' },
 ];
 
 /**
@@ -16,24 +16,24 @@ export const services = [
  */
 export const combos = [
   {
-    name: 'Presença', for: 'Profissionais, prestadores de serviço e quem está lançando algo novo.',
-    pitch: 'Uma página que conta em poucos segundos o que você faz e transforma visita em conversa.',
+    name: 'Presença', for: 'quem trabalha por conta própria, presta serviços ou está começando algo novo.',
+    pitch: 'O seu endereço na internet. Uma página simples, que explica de um jeito claro o que você faz e deixa fácil para o cliente te chamar.',
     items: ['Web Design', 'Desenvolvimento Web', 'Landing Pages'],
     gets: ['Estrutura e textos da página, escritos junto com você', 'Layout para celular e computador', 'Botão de contato direto, por WhatsApp ou formulário', 'Site publicado no seu domínio, com SEO técnico', 'Ferramenta de análise de visitas configurada'],
     deadline: '', price: '',
   },
   {
-    name: 'Loja', for: 'Negócios que querem vender os seus produtos pela internet.',
-    pitch: 'Sua loja virtual com catálogo, carrinho e pagamento, pensada para quem compra pelo celular.',
+    name: 'Loja', for: 'quem já vende, ou quer começar a vender, os seus produtos pela internet.',
+    pitch: 'Para levar os seus produtos para a internet. A gente pensa junto em como mostrar cada um, como o cliente escolhe e como ele paga, de um jeito fácil até para quem compra pelo celular.',
     items: ['Web Design', 'Desenvolvimento Web', 'E-commerce', 'Branding Digital'],
-    gets: ['Catálogo organizado por categorias', 'Páginas de produto que ajudam a vender', 'Carrinho e pagamento on-line', 'Sua marca aplicada em toda a loja', 'Explicação de como cadastrar e editar produtos'],
+    gets: ['Uma vitrine organizada para os seus produtos', 'Página de cada produto, com fotos e detalhes', 'Compra e pagamento pelo próprio site', 'A cara da sua marca em toda a loja', 'Eu te ensino a colocar e mudar produtos'],
     deadline: '', price: '',
   },
   {
-    name: 'Experiência', for: 'Marcas que querem ser lembradas e se diferenciar da concorrência.',
-    pitch: 'Uma identidade visual completa e um site com 3D e animações que as pessoas não esquecem.',
+    name: 'Experiência', for: 'marcas que querem ir além do básico e ser lembradas.',
+    pitch: 'Para quem quer uma marca com personalidade. Criamos juntos a identidade visual e um site cheio de detalhes e movimento, daqueles que fazem as pessoas lembrarem de você.',
     items: ['Branding Digital', 'Web Design', 'Desenvolvimento Web', 'Creative Dev'],
-    gets: ['Logo, paleta de cores e tipografia', 'Guia simples de uso da marca', 'Site com cenas em 3D e animações', 'Versão leve e rápida para o celular', 'Marca aplicada também nas redes sociais'],
+    gets: ['Logo, cores e letras da sua marca', 'Um guia simples de como usar a marca', 'Site com animações e interações sob medida', 'Abre rápido, até no celular', 'A marca aplicada também nas redes sociais'],
     deadline: '', price: '',
   },
 ];
