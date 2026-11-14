@@ -7,3 +7,22 @@ export const services = [
   { name: 'Creative Dev', desc: '3D, animações e interações que fazem o site ser lembrado.', how: 'Como a cidade isométrica desta página, feita com Three.js.' },
   { name: 'Branding Digital', desc: 'Logo, cores e tipografia aplicados ao site e às redes.', how: 'Cada site da cidade tem identidade visual própria, criada do zero.' },
 ];
+
+// Serviços organizados em 3 combos (seção Serviços da home). `items` usa os nomes da lista acima.
+export const combos = [
+  {
+    name: 'Presença', for: 'Profissionais, prestadores de serviço e lançamentos.',
+    pitch: 'Uma página que explica em segundos o que você faz e transforma visita em contato.',
+    items: ['Web Design', 'Desenvolvimento Web', 'Landing Pages'],
+  },
+  {
+    name: 'Loja', for: 'Negócios que querem vender os seus produtos pela internet.',
+    pitch: 'Sua loja virtual com catálogo, carrinho e pagamento, pensada para vender no celular.',
+    items: ['Web Design', 'Desenvolvimento Web', 'E-commerce', 'Branding Digital'],
+  },
+  {
+    name: 'Experiência', for: 'Marcas que querem ser lembradas e se destacar da concorrência.',
+    pitch: 'Identidade visual completa e um site com 3D e animações que ninguém esquece.',
+    items: ['Branding Digital', 'Web Design', 'Desenvolvimento Web', 'Creative Dev'],
+  },
+] as const;

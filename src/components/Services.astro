@@ -1,69 +1,47 @@
 ---
-// Serviços: lista numerada; um clique abre um card com os detalhes (mesmo visual do card das stacks).
-import { services } from '../lib/site';
+// Serviços em 3 combos: cada card diz para quem é, o que entrega (com uma linha sobre cada serviço) e leva ao contato.
+// O do meio é o destaque (fundo amarelo). Embaixo, o que vale para todos os combos.
+import { services, combos } from '../lib/site';
+const byName = Object.fromEntries(services.map((s) => [s.name, s]));
+const promises = [
+  'Design e código feitos pela mesma pessoa, sem ruído no meio do caminho.',
+  'Você aprova cada etapa antes de seguir para a próxima.',
+  'Site publicado, rápido e pronto para aparecer no Google.',
+];
 ---
-<section id="services" class="relative border-b border-line" aria-labelledby="services-title">
-  <div class="wrap flex flex-col gap-5 py-8 lg:grid lg:min-h-[360px] lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
-    <div class="flex flex-col gap-3 lg:gap-5">
+<section id="services" class="border-b border-line" aria-labelledby="services-title">
+  <div class="wrap flex flex-col gap-8 py-8 lg:gap-12 lg:py-16">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
       <h2 id="services-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Serviços</h2>
-      <p class="max-w-[300px] text-[13px] text-muted lg:text-[15px]">Design e código feitos pela mesma pessoa, do primeiro rascunho ao site no ar.</p>
-      <p class="label-ui m-0 text-[11px] text-muted">Clique para ver detalhes</p>
+      <p class="max-w-[440px] text-[13px] text-muted lg:text-[15px]">Três caminhos, do primeiro rascunho ao site no ar. Escolha o que combina com o momento do seu negócio.</p>
     </div>
-    <div>
-      <ol class="m-0 grid list-none grid-flow-col grid-cols-2 grid-rows-3 gap-x-5 p-0 lg:gap-x-14">
-        {services.map((sv, i) => (
-          <li class="border-b border-line">
-            <button type="button" class="svc-item group grid w-full cursor-pointer grid-cols-[28px_1fr_auto] items-baseline gap-1.5 py-3 text-left hover:text-accent lg:grid-cols-[56px_1fr_auto] lg:py-[18px]" data-i={i} aria-haspopup="dialog">
-              <span class="text-[13px] text-muted tabular-nums lg:text-sm">{String(i + 1).padStart(2, '0')}</span>
-              <span class="text-sm lg:text-[17px]">{sv.name}</span>
-              <span class="text-muted transition-transform group-hover:rotate-90 group-hover:text-accent motion-reduce:transition-none" aria-hidden="true">+</span>
-            </button>
+    <ol class="m-0 grid list-none gap-4 p-0 lg:grid-cols-3 lg:gap-6">
+      {combos.map((c, i) => {
+        const hi = i === 1;
+        return (
+          <li class:list={['flex flex-col gap-6 rounded-3xl border p-6 lg:p-8', hi ? 'border-accent bg-accent text-black' : 'border-line bg-surface']}>
+            <div class="flex flex-col gap-3">
+              <span class:list={['text-[13px] tabular-nums', hi ? 'text-black/60' : 'text-muted']}>{String(i + 1).padStart(2, '0')} / {String(combos.length).padStart(2, '0')}</span>
+              <h3 class="m-0 font-display text-[40px] leading-none uppercase lg:text-[56px]">{c.name}</h3>
+              <p class="m-0 text-[15px] lg:text-[17px]">{c.pitch}</p>
+            </div>
+            <ul class:list={['m-0 flex list-none flex-col border-t p-0', hi ? 'border-black/20' : 'border-line']}>
+              {c.items.map((name) => (
+                <li class:list={['flex flex-col gap-1 border-b py-3', hi ? 'border-black/20' : 'border-line']}>
+                  <span class="flex items-baseline gap-2 text-[15px] font-bold"><span aria-hidden="true" class={hi ? 'text-black' : 'text-accent'}>✓</span>{name}</span>
+                  <span class:list={['pl-[22px] text-[13px]', hi ? 'text-black/70' : 'text-muted']}>{byName[name]?.desc}</span>
+                </li>
+              ))}
+            </ul>
+            <p class:list={['m-0 text-[13px]', hi ? 'text-black/70' : 'text-muted']}><span class="font-bold">Ideal para:</span> {c.for}</p>
+            <a href="#contact" class:list={['label-ui mt-auto inline-flex min-h-12 items-center justify-center px-6 text-xs font-bold', hi ? 'bg-black text-accent hover:bg-black/85' : 'border border-ink text-ink hover:border-accent hover:text-accent']}>Quero o combo {c.name} →</a>
           </li>
-        ))}
-      </ol>
-      <!-- card de detalhes (abre no clique) -->
-      <div id="svcCard" class="absolute inset-0 z-20 hidden place-items-center bg-black/80 p-5">
-        <div role="dialog" aria-modal="true" aria-labelledby="svcCardTitle" class="svc-pop relative flex w-full max-w-[420px] flex-col gap-3 border border-ink bg-bg p-6">
-          <button type="button" id="svcCardClose" class="label-ui absolute top-3 right-3 cursor-pointer px-2 py-1 text-[11px] text-muted hover:text-accent" aria-label="Fechar">Fechar ✕</button>
-          <p id="svcCardNum" class="label-ui m-0 text-[11px] text-accent tabular-nums"></p>
-          <h3 id="svcCardTitle" class="m-0 font-display text-[32px] leading-none uppercase"></h3>
-          <p id="svcCardDesc" class="m-0 text-sm text-muted"></p>
-          <p class="m-0 border-t border-line pt-3 text-sm"><span class="label-ui mr-2 text-[11px] text-muted">Como faço</span><span id="svcCardHow"></span></p>
-          <a href="#contact" class="link-ui self-start text-[11px]">Pedir orçamento →</a>
-        </div>
-      </div>
+        );
+      })}
+    </ol>
+    <div class="grid gap-3 border-t border-line pt-6 lg:grid-cols-[auto_1fr_1fr_1fr] lg:items-start lg:gap-10">
+      <p class="label-ui m-0 text-[11px] text-muted">Em todos os combos</p>
+      {promises.map((p) => <p class="m-0 text-[13px] lg:text-[15px]">{p}</p>)}
     </div>
   </div>
 </section>
-<style is:global>
-  #svcCard.open { display: grid; }
-  #svcCard.open .svc-pop { animation: svc-pop .22s cubic-bezier(.2, .8, .2, 1); }
-  @keyframes svc-pop { from { opacity: 0; transform: translateY(6px) scale(.98); } }
-  @media (prefers-reduced-motion: reduce) { #svcCard.open .svc-pop { animation: none; } }
-</style>
-<script is:inline define:vars={{ services }}>
-  (function () {
-    var card = document.getElementById('svcCard'); if (!card) return;
-    var opener = null;
-    function show(i) {
-      var sv = services[i];
-      document.getElementById('svcCardNum').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(services.length).padStart(2, '0');
-      document.getElementById('svcCardTitle').textContent = sv.name;
-      document.getElementById('svcCardDesc').textContent = sv.desc;
-      document.getElementById('svcCardHow').textContent = sv.how;
-      card.classList.add('open');
-      document.getElementById('svcCardClose').focus();
-    }
-    function hide() {
-      if (!card.classList.contains('open')) return;
-      card.classList.remove('open');
-      if (opener) opener.focus();
-    }
-    [].forEach.call(document.querySelectorAll('.svc-item'), function (b) {
-      b.addEventListener('click', function () { opener = b; show(+b.dataset.i); });
-    });
-    document.getElementById('svcCardClose').addEventListener('click', hide);
-    card.addEventListener('click', function (e) { if (e.target === card) hide(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(); });
-  })();
-</script>

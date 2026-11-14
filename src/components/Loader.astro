@@ -3,7 +3,7 @@
 // Não espera a cidade 3D: ela tem o próprio esqueleto (Works.astro) e entra quando fica pronta.
 // A cidade (iframe ?hold=1) avisa com { type: 'city:loaded' } e a página responde { type: 'city:start' } para a animação
 // de entrada; se a cidade carregar depois (ela só carrega perto da tela), a animação começa quando ela ficar pronta.
-// Quando a tela escurecida some, a cobra é arremessada na mesma hora para cima e cai para a esquerda (parábola de 2,8 s).
+// Quando a tela escurecida some, a cobra é arremessada na mesma hora para cima e cai para a esquerda (parábola de 2,15 s).
 // Fundo: imagem com "HALLAN" repetido em diagonal (img/loader-hallan.webp), cobrindo a largura e subindo reto a 15 px/s, uma vez só
 // (a imagem não emenda consigo mesma, e o loader dura no máximo ~3 s). A tela some em 0,6 s.
 // Ao terminar, a tela e a cobra são removidas da página, para não ficarem animando escondidas.
@@ -36,7 +36,7 @@
     var root = document.documentElement;
     function cityFrame() { return document.getElementById('cityFrame'); }   // o iframe vem depois deste script
     var SHOW_MS = 1500, done = false;   // a tela de abertura dura sempre 1,5 s
-    var HOLD_MS = 0, TOSS_MS = 2800;   // a cobra é jogada junto com o sumiço da tela e cai por 2,8 s
+    var HOLD_MS = 0, TOSS_MS = 2150;   // a cobra é jogada junto com o sumiço da tela e cai por 2,15 s (30% mais rápido que os 2,8 s antigos)
     function toss() {
       var wrap = document.getElementById('ouroWrap'), box = document.getElementById('ouro'), img = box.firstElementChild;
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;

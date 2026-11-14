@@ -39,6 +39,8 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
           <p class="label-ui m-0 hidden text-[11px] text-muted sm:block lg:text-[11px]">Arraste e jogue · clique para ver</p>
         </div>
         <div id="stackBox" class={`${box} touch-none select-none`}>
+          <!-- fundo: o mesmo degradê na cor de destaque do fundo da cidade (mais forte embaixo, some até o topo) -->
+          <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
           <p id="stackWait" class="label-ui pointer-events-none absolute inset-x-0 bottom-6 m-0 flex items-center justify-center gap-2 text-[11px] text-muted" aria-hidden="true"><span class="wait-dot size-1.5 rounded-full bg-accent"></span>As stacks já vão cair</p>
           {stacks.map((s, i) => (
             <button type="button" class="stack-ball absolute top-0 left-0 grid cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-accent focus-visible:border-accent active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">

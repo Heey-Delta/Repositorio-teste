@@ -1,51 +1,70 @@
 ---
-// No celular: 5 etapas em linha vertical. No desktop: as mesmas 5 etapas em linha horizontal, ligadas por uma linha com pontos.
-// As 5 etapas, com os ícones recortados da imagem de referência (public/img/proc-*.webp). Os ícones são usados como máscara,
-// então pegam a cor do texto (ou a de destaque, na última etapa).
+// Processo: uma apresentação (o mesmo bloco de slides do Lab, src/lib/rich-blocks.ts) com as 5 etapas.
+// Cada slide tem o número, o nome, uma frase e a figura da etapa (public/img/proc-*.webp, brancas em fundo transparente).
+// Embaixo da apresentação, um texto explica a etapa que está na tela e muda junto com o slide.
+import { slidesHtml, type Deck } from '../lib/rich-blocks';
 const steps = [
-  { name: 'Descoberta', icon: 'descoberta', w: 58, h: 58 },
-  { name: 'Estratégia', icon: 'estrategia', w: 48, h: 58 },
-  { name: 'Design', icon: 'design', w: 62, h: 64 },
-  { name: 'Desenvolvimento', icon: 'desenvolvimento', w: 70, h: 52 },
-  { name: 'Lançamento', icon: 'lancamento', w: 60, h: 66 },
+  { name: 'Descoberta', icon: 'descoberta', line: 'Entendo o seu negócio, quem compra de você e o que o site precisa resolver.',
+    text: 'Começamos com uma conversa. Você me conta o que vende, para quem e onde as coisas estão travando. Eu estudo os concorrentes e o que já existe, e definimos juntos o objetivo principal do site: vender, receber contatos ou apresentar a marca.' },
+  { name: 'Estratégia', icon: 'estrategia', line: 'Estrutura e texto vêm antes de qualquer cor.',
+    text: 'Monto o mapa das páginas e escrevo a mensagem de cada uma. É aqui que a página aprende a dizer em 5 segundos o que você faz. Você aprova a estrutura antes de eu começar a desenhar.' },
+  { name: 'Design', icon: 'design', line: 'O visual nasce no Figma, primeiro pensado para o celular.',
+    text: 'Com a estrutura aprovada, crio o layout com a identidade da sua marca: tipografia, cores, imagens e os detalhes de interação. Você vê as telas, comenta e ajustamos juntos até ficar certo.' },
+  { name: 'Desenvolvimento', icon: 'desenvolvimento', line: 'O layout vira um site rápido, leve e fácil de achar no Google.',
+    text: 'Programo o site com Astro, Tailwind e JavaScript, cuidando de velocidade, acessibilidade e SEO. Testo em celulares e computadores diferentes antes de mostrar a versão final.' },
+  { name: 'Lançamento', icon: 'lancamento', line: 'O site vai ao ar, pronto para crescer.',
+    text: 'Publico o site no seu domínio, conecto as ferramentas de análise e mostro como atualizar o conteúdo. Depois do lançamento, combinamos os próximos passos.' },
 ];
-const mask = (icon: string) => `-webkit-mask-image:url(img/proc-${icon}.webp);mask-image:url(img/proc-${icon}.webp)`;
+const n = steps.length;
+const deck: Deck = {
+  ratio: '16:9',
+  slides: steps.map((st, i) => ({
+    id: `proc-${i + 1}`, bg: '#000000',
+    items: [
+      { id: `p${i}n`, type: 'text', text: `${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`, size: 2.8, color: '#FBBF00', x: 7, y: 11, w: 40, h: 8 },
+      { id: `p${i}t`, type: 'title', text: st.name, size: i === 3 ? 6.4 : 8, color: i === n - 1 ? '#FBBF00' : '#F2F2EE', x: 7, y: 24, w: 56, h: 26 },
+      { id: `p${i}l`, type: 'text', text: st.line, size: 3.6, color: '#A6A6A0', x: 7, y: 54, w: 52, h: 36 },
+      { id: `p${i}i`, type: 'image', src: `/img/proc-${st.icon}.webp`, alt: '', x: 70, y: 28, w: 20, h: 44 },
+    ],
+  })),
+};
 ---
 <section id="process" class="border-b border-line bg-surface" aria-labelledby="process-title">
-  <div class="wrap relative grid min-h-[300px] grid-cols-2 items-start gap-4 py-8 lg:min-h-[380px] lg:grid-cols-[1fr_2fr] lg:items-center lg:gap-16 lg:py-16">
+  <div class="wrap grid gap-6 py-8 lg:grid-cols-[1fr_2fr] lg:items-start lg:gap-16 lg:py-16">
     <div class="flex flex-col gap-3.5 lg:gap-5">
       <h2 id="process-title" class="font-display text-[32px] leading-none uppercase lg:text-5xl">/ Processo</h2>
-      <p class="text-[13px] text-muted lg:max-w-[260px] lg:text-[15px]">Do primeiro papo ao site no ar, em cinco etapas.</p>
+      <p class="text-[13px] text-muted lg:max-w-[260px] lg:text-[15px]">Do primeiro papo ao site no ar, em cinco etapas. Passe os slides para ver cada uma.</p>
     </div>
-    <!-- celular: vertical -->
-    <div class="relative pl-[18px] lg:hidden">
-      <div class="absolute top-3 bottom-3 left-[5px] w-px bg-ink/60" aria-hidden="true"></div>
-      <ol class="m-0 flex list-none flex-col gap-3.5 p-0">
-        {steps.map((st, i) => (
-          <li class="relative flex items-center gap-2.5 text-[13px]">
-            <span class:list={['absolute top-1/2 -left-[17px] size-[9px] -translate-y-1/2 rounded-full border', i === steps.length - 1 ? 'border-accent bg-accent' : 'border-ink bg-surface']} aria-hidden="true"></span>
-            <span class:list={['proc-icon block size-6 shrink-0', i === steps.length - 1 ? 'bg-accent' : 'bg-ink']} style={mask(st.icon)} aria-hidden="true"></span>
-            <span>{st.name}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
-    <!-- desktop: horizontal, com a linha e os pontos entre os ícones -->
-    <div class="relative hidden lg:block">
-      <ol class="relative m-0 grid list-none grid-cols-5 p-0">
-        {steps.map((st, i) => (
-          <li class="relative flex flex-col items-center gap-4 text-center">
-            <span class="flex h-[72px] items-center justify-center"><span class:list={['proc-icon block', i === steps.length - 1 ? 'bg-accent' : 'bg-ink']} style={`${mask(st.icon)};width:${st.w}px;height:${st.h}px`} aria-hidden="true"></span></span>
-            <span class="block text-[15px] font-bold"><span class="mr-1.5 font-normal text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{st.name}</span>
-            {i < steps.length - 1 && (
-              <span class="absolute top-9 left-[calc(50%+56px)] flex h-px w-[calc(100%-112px)] items-center bg-ink/40" aria-hidden="true"><span class="mx-auto size-[7px] rounded-full bg-ink"></span></span>
-            )}
-          </li>
-        ))}
-      </ol>
+    <div class="proc-deck flex min-w-0 flex-col gap-4">
+      <Fragment set:html={slidesHtml({ deck: JSON.stringify(deck), width: '', align: 'center' })} />
+      <div class="min-h-[120px] border-l-2 border-accent pl-4 lg:pl-6" aria-live="polite">
+        <p id="procName" class="label-ui m-0 mb-2 text-[11px] text-muted tabular-nums">01 · {steps[0].name}</p>
+        <p id="procText" class="m-0 max-w-[640px] text-[15px] lg:text-[17px]">{steps[0].text}</p>
+      </div>
     </div>
   </div>
 </section>
 <style is:global>
-  .proc-icon { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
+  .proc-deck .lab-deck { width: 100% !important; max-width: none !important; margin: 0 !important; border-radius: 24px; overflow: hidden; background: #000; }
+  .proc-deck .lab-si-img { object-fit: contain; }
 </style>
+<script is:inline define:vars={{ steps: steps.map((s) => ({ name: s.name, text: s.text })) }}>
+  (function () {
+    var deck = document.querySelector('#process [data-deck]'); if (!deck) return;
+    var track = deck.querySelector('.lab-deck-track'), count = deck.querySelector('[data-deck-count]'), total = track.children.length;
+    var name = document.getElementById('procName'), text = document.getElementById('procText'), cur = 0;
+    function at() { return Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); }
+    function go(i) { track.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * track.clientWidth, behavior: 'smooth' }); }
+    function sync() {
+      var i = at(); if (count) count.textContent = (i + 1) + ' / ' + total;
+      if (i === cur) return; cur = i;
+      name.textContent = String(i + 1).padStart(2, '0') + ' · ' + steps[i].name;
+      text.textContent = steps[i].text;
+    }
+    var p = deck.querySelector('[data-deck-prev]'), n = deck.querySelector('[data-deck-next]');
+    if (p) p.addEventListener('click', function () { go(at() - 1); });
+    if (n) n.addEventListener('click', function () { go(at() + 1); });
+    track.addEventListener('scroll', sync, { passive: true });
+    track.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight') { e.preventDefault(); go(at() + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); go(at() - 1); } });
+  })();
+</script>
