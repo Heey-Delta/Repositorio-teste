@@ -5,6 +5,7 @@
 //   :::math {tex="E = mc^2"} :::
 //   :::picture {src="https://…" alt="Descrição" width="320" align="right"} :::   (imagem redimensionada)
 //   :::circle {text="112%" color="#FBBF00" size="180"} :::                     (formato antigo; continua valendo)
+//   :::ref {name="Autor. Título. Editora, 2024." url="https://…"} :::        (referência: o site junta todas no fim, numeradas)
 // Todos aceitam width (px) e align (left, center, right). O editor (Tiptap) e o site (marked) usam estas funções:
 // o que se vê no editor é o que vai ao ar. Gráficos e diagramas vêm do motor (SVG); equações em MathML (KaTeX).
 import katex from 'katex';
@@ -22,7 +23,7 @@ export const SITE_THEME: SvgTheme = {
   palette: ['#FBBF00', '#F2F2EE', '#A6A6A0', '#8A6A00', '#5C5C58', '#FFE08A'],
 };
 
-export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as const;
+export const BLOCK_NAMES = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle', 'ref'] as const;
 export type BlockName = (typeof BLOCK_NAMES)[number];
 const NAMES = BLOCK_NAMES.join('|');
 export const BLOCK_RE = new RegExp(`^ {0,3}:::(${NAMES})(?:\\s+\\{([^}]*)\\})?\\s*:::(?:\\n|$)`);
@@ -246,6 +247,12 @@ export function sheetHtml(a: Partial<SheetAttrs>, opts: { refs?: boolean } = {})
   return `<figure class="lab-sheet" style="${box(a)}"><div class="lab-sheet-scroll"><table>${head}${body}</table></div>${a.name ? `<figcaption>${esc(a.name)}</figcaption>` : ''}</figure>`;
 }
 
+/** Referência no editor (no site, todas vão para a lista numerada do fim: ver renderMarkdown). */
+export function refHtml(a: Record<string, string>) {
+  const name = esc(a.name || 'Referência sem nome');
+  return `<p class="lab-ref-edit"><span>Referência</span> ${a.url ? `<a href="${esc(a.url)}" rel="noopener">${name}</a>` : name}</p>`;
+}
+
 /** Qualquer bloco → HTML (usado pelo site e pela pré-visualização do editor). */
 export function blockHtml(name: BlockName, attrs: Record<string, string>): string {
   if (name === 'circle') return circleHtml(parseCircleAttrs(Object.entries(attrs).map(([k, v]) => `${k}="${String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`).join(' ')));
@@ -255,6 +262,7 @@ export function blockHtml(name: BlockName, attrs: Record<string, string>): strin
   if (name === 'picture') return pictureHtml(attrs);
   if (name === 'slides') return slidesHtml(attrs);
   if (name === 'sheet') return sheetHtml(attrs);
+  if (name === 'ref') return refHtml(attrs);
   return mathHtml(attrs);
 }
 

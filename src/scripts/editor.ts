@@ -86,6 +86,7 @@ const commands: Record<string, () => void> = {
   sheet: () => insertBlock('sheet'),
   diagram: () => insertBlock('diagram'),
   math: () => insertBlock('math'),
+  ref: () => insertBlock('ref'),
   rowBefore: () => editor.chain().focus().addRowBefore().run(),
   colBefore: () => editor.chain().focus().addColumnBefore().run(),
   rowAdd: () => editor.chain().focus().addRowAfter().run(),
@@ -232,7 +233,7 @@ alignSel.addEventListener('change', () => {
 
 // ---------- blocos: forma, gráfico, diagrama, equação, imagem ----------
 // inserir pela janela; duplo clique (ou Enter quando selecionado) edita; selecionado mostra as alças e a barra do bloco
-const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as const;
+const BLOCKS = ['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle', 'ref'] as const;
 type Block = (typeof BLOCKS)[number];
 async function insertBlock(kind: Block) {
   const { from } = editor.state.selection;

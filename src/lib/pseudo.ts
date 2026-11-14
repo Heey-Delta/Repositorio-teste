@@ -7,6 +7,7 @@
 //     <tbl: {hash}( Produto, Preço | Notebook | 500 | Mouse | 50 )>
 //     <pln: {hash.Planilha 1}( <A.1: Produto> <B.1: Preço> <A.2: Pc> <B.2: 67> <B.3: =SOMA(B2:B2)> )>
 //     <sld: {hash.Introdução}( <h1: Contexto> <h4: - Ponto um, - Ponto dois> )>
+//     <ref: Turing, A. M. Computing Machinery and Intelligence. Mind, 1950. | https://doi.org/10.1093/mind/LIX.236.433>
 //   )>
 //
 // Regras:
@@ -17,6 +18,9 @@
 //   marca#RRGGBB                      cor (forma, texto do slide, fundo do slide)
 //   {hash} / {hash.nome}              o sistema cria o id; {abc123.nome} mantém o id que já existe
 //   \<  \>  \(  \)  \|  \,  \\        para usar esses caracteres como texto
+//   <ref: nome e título | link>       referência: pode ficar em qualquer lugar; no site todas vão para o fim,
+//                                     numeradas na ordem em que aparecem ([1], [2]…), cada uma com o seu link.
+//                                     No texto, [n] vira link para a referência n.
 // Texto: *negrito*, _itálico_, ~riscado~, `código`, [link](https://…). Linhas que começam com "- " viram tópicos.
 import { Marked, type Token, type Tokens } from 'marked';
 import { BLOCK_RE, blockMarkdown, markedBlocks, parseAttrs, parseCells, parseDeck, sheetMatrix, newId, type Deck, type Slide, type SlideItem } from './rich-blocks.ts';
@@ -258,6 +262,11 @@ function blockSummary(it: SlideItem) {
   if (it.block === 'math') return a.tex ?? '';
   return '';
 }
+/** "nome e título | link" → partes (o link é o que vem depois da última barra) */
+export function refParts(t: string) {
+  const k = t.lastIndexOf('|');
+  return k < 0 ? { name: t.trim(), url: '' } : { name: t.slice(0, k).trim(), url: t.slice(k + 1).trim() };
+}
 const colLetters = (n: number) => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
 
 function blockToMd(n: PNode, out: string[]) {
@@ -278,6 +287,7 @@ function blockToMd(n: PNode, out: string[]) {
     case 'cit': out.push(n.text.split('\n').map((l) => `> ${inlineToMd(l)}`).join('\n')); return;
     case 'cod': out.push(`\`\`\`${n.mods[0] ?? ''}\n${n.text}\n\`\`\``); return;
     case 'hr': out.push('---'); return;
+    case 'ref': out.push(blockMarkdown('ref', refParts(n.text))); return;
     case 'eq': out.push(blockMarkdown('math', { tex: n.text })); return;
     case 'img': {
       const [src, alt = ''] = splitEsc(n.text, '|');
@@ -409,6 +419,7 @@ function tokenToPseudo(t: Token, pad: string): string[] {
     case 'richBlock': {
       const a = (t as any).attrs as Record<string, string>, b = (t as any).block as string;
       if (b === 'math') return [`${pad}<eq: ${esc(a.tex ?? '')}>`];
+      if (b === 'ref') return [`${pad}<ref: ${esc(a.name ?? '')}${a.url ? ` | ${esc(a.url)}` : ''}>`];
       if (b === 'picture') return [`${pad}<img.${ALIGN_EN[a.align] ?? 'centro'}${a.width ? `@${a.width}` : ''}: ${escRaw(a.src ?? '')} | ${escRaw(a.alt ?? '')}>`];
       if (b === 'shape' || b === 'circle') {
         const kind = b === 'circle' ? 'circulo' : SHAPE_EN[a.kind ?? 'RECTANGLE'] ?? (a.kind ?? 'retangulo').toLowerCase();
@@ -474,6 +485,7 @@ export function pseudoToModel(src: string): ImportModel {
   const doc = nodes.find((n) => n.tag === 'doc');
   const blocks: BlockM[] = [];
   const slides: SlideM[] = [];
+  const refs: { name: string; url: string }[] = [];
   if (doc?.text) blocks.push({ kind: 'text', textType: 'TITLE', runs: [{ text: doc.text }] });
   const add = (n: PNode) => {
     switch (n.tag) {
@@ -491,6 +503,7 @@ export function pseudoToModel(src: string): ImportModel {
       case 'cod': blocks.push({ kind: 'text', textType: 'CODE', runs: [{ text: n.text }] }); return;
       case 'eq': blocks.push({ kind: 'text', textType: 'CODE', runs: [{ text: n.text }] }); return;
       case 'hr': return;
+      case 'ref': refs.push(refParts(n.text)); return;
       case 'img': { const [src, alt = ''] = splitEsc(n.text, '|'); blocks.push({ kind: 'image', source: src, alt, ...(n.pos?.[0] ? { width: n.pos[0], height: Math.round(n.pos[0] * 0.66) } : {}) }); return; }
       case 'frm': blocks.push({ kind: 'shape', shapeType: SHAPE_PT[n.mods[0] ?? ''] ?? 'RECTANGLE', width: n.pos?.[0] || 240, height: n.pos?.[1] || 140, fill: n.color ?? '#FBBF00', color: '#000000', bold: true, runs: n.text ? [{ text: n.text }] : undefined }); return;
       case 'tbl': { const rows = tableRows(n.raw ?? ''); if (rows.length) blocks.push({ kind: 'table', header: true, rows: rows.map((r) => r.map((c) => stripHtml(c))) }); return; }
@@ -534,6 +547,10 @@ export function pseudoToModel(src: string): ImportModel {
     }
   };
   for (const n of groupSlides(doc ? doc.children ?? [] : nodes)) add(n);
+  if (refs.length) {
+    blocks.push({ kind: 'text', textType: 'HEADING_1', runs: [{ text: 'Referências' }] });
+    blocks.push({ kind: 'list', listType: 'NUMBERED', items: refs.map((r) => ({ level: 0, runs: [{ text: `${r.name} ` }, ...(r.url ? [{ text: r.url, format: { underline: true, color: '#1D4ED8', link: r.url } }] : [])] })) });
+  }
   return { application: 'DOCUMENT_EDITOR', name: doc?.text || 'Documento', blocks, ...(slides.length ? { slides, slideSize: { width: 1280, height: 720 } } : {}) };
 }
 export { parseAttrs };

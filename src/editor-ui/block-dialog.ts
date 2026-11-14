@@ -69,6 +69,14 @@ const FIELDS: Record<Exclude<BlockName, 'slides'>, { title: string; fields: Fiel
     defaults: { tex: 'E = mc^2' },
     fields: [{ key: 'tex', label: 'Equação (LaTeX)', kind: 'textarea', rows: 3, hint: 'Ex.: \\frac{a}{b}, x^2, \\sqrt{x}, \\sum_{i=1}^{n} i, \\alpha' }, SIZE[1]],
   },
+  ref: {
+    title: 'Referência',
+    defaults: { name: '', url: '' },
+    fields: [
+      { key: 'name', label: 'Nome e título', kind: 'text', hint: 'Ex.: Turing, A. M. Computing Machinery and Intelligence. Mind, 1950.' },
+      { key: 'url', label: 'Link', kind: 'text', hint: 'Endereço da fonte (https://…). No site, todas as referências ficam numeradas no fim do texto, com link.' },
+    ],
+  },
   circle: {
     title: 'Círculo de destaque',
     defaults: { text: '112%', color: '#FBBF00', size: '180' },

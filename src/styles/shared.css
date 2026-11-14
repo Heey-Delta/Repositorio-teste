@@ -167,3 +167,15 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .lab-sheet figcaption, .lab-data-link { margin-top: 6px; font-size: 13px; color: var(--muted); }
 .lab-data-link a { color: var(--muted); text-decoration: underline; }
 .lab-data-link a:hover { color: var(--accent); }
+/* referências: lista numerada do fim do texto e as chamadas [n] no meio dele */
+.lab-refs { display: flex; flex-direction: column; gap: 10px; padding-left: 2.2em; font-size: 15px; line-height: 1.5; }
+.lab-refs li { scroll-margin-top: 96px; overflow-wrap: anywhere; }
+.lab-refs li::marker { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lab-prose .lab-refs a, .lab-refs a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.lab-prose .lab-refs a:hover { color: var(--accent); text-decoration-color: currentColor; }
+.lab-refs li:target { color: var(--accent); }
+.lab-prose a.lab-cite, a.lab-cite { color: var(--muted); text-decoration: none; font-variant-numeric: tabular-nums; }
+.lab-prose a.lab-cite:hover { color: var(--accent); }
+.lab-ref-edit { margin: 0; font-size: 14px; color: var(--muted); }
+.lab-ref-edit span { margin-right: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.lab-ref-edit a { color: var(--ink); text-decoration: underline; }

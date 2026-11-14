@@ -8,6 +8,8 @@ import { migrate } from 'drizzle-orm/neon-http/migrator';
 import * as s from '../src/db/schema.ts';
 import { departments, areas } from '../src/lab/data.ts';
 import { refreshAllVectors } from '../src/lib/search-index.ts';
+import { refsFromList } from '../src/lib/refs.ts';
+import { eq } from 'drizzle-orm';
 
 const url = process.env.DATABASE_URL;
 if (!url || (process.env.VERCEL && process.env.VERCEL_ENV !== 'production')) {
@@ -37,6 +39,14 @@ await db.insert(s.authors).values({
   specialties: ['Design de interfaces', 'Desenvolvimento web', 'Experiências 3D na web', 'Percepção visual'],
 }).onConflictDoNothing();
 console.log('[db] catálogos conferidos');
+
+// referências: a seção "## Referências" em lista numerada (formato antigo) vira marcadores :::ref (idempotente)
+try {
+  const all = await db.select({ id: s.posts.id, body: s.posts.body }).from(s.posts);
+  let n = 0;
+  for (const p of all) { const next = refsFromList(p.body ?? ''); if (next) { await db.update(s.posts).set({ body: next }).where(eq(s.posts.id, p.id)); n++; } }
+  if (n) console.log(`[db] referências convertidas para o marcador ref em ${n} publicação(ões)`);
+} catch (err) { console.warn('[db] referências não convertidas:', (err as Error).message); }
 
 // busca por significado: recalcula os vetores do que mudou desde o último build (sem gateway, só avisa)
 try {

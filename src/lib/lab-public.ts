@@ -4,6 +4,7 @@ import { and, eq, inArray, lte, or, type SQL } from 'drizzle-orm';
 import { Marked } from 'marked';
 import { markedBlocks } from './rich-blocks';
 import { dataItems, KIND_LABEL } from './data-items';
+import { linkCitations, pullRefs, refsListHtml } from './refs';
 import GithubSlugger from 'github-slugger';
 import { departments as staticDepartments, areas as staticAreas } from '../lab/data';
 import { db, schema as s } from '../db/client';
@@ -132,9 +133,17 @@ export function renderMarkdown(md: string, ctx: { dataBase?: string } = {}) {
       tokens.splice(it.tokenIndex + 1, 0, { type: 'html', block: true, raw: link, text: link, pre: false } as any);
     }
   }
-  const html = marked.parser(tokens) as string;
+  // referências (:::ref): saem do meio do texto e vão para a lista numerada do fim, na ordem em que aparecem
+  const refs = pullRefs(tokens as any[]);
+  let html = marked.parser(tokens) as string;
+  if (refs.length) {
+    const slug = slugger.slug('Referências');
+    headings.push({ depth: 2, slug, text: 'Referências' });
+    html = linkCitations(html, refs.length) + refsListHtml(refs, slug);
+  }
   return { html, headings };
 }
+
 
 // Perfil do autor (editável em /admin/perfil/): alimenta os dados estruturados de autoria do Lab
 export interface AuthorProfile { name: string; jobTitle: string | null; bio: string | null; specialties: string[]; sameAs: string[] }

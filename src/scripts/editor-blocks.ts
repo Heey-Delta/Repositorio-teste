@@ -17,6 +17,7 @@ export const DEFAULTS: Record<BlockName, Record<string, string>> = {
   slides: { id: '', name: '', deck: '', ...SIZE },
   sheet: { ...SHEET_DEFAULT, name: '', cells: '{}' },
   circle: { text: '', color: '#FBBF00', size: '160' },
+  ref: { name: '', url: '' },
 };
 /** Blocos com altura própria (as alças de cima/baixo mexem na altura); os demais mantêm a proporção. */
 const FREE_HEIGHT = new Set<BlockName>(['shape']);
@@ -63,7 +64,7 @@ function makeBlock(name: BlockName) {
           frame.style.left = `${el.offsetLeft}px`; frame.style.top = `${el.offsetTop}px`;
           frame.style.width = `${el.offsetWidth}px`; frame.style.height = `${el.offsetHeight}px`;
         };
-        if (name !== 'circle') {
+        if (name !== 'circle' && name !== 'ref') {
           for (const h of HANDLES) {
             if (!FREE_HEIGHT.has(name) && (h === 'n' || h === 's')) continue;
             const dot = document.createElement('span');
@@ -126,7 +127,7 @@ function makeBlock(name: BlockName) {
   });
 }
 
-export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle'] as BlockName[]).map(makeBlock);
+export const RichBlocks = (['shape', 'chart', 'diagram', 'math', 'picture', 'slides', 'sheet', 'circle', 'ref'] as BlockName[]).map(makeBlock);
 export { openBlockDialog };
 
 /** Liga os botões e o contador de uma apresentação já na página (site e editor). */
