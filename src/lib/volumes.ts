@@ -15,6 +15,8 @@ export const volumeInput = z.object({
   status: z.enum(['draft', 'published']),
   sortOrder: z.number().int().min(0).max(999).default(0),
   postIds: z.array(z.uuid()).max(100).default([]),
+  experienceUrl: z.string().trim().max(500).default('').refine((v) => !v || /^(https?:\/\/|\/)/.test(v), 'O link da experiência precisa começar com https:// ou /.'),
+  experienceLabel: z.string().trim().max(60).default(''),
 });
 export type VolumeInput = z.infer<typeof volumeInput>;
 
@@ -56,7 +58,7 @@ export async function saveVolume(id: string | null, raw: unknown, login: string)
     publishedAt = cur.publishedAt;
   }
   if (input.status === 'published' && !publishedAt) publishedAt = now;
-  const values = { title: input.title, slug, summary: input.summary, coverMediaId: input.coverMediaId, status: input.status, sortOrder: input.sortOrder, publishedAt, updatedAt: now };
+  const values = { title: input.title, slug, summary: input.summary, coverMediaId: input.coverMediaId, status: input.status, sortOrder: input.sortOrder, experienceUrl: input.experienceUrl, experienceLabel: input.experienceLabel, publishedAt, updatedAt: now };
   const isNew = !id;
   if (!id) id = crypto.randomUUID();
   await db().batch([

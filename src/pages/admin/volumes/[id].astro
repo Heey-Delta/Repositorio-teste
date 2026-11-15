@@ -41,6 +41,8 @@ const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
       <div class="flex flex-col gap-4">
         <label class={label}>Título<input name="title" value={vol?.title ?? ''} maxlength="140" required class={`${field} h-11`} placeholder="A inteligência artificial no mundo moderno"></label>
         <label class={label}>Endereço<input name="slug" value={vol?.slug ?? ''} maxlength="100" class={`${field} h-11 font-mono text-[13px]`} placeholder="gerado a partir do título"><span class="text-xs">/lab/volumes/<span id="slugEcho" class="text-ink">{vol?.slug ?? ''}</span>/</span></label>
+        <label class={label}>Experiência (opcional)<input name="experienceUrl" value={vol?.experienceUrl ?? ''} maxlength="500" class={`${field} h-11 font-mono text-[13px]`} placeholder="https://… ou /widgets/…"><span class="text-xs">Jogo, protótipo ou página interativa. Aparece como botão na página do volume.</span></label>
+        <label class={label}>Texto do botão da experiência<input name="experienceLabel" value={vol?.experienceLabel ?? ''} maxlength="60" class={`${field} h-11`} placeholder="Jogar agora"><span class="text-xs">Vazio: "Abrir a experiência".</span></label>
         <label class={label}>Descrição<textarea name="summary" rows="3" maxlength="400" class={`${field} py-2`} placeholder="Uma ou duas frases: para quem é e o que reúne. Vira a descrição no Google.">{vol?.summary ?? ''}</textarea></label>
         <div class="grid gap-4 sm:grid-cols-2">
           <label class={label}>Status<select name="status" class={`${field} h-11`}><option value="draft" selected={vol?.status !== 'published'}>Rascunho (fora do site)</option><option value="published" selected={vol?.status === 'published'}>Publicado</option></select></label>
@@ -126,7 +128,7 @@ const label = 'flex flex-col gap-1.5 text-[13px] text-muted';
         e.preventDefault();
         form.querySelectorAll('[aria-invalid]').forEach(function (x) { x.removeAttribute('aria-invalid'); });
         var r = form.querySelector('input[name="coverMediaId"]:checked');
-        var body = { title: form.title.value, slug: form.slug.value || slugify(form.title.value), summary: form.summary.value, status: form.status.value, sortOrder: Number(form.sortOrder.value) || 0, coverMediaId: r && r.value ? r.value : null, postIds: ids };
+        var body = { title: form.title.value, slug: form.slug.value || slugify(form.title.value), summary: form.summary.value, experienceUrl: form.experienceUrl.value, experienceLabel: form.experienceLabel.value, status: form.status.value, sortOrder: Number(form.sortOrder.value) || 0, coverMediaId: r && r.value ? r.value : null, postIds: ids };
         say('Salvando…');
         fetch(data.id ? '/api/volumes/' + data.id : '/api/volumes', { method: data.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
           .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })

@@ -259,6 +259,9 @@ export const volumes = pgTable('volumes', {
   coverMediaId: uuid('cover_media_id').references(() => media.id, { onDelete: 'set null' }),
   status: text('status').notNull().default('draft'),   // draft | published (só publicado aparece no site)
   sortOrder: integer('sort_order').notNull().default(0),
+  // experiência do volume (jogo, protótipo, página interativa): o botão aparece na página do volume quando há link
+  experienceUrl: text('experience_url').notNull().default(''),
+  experienceLabel: text('experience_label').notNull().default(''),
   createdAt: created(),
   updatedAt: updated(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
@@ -289,3 +292,11 @@ export const searchVectors = pgTable('search_vectors', {
   embedding: vector('embedding', { dimensions: 512 }).notNull(),
   updatedAt: updated(),
 }, (t) => [primaryKey({ columns: [t.kind, t.refId] })]);
+
+// ---------- Página inicial ----------
+// Configurações editáveis no admin (/admin/inicio/): stacks, cursos e volumes em destaque. Uma linha por chave.
+export const siteSettings = pgTable('site_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: updated(),
+});

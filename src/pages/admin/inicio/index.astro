@@ -1,0 +1,165 @@
+---
+// Página inicial: o que dá para mudar sem mexer no código.
+//  - Volumes em destaque: os que aparecem ao lado da cidade 3D, na ordem escolhida (quantos quiser).
+//  - Stacks: as bolinhas (nome, tipo, descrição, como uso e o ícone).
+//  - Cursos: os cards da rolagem infinita.
+// Ícone: o nome de uma marca do Simple Icons (simpleicons.org, ex.: react, figma, python) ou um desenho próprio
+// (o "d" de um <path> SVG 24×24, que começa com M). Salvar gera o site de novo (cerca de 1 minuto).
+import Admin from '../../../layouts/Admin.astro';
+import { desc, eq } from 'drizzle-orm';
+import { db, schema as s } from '../../../db/client';
+import { getHomeSettings } from '../../../lib/home-settings';
+import { resolveIcon } from '../../../lib/icons';
+export const prerender = false;
+const settings = await getHomeSettings();
+const vols = await db().select({ id: s.volumes.id, title: s.volumes.title, status: s.volumes.status, coverUrl: s.media.url }).from(s.volumes)
+  .leftJoin(s.media, eq(s.media.id, s.volumes.coverMediaId)).orderBy(desc(s.volumes.publishedAt), desc(s.volumes.createdAt));
+const iconOf = (icon: string, color = '') => resolveIcon(icon, color)?.path ?? '';
+const data = JSON.stringify({
+  stacks: settings.stacks.map((x) => ({ ...x, preview: iconOf(x.icon) })),
+  courses: settings.courses.map((x) => ({ ...x, preview: iconOf(x.icon, x.color) })),
+  featured: settings.featuredVolumes.filter((id) => vols.some((v) => v.id === id)),
+  vols,
+}).replace(/</g, '\\u003c');
+const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] text-ink focus-visible:border-accent';
+---
+<Admin title="Página inicial" current="inicio">
+  <script type="application/json" id="homeData" set:html={data} />
+  <div class="flex max-w-[1080px] flex-col gap-10">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-col gap-1">
+        <h1 class="m-0 text-2xl font-bold">Página inicial</h1>
+        <p class="m-0 max-w-[640px] text-[13px] text-muted">Volumes em destaque, stacks e cursos da página inicial. Ao salvar, o site é gerado de novo e as mudanças aparecem em cerca de 1 minuto.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/" target="_blank" rel="noopener" class="text-sm text-muted hover:text-ink">Ver o site ↗</a>
+        <button type="button" id="homeSave" class="min-h-10 cursor-pointer rounded-[6px] bg-accent px-5 text-sm font-bold text-black hover:brightness-110 disabled:opacity-60">Salvar</button>
+      </div>
+    </div>
+    <p id="homeState" class="m-0 -mt-6 min-h-5 text-[13px] text-muted" role="status"></p>
+
+    <section class="flex flex-col gap-4" aria-labelledby="h-vols">
+      <div class="flex flex-col gap-1"><h2 id="h-vols" class="m-0 text-lg font-bold">Volumes em destaque</h2><p class="m-0 text-[13px] text-muted">Aparecem ao lado da cidade 3D, na seção Trabalhos, nesta ordem. Só volumes publicados entram no site. Com menos de 3, as vagas que sobram convidam para um projeto novo.</p></div>
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="flex flex-col gap-2"><p class="m-0 text-[12px] text-muted">Em destaque <span id="featCount"></span></p><ol id="featList" class="m-0 flex list-none flex-col gap-2 p-0"></ol></div>
+        <div class="flex flex-col gap-2"><p class="m-0 text-[12px] text-muted">Todos os volumes</p><ul id="volList" class="m-0 flex list-none flex-col p-0"></ul></div>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4" aria-labelledby="h-stacks">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="flex flex-col gap-1"><h2 id="h-stacks" class="m-0 text-lg font-bold">Stacks <span class="text-muted" id="stackCount"></span></h2><p class="m-0 max-w-[640px] text-[13px] text-muted">As bolinhas que caem na caixa. Ícone: o nome da marca no <a href="https://simpleicons.org/" target="_blank" rel="noopener" class="underline hover:text-ink">Simple Icons</a> (ex.: <code>react</code>, <code>python</code>, <code>nextdotjs</code>) ou o desenho de um ícone 24×24 (o "d" do path, começa com M). Sem ícone, a bolinha mostra as iniciais.</p></div>
+        <button type="button" id="stackAdd" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">+ Nova stack</button>
+      </div>
+      <ol id="stackList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
+    </section>
+
+    <section class="flex flex-col gap-4" aria-labelledby="h-courses">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="flex flex-col gap-1"><h2 id="h-courses" class="m-0 text-lg font-bold">Cursos <span class="text-muted" id="courseCount"></span></h2><p class="m-0 text-[13px] text-muted">Os cards da rolagem infinita, ao lado das stacks. O ícone segue a mesma regra; a cor é opcional (ex.: #EC0000).</p></div>
+        <button type="button" id="courseAdd" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">+ Novo curso</button>
+      </div>
+      <ol id="courseList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
+    </section>
+  </div>
+  <script is:inline define:vars={{ field }}>
+    (function () {
+      var data = JSON.parse(document.getElementById('homeData').textContent);
+      var state = document.getElementById('homeState'), saveBtn = document.getElementById('homeSave');
+      var dirty = false;
+      var mark = function () { dirty = true; state.textContent = 'Alterações não salvas.'; state.style.color = ''; };
+      var el = function (tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+      var btn = function (t, label, fn) { var b = el('button', 'grid size-9 shrink-0 cursor-pointer place-items-center rounded-[6px] border border-line text-sm hover:border-ink', t); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('click', fn); return b; };
+      var svgIcon = function (d, size) {
+        var NS = 'http://www.w3.org/2000/svg', s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', size); s.setAttribute('height', size); s.setAttribute('fill', 'currentColor');
+        var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); s.appendChild(p); return s;
+      };
+      var input = function (label, value, onInput, opts) {
+        var w = el('label', 'flex min-w-0 flex-col gap-1 text-[12px] text-muted'); w.appendChild(el('span', '', label));
+        var i = document.createElement(opts && opts.area ? 'textarea' : 'input'); i.className = field + (opts && opts.area ? ' py-2' : ' h-10'); if (opts && opts.area) i.rows = 2;
+        i.value = value || ''; if (opts && opts.ph) i.placeholder = opts.ph; if (opts && opts.max) i.maxLength = opts.max;
+        i.addEventListener('input', function () { onInput(i.value); mark(); });
+        w.appendChild(i); return w;
+      };
+      var move = function (arr, i, d, draw) { var j = i + d; if (j < 0 || j >= arr.length) return; arr.splice(j, 0, arr.splice(i, 1)[0]); mark(); draw(); };
+
+      // ---------- volumes em destaque ----------
+      var feat = data.featured.slice();
+      var drawVols = function () {
+        var fl = document.getElementById('featList'), vl = document.getElementById('volList');
+        fl.innerHTML = ''; vl.innerHTML = '';
+        document.getElementById('featCount').textContent = '(' + feat.length + ')';
+        feat.forEach(function (id, i) {
+          var v = data.vols.find(function (x) { return x.id === id; }); if (!v) return;
+          var li = el('li', 'flex items-center gap-2 rounded-[6px] border border-line p-2');
+          li.appendChild(el('span', 'w-6 text-center text-xs text-muted', String(i + 1)));
+          var t = el('span', 'min-w-0 flex-1 truncate text-sm', v.title); li.appendChild(t);
+          if (v.status !== 'published') li.appendChild(el('span', 'text-[11px] text-[#ff8a8a]', 'rascunho: não aparece'));
+          li.appendChild(btn('↑', 'Subir', function () { move(feat, i, -1, drawVols); }));
+          li.appendChild(btn('↓', 'Descer', function () { move(feat, i, 1, drawVols); }));
+          li.appendChild(btn('✕', 'Tirar do destaque', function () { feat.splice(i, 1); mark(); drawVols(); }));
+          fl.appendChild(li);
+        });
+        if (!feat.length) fl.appendChild(el('li', 'rounded-[6px] border border-dashed border-line p-4 text-sm text-muted', 'Nenhum volume em destaque. Adicione pela lista ao lado.'));
+        data.vols.filter(function (v) { return feat.indexOf(v.id) < 0; }).forEach(function (v) {
+          var li = el('li', 'flex items-center gap-2 border-b border-line py-2');
+          li.appendChild(el('span', 'min-w-0 flex-1 truncate text-sm', v.title + (v.status === 'published' ? '' : ' (rascunho)')));
+          var add = el('button', 'min-h-9 cursor-pointer rounded-[6px] border border-line px-3 text-xs hover:border-ink', '+ Destacar'); add.type = 'button';
+          add.addEventListener('click', function () { feat.push(v.id); mark(); drawVols(); });
+          li.appendChild(add); vl.appendChild(li);
+        });
+        if (!data.vols.length) vl.appendChild(el('li', 'text-sm text-muted', 'Nenhum volume criado ainda.'));
+      };
+
+      // ---------- stacks e cursos: cartões editáveis ----------
+      var lists = {
+        stack: { arr: data.stacks, box: 'stackList', count: 'stackCount', blank: { name: '', kind: '', desc: '', use: '', icon: '', preview: '' },
+          fields: [['name', 'Nome', { ph: 'React', max: 40 }], ['kind', 'Tipo', { ph: 'Framework', max: 30 }], ['icon', 'Ícone', { ph: 'react' }], ['desc', 'O que é', { area: true, max: 200, ph: 'Uma frase curta sobre a tecnologia.' }], ['use', 'Como eu uso', { area: true, max: 200, ph: 'Onde ela aparece nos seus projetos.' }]] },
+        course: { arr: data.courses, box: 'courseList', count: 'courseCount', blank: { name: '', school: '', year: '', icon: '', color: '', preview: '' },
+          fields: [['name', 'Curso', { ph: 'Claude Code 101', max: 80 }], ['school', 'Escola', { ph: 'Anthropic · Claude Academy', max: 80 }], ['year', 'Quando', { ph: 'set. 2026', max: 30 }], ['icon', 'Ícone', { ph: 'claude' }], ['color', 'Cor do ícone', { ph: '#EC0000', max: 7 }]] },
+      };
+      var drawList = function (key) {
+        var L = lists[key], box = document.getElementById(L.box);
+        box.innerHTML = ''; document.getElementById(L.count).textContent = '(' + L.arr.length + ')';
+        L.arr.forEach(function (item, i) {
+          var li = el('li', 'flex flex-col gap-3 rounded-[8px] border border-line p-3 sm:flex-row sm:items-start');
+          var badge = el('span', 'grid size-12 shrink-0 place-items-center rounded-full border border-line text-ink');
+          var paint = function () { badge.innerHTML = ''; if (item.preview) badge.appendChild(svgIcon(item.preview, 22)); else badge.appendChild(el('span', 'text-[11px] text-muted', item.icon ? 'salve p/ ver' : (item.name || '?').slice(0, 3).toUpperCase())); };
+          paint();
+          var grid = el('div', 'grid min-w-0 flex-1 gap-2 sm:grid-cols-3');
+          L.fields.forEach(function (f) {
+            var w = input(f[1], item[f[0]], function (v) { item[f[0]] = v; if (f[0] === 'icon') { item.preview = /^[Mm][\d\s.,-]/.test(v.trim()) ? v.trim() : ''; paint(); } }, f[2]);
+            if (f[2] && f[2].area) w.classList.add('sm:col-span-3', 'lg:col-span-1');
+            grid.appendChild(w);
+          });
+          var tools = el('div', 'flex gap-1 sm:flex-col');
+          tools.appendChild(btn('↑', 'Subir', function () { move(L.arr, i, -1, function () { drawList(key); }); }));
+          tools.appendChild(btn('↓', 'Descer', function () { move(L.arr, i, 1, function () { drawList(key); }); }));
+          tools.appendChild(btn('✕', 'Remover', function () { if (confirm('Remover "' + (item.name || 'item') + '"?')) { L.arr.splice(i, 1); mark(); drawList(key); } }));
+          li.appendChild(badge); li.appendChild(grid); li.appendChild(tools);
+          box.appendChild(li);
+        });
+      };
+      document.getElementById('stackAdd').addEventListener('click', function () { lists.stack.arr.push(Object.assign({}, lists.stack.blank)); mark(); drawList('stack'); var ins = document.querySelectorAll('#stackList input'); if (ins.length) ins[ins.length - 3].focus(); });
+      document.getElementById('courseAdd').addEventListener('click', function () { lists.course.arr.push(Object.assign({}, lists.course.blank)); mark(); drawList('course'); var ins = document.querySelectorAll('#courseList input'); if (ins.length) ins[ins.length - 5].focus(); });
+
+      var clean = function (arr, keys) { return arr.map(function (x) { var o = {}; keys.forEach(function (k) { o[k] = (x[k] || '').trim(); }); return o; }); };
+      saveBtn.addEventListener('click', function () {
+        var body = { stacks: clean(data.stacks, ['name', 'kind', 'desc', 'use', 'icon']), courses: clean(data.courses, ['name', 'school', 'year', 'icon', 'color']), featuredVolumes: feat };
+        saveBtn.disabled = true; state.textContent = 'Salvando…'; state.style.color = '';
+        fetch('/api/inicio', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (x) {
+            if (!x.ok) { state.textContent = x.d.error || 'Não deu para salvar.'; state.style.color = '#ff8a8a'; return; }
+            dirty = false;
+            state.textContent = x.d.site === 'started' ? 'Salvo. O site atualiza em cerca de 1 minuto.' : x.d.site === 'unconfigured' ? 'Salvo. Falta configurar a atualização automática do site (VERCEL_DEPLOY_HOOK_URL).' : 'Salvo, mas o site não foi gerado de novo. Tente salvar outra vez.';
+            setTimeout(function () { location.reload(); }, 1600);   // recarrega para mostrar os ícones pelo nome
+          })
+          .catch(function () { state.textContent = 'Sem conexão. Tente de novo.'; state.style.color = '#ff8a8a'; })
+          .then(function () { saveBtn.disabled = false; });
+      });
+      addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+      drawVols(); drawList('stack'); drawList('course');
+    })();
+  </script>
+</Admin>

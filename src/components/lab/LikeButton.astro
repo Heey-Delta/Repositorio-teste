@@ -1,9 +1,9 @@
 ---
-// Botão de curtir (coração + contagem). O estado "curti" e a contagem ao vivo vêm do script do layout do Lab.
+// Botão de curtir (raio + contagem: o "hype"). Curtido, o raio fica azul e preenchido. O estado "curti" e a contagem ao vivo vêm do script do layout do Lab.
 interface Props { id: string; count?: number; big?: boolean; title?: string }
 const { id, count = 0, big = false, title = '' } = Astro.props;
 ---
 <button type="button" class:list={['like', big && 'like--big']} data-like={id} aria-pressed="false" aria-label={`Curtir${title ? ` "${title}"` : ''}: ${count} ${count === 1 ? 'curtida' : 'curtidas'}`}>
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.7 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.8 1.1-1.7 2.7-2.8 4.7-2.8 3.4 0 5.7 3.2 4.5 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2.5 4.8 13.4h6.1l-1.1 8.1 8.4-10.9h-6.1l1.1-8.1z"/></svg>
   <span data-like-count>{count}</span>{big && <span class="sr-only"> {count === 1 ? 'curtida' : 'curtidas'}</span>}
 </button>

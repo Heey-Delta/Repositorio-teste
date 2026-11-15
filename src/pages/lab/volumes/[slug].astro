@@ -8,6 +8,8 @@ import FeedCard from '../../../components/lab/FeedCard.astro';
 import { publishedVolumes } from '../../../lib/lab-feed';
 import { getLabEntriesFresh, dataSlugOf } from '../../../lib/lab-public';
 import { dataItems, KIND_LABEL } from '../../../lib/data-items';
+import { countWords, fmtWords } from '../../../lab/data';
+import Bolt from '../../../components/lab/Bolt.astro';
 
 export const prerender = false;
 const [v] = process.env.DATABASE_URL ? await publishedVolumes(Astro.params.slug) : [];
@@ -22,6 +24,8 @@ const sources = open.map((p) => {
   const items = dataItems(e.body);
   return { title: p.title, url: p.url, data: items.map((it) => ({ label: `${KIND_LABEL[it.kind]}: ${it.name}`, url: `/dados/${dataSlugOf(e, entries)}/${it.slug}/` })), refs: e.data.references };
 }).filter((x): x is NonNullable<typeof x> => Boolean(x && (x.data.length || x.refs.length)));
+// total de palavras de todos os artigos já no ar (o mesmo cálculo do "17,5k words" de cada artigo)
+const words = open.reduce((n, p) => { const e = entries.find((x) => x.postId === p.id); return n + (e ? countWords(e.body) : 0); }, 0);
 const nData = sources.reduce((n, x) => n + x.data.length, 0), nRefs = sources.reduce((n, x) => n + x.refs.length, 0);
 const url = new URL(v.url, Astro.site).href;
 const description = v.summary || `Volume ${v.number} do Experimental Lab: ${open.length} ${open.length === 1 ? 'artigo' : 'artigos'} sobre ${v.title.toLowerCase()}.`;
@@ -42,10 +46,13 @@ const jsonld = [{
         <span class="vol-cover" style="aspect-ratio:3/4">{v.cover && <img src={v.cover.url} alt={v.cover.alt} loading="eager" fetchpriority="high" decoding="async" style="filter:none">}</span>
       </div>
       <div class="flex flex-col gap-4">
-        <p class="m-0 text-sm text-muted tabular-nums">Volume {String(v.number).padStart(2, '0')} · {open.length} {open.length === 1 ? 'artigo' : 'artigos'}{soon.length ? ` · ${soon.length} em breve` : ''}</p>
+        <p class="m-0 flex flex-wrap items-center gap-x-2 text-sm text-muted tabular-nums">Vol. {String(v.number).padStart(2, '0')} · {open.length} {open.length === 1 ? 'artigo' : 'artigos'}{soon.length ? ` · ${soon.length} em breve` : ''} • {fmtWords(words)} · <Bolt n={v.likes} label={`${v.likes} ${v.likes === 1 ? 'curtida' : 'curtidas'} no volume`} /></p>
         <h1 class="lf-title" style="font-size:clamp(40px,9vw,96px)">{v.title}</h1>
         {v.summary && <p class="m-0 max-w-[620px] text-base text-muted lg:text-lg">{v.summary}</p>}
-        {open[0] && <a href={open[0].url} class="label-ui inline-flex min-h-12 items-center self-start rounded-full bg-accent px-6 text-xs font-bold text-black hover:brightness-110">Começar a ler</a>}
+        <div class="flex flex-wrap gap-3">
+          {v.experienceUrl && <a href={v.experienceUrl} class="label-ui inline-flex min-h-12 items-center rounded-full bg-accent px-6 text-xs font-bold text-black hover:brightness-110" {...(/^https?:/.test(v.experienceUrl) ? { target: '_blank', rel: 'noopener' } : {})}>{v.experienceLabel || 'Abrir a experiência'}</a>}
+          {open[0] && <a href={open[0].url} class:list={['label-ui inline-flex min-h-12 items-center rounded-full px-6 text-xs font-bold', v.experienceUrl ? 'border border-ink text-ink hover:border-accent hover:text-accent' : 'bg-accent text-black hover:brightness-110']}>Começar a ler</a>}
+        </div>
       </div>
     </div>
   </section>

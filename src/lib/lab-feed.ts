@@ -14,6 +14,9 @@ export interface Card {
 export interface VolumeCard {
   id: string; slug: string; title: string; summary: string; url: string; number: number;
   cover: { url: string; alt: string } | null; posts: Card[]; open: number; updated: string;
+  /** soma das curtidas (raios) de todas as publicações do volume */
+  likes: number;
+  experienceUrl: string; experienceLabel: string; published: string | null;
 }
 
 const live = (now = new Date()) => or(eq(s.posts.status, 'published'), and(eq(s.posts.status, 'scheduled'), lte(s.posts.scheduledAt, now)));
@@ -73,7 +76,7 @@ export function topLiked(cards: Card[], n = 12) {
 export async function publishedVolumes(slug?: string): Promise<VolumeCard[]> {
   const where = slug ? and(eq(s.volumes.status, 'published'), eq(s.volumes.slug, slug)) : eq(s.volumes.status, 'published');
   const vols = await db().select({ v: s.volumes, coverUrl: s.media.url, coverAlt: s.media.alt }).from(s.volumes)
-    .leftJoin(s.media, eq(s.media.id, s.volumes.coverMediaId)).where(where).orderBy(asc(s.volumes.sortOrder), desc(s.volumes.publishedAt));
+    .leftJoin(s.media, eq(s.media.id, s.volumes.coverMediaId)).where(where).orderBy(desc(s.volumes.publishedAt), desc(s.volumes.createdAt));   // do mais recente para o mais antigo
   if (!vols.length) return [];
   // numeração estável: pela ordem de publicação do volume (o primeiro publicado é o VOL. 01)
   const numbers = new Map((await db().select({ id: s.volumes.id }).from(s.volumes).where(eq(s.volumes.status, 'published')).orderBy(asc(s.volumes.publishedAt), asc(s.volumes.createdAt))).map((r, i) => [r.id, i + 1]));
@@ -88,7 +91,8 @@ export async function publishedVolumes(slug?: string): Promise<VolumeCard[]> {
     return {
       id: v.id, slug: v.slug, title: v.title, summary: v.summary, url: `/lab/volumes/${v.slug}/`, number: numbers.get(v.id) ?? 0,
       cover: coverUrl ? { url: coverUrl, alt: coverAlt ?? '' } : null, posts, open: posts.filter((p) => !p.soon).length,
-      updated: v.updatedAt.toISOString(),
+      updated: v.updatedAt.toISOString(), likes: posts.reduce((n, p) => n + p.likes, 0),
+      experienceUrl: v.experienceUrl ?? '', experienceLabel: v.experienceLabel ?? '', published: v.publishedAt?.toISOString() ?? null,
     };
   });
 }
@@ -105,3 +109,36 @@ const TZ = 'America/Sao_Paulo';
 const ymd = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 export const isToday = (iso: string, now = new Date()) => ymd(new Date(iso)) === ymd(now);
 export const isThisMonth = (iso: string, now = new Date()) => ymd(new Date(iso)).slice(0, 7) === ymd(now).slice(0, 7);
+
+/** Semana atual (de segunda a domingo), no fuso de São Paulo. */
+export function isThisWeek(iso: string, now = new Date()) {
+  const day = new Date(`${ymd(now)}T12:00:00Z`);
+  const monday = new Date(day); monday.setUTCDate(day.getUTCDate() - ((day.getUTCDay() + 6) % 7));
+  const d = ymd(new Date(iso));
+  return d >= monday.toISOString().slice(0, 10) && d <= ymd(now);
+}
+
+/**
+ * Atividade estilo GitHub: uma célula por dia nas últimas `weeks` semanas (colunas de domingo a sábado),
+ * com quantas publicações saíram em cada dia (no fuso de São Paulo) e o nível de cor (0 a 4).
+ */
+export function activity(dates: string[], now = new Date(), weeks = 53) {
+  const per = new Map<string, number>();
+  for (const iso of dates) { const k = ymd(new Date(iso)); per.set(k, (per.get(k) ?? 0) + 1); }
+  const today = new Date(`${ymd(now)}T12:00:00Z`);
+  const start = new Date(today); start.setUTCDate(today.getUTCDate() - today.getUTCDay() - (weeks - 1) * 7);   // domingo da primeira coluna
+  const level = (n: number) => (n <= 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n < 5 ? 3 : 4);
+  const cols: { date: string; n: number; level: number; future: boolean }[][] = [];
+  for (let w = 0; w < weeks; w++) {
+    const col = [];
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(start); day.setUTCDate(start.getUTCDate() + w * 7 + d);
+      const k = day.toISOString().slice(0, 10), n = per.get(k) ?? 0;
+      col.push({ date: k, n, level: level(n), future: day > today });
+    }
+    cols.push(col);
+  }
+  const months = cols.map((c, i) => { const m = c[0].date.slice(5, 7); return i === 0 || cols[i - 1][0].date.slice(5, 7) !== m ? Number(m) : 0; });
+  const active = [...per.keys()].filter((k) => k >= cols[0][0].date).length;
+  return { cols, months, active };
+}

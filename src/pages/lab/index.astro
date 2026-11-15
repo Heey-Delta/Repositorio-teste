@@ -1,17 +1,18 @@
 ---
-// Experimental Lab: página inicial em forma de feed.
-// Ordem: título, imagem, busca e categorias > Publicado hoje (3 e meio) > Volumes (o caminho principal, cards
-// maiores, 40/40/20) > Top hypados (as mais curtidas, 3 e 1/3) > Este mês > Todas (lista que carrega sozinha).
-// Renderizada no servidor e guardada na CDN por 2 minutos: "hoje", "este mês" e as curtidas ficam sempre em dia,
-// sem um novo deploy. Imagens fora da tela só carregam quando chegam perto (loading="lazy").
+// Experimental Lab: página inicial.
+// Ordem: título, imagem, busca e categorias > /Vol (os volumes, do mais recente para o mais antigo, com a soma dos
+// raios de cada um) > /Week (o que saiu nesta semana) > /Metrics (total de registros, total de raios e a atividade
+// por dia, no estilo do GitHub) > /Biblioteca (todos os registros, uma fileira por categoria, 5 por tela).
+// Renderizada no servidor e guardada na CDN por 2 minutos: semana, métricas e curtidas ficam sempre em dia.
 import '../../styles/lab-feed.css';
 import Lab from '../../layouts/Lab.astro';
 import LabIcon from '../../components/lab/LabIcon.astro';
 import Rail from '../../components/lab/Rail.astro';
 import FeedCard from '../../components/lab/FeedCard.astro';
 import VolumeCard from '../../components/lab/VolumeCard.astro';
+import Bolt from '../../components/lab/Bolt.astro';
 import { getCatalogPublic } from '../../lib/lab-public';
-import { liveCards, publishedVolumes, topLiked, isToday, isThisMonth } from '../../lib/lab-feed';
+import { liveCards, publishedVolumes, isThisWeek, activity } from '../../lib/lab-feed';
 import { LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 export const prerender = false;
@@ -23,15 +24,16 @@ const [{ departments }, all, volumes] = await Promise.all([
   hasDb ? liveCards() : Promise.resolve([]),
   hasDb ? publishedVolumes() : Promise.resolve([]),
 ]);
-const PAGE = 12;
 const now = new Date();
-const hype = topLiked(all, 12);
-const today = all.filter((c) => isToday(c.date, now));
-const month = all.filter((c) => !isToday(c.date, now) && isThisMonth(c.date, now));
-const first = all.slice(0, PAGE);
+const week = all.filter((c) => isThisWeek(c.date, now));
 const perDept = (slug: string) => all.filter((c) => c.dept === slug).length;
-const monthName = now.toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
-const todayName = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' });
+const totalLikes = all.reduce((n, c) => n + c.likes, 0);
+const act = activity(all.map((c) => c.date), now);
+const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const dayLabel = (iso: string, n: number) => `${n ? `${n} ${n === 1 ? 'registro' : 'registros'}` : 'Nenhum registro'} em ${new Date(`${iso}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).replace(/\./g, '')}`;
+// biblioteca: uma fileira por categoria (só as que têm registros), na ordem das categorias
+const library = departments.map((d) => ({ d, items: all.filter((c) => c.dept === d.slug) })).filter((r) => r.items.length);
+const fmtN = (n: number) => n.toLocaleString('pt-BR');
 
 const personId = new URL('/#hallan', Astro.site).href;
 const jsonld = [{
@@ -43,13 +45,13 @@ const jsonld = [{
   ...(all.length ? { mainEntity: { '@type': 'ItemList', itemListElement: all.slice(0, 20).map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(c.url, Astro.site).href, name: c.title })) } } : {}),
 }];
 ---
-<Lab title="Experimentos, ensaios e pesquisas" description={LAB_DESCRIPTION} depth={1} noindex={!all.length} jsonld={jsonld}>
-  <!-- TOPO: título, imagem do laboratório, busca e categorias (gerais; o caminho principal são os volumes) -->
+<Lab title="Experimentos, ensaios e pesquisas" description={LAB_DESCRIPTION} depth={1} noindex={!all.length && !volumes.length} jsonld={jsonld}>
+  <!-- TOPO: título, imagem do laboratório, busca e categorias -->
   <section class="lf-top" aria-labelledby="lab-title">
     <div class="wrap grid grid-cols-[minmax(0,1fr)] gap-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-12 lg:py-12">
       <div class="flex min-w-0 flex-col gap-5 lg:gap-6">
         <h1 id="lab-title" class="lf-title">/Experimental <span class="text-accent">Lab</span></h1>
-        <p class="m-0 max-w-[460px] text-[15px] text-muted lg:text-base">Experimentos, ensaios e pesquisas sobre design, tecnologia e percepção. Os volumes reúnem os textos por assunto, na ordem de leitura.</p>
+        <p class="m-0 max-w-[460px] text-[15px] text-muted lg:text-base">Experimentos, ensaios e pesquisas sobre design, tecnologia e percepção. Cada volume é uma coletânea: textos, dados e experiências sobre um mesmo assunto.</p>
         <button type="button" class="lf-search" data-open-search aria-controls="labSearch">
           <LabIcon name="search" class="size-5 shrink-0" />
           <span>Buscar por assunto, título ou #tag</span>
@@ -69,92 +71,69 @@ const jsonld = [{
     </div>
   </section>
 
-  {!all.length && (
-    <section class="lf-sec">
-      <div class="wrap flex flex-col items-start gap-3">
-        <h2 class="lf-h2">/Em breve</h2>
-        <p class="m-0 max-w-[480px] text-[15px] text-muted">Os primeiros experimentos e notas estão sendo escritos. Enquanto isso, veja os trabalhos no portfólio.</p>
-        <a href="/#works" class="lf-more">Ver os trabalhos</a>
+  <!-- /VOL: volumes, do mais recente para o mais antigo -->
+  <section class="lf-sec" aria-labelledby="vol-title">
+    <div class="wrap">
+      <div class="lf-head">
+        <div><h2 id="vol-title" class="lf-h2">/Vol</h2><p class="lf-sub">Coletâneas por assunto: textos, dados e experiências, do mais recente para o mais antigo.</p></div>
+        {volumes.length > 0 && <a href="/lab/volumes/" class="lf-more">Ver todos</a>}
       </div>
-    </section>
-  )}
+      {volumes.length > 0
+        ? <Rail size="vol" label="Volumes" loop={volumes.length > 2}>{volumes.map((v, i) => <li class="rail-item"><VolumeCard v={v} eager={i < 2} /></li>)}</Rail>
+        : <p class="lf-empty">O primeiro volume está sendo montado.</p>}
+    </div>
+  </section>
 
-  <!-- PUBLICADO HOJE (acima dos volumes): três e meio por tela -->
-  {today.length > 0 && (
-    <section class="lf-sec" aria-labelledby="today-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><h2 id="today-title" class="lf-h2 lf-h2--sm">/Publicado hoje</h2><p class="lf-sub">{todayName}</p></div>
-        </div>
-        <Rail size="today" label="Publicado hoje" loop={today.length > 3}>
-          {today.map((c, i) => <li class="rail-item"><FeedCard c={c} eager={i < 3} /></li>)}
-        </Rail>
+  <!-- /WEEK: publicados nesta semana -->
+  <section class="lf-sec" aria-labelledby="week-title">
+    <div class="wrap">
+      <div class="lf-head">
+        <div><h2 id="week-title" class="lf-h2 lf-h2--sm">/Week</h2><p class="lf-sub">O que saiu nesta semana.</p></div>
       </div>
-    </section>
-  )}
+      {week.length > 0
+        ? <Rail size="card" label="Publicados nesta semana" loop={week.length > 3}>{week.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}</Rail>
+        : <p class="lf-empty">Nada novo nesta semana ainda. Os registros anteriores estão na biblioteca, logo abaixo.</p>}
+    </div>
+  </section>
 
-  <!-- VOLUMES: coletâneas escolhidas a dedo (os cards maiores da página) -->
-  {volumes.length > 0 && (
-    <section class="lf-sec" aria-labelledby="vol-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><h2 id="vol-title" class="lf-h2">/Volumes</h2><p class="lf-sub">Textos reunidos por assunto, na ordem de leitura.</p></div>
-          <a href="/lab/volumes/" class="lf-more">Ver todos</a>
-        </div>
-        <Rail size="vol" label="Volumes" loop={volumes.length > 2}>
-          {volumes.map((v, i) => <li class="rail-item"><VolumeCard v={v} eager={i < 2 && !today.length} /></li>)}
-        </Rail>
+  <!-- /METRICS: totais e atividade por dia -->
+  <section class="lf-sec" aria-labelledby="metrics-title">
+    <div class="wrap flex flex-col gap-6">
+      <div class="lf-head" style="margin:0">
+        <div><h2 id="metrics-title" class="lf-h2 lf-h2--sm">/Metrics</h2><p class="lf-sub">O ritmo do laboratório.</p></div>
       </div>
-    </section>
-  )}
-
-  <!-- TOP HYPADOS: as publicações mais curtidas, na ordem do ranking -->
-  {hype.length > 0 && (
-    <section class="lf-sec" aria-labelledby="hype-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><h2 id="hype-title" class="lf-h2 lf-h2--sm">/Top hypados</h2><p class="lf-sub">As mais curtidas.</p></div>
-        </div>
-        <Rail size="card" label="Top hypados" loop={hype.length > 3}>
-          {hype.map((c, i) => <li class="rail-item"><FeedCard c={c} variant="hype" rank={i + 1} /></li>)}
-        </Rail>
-      </div>
-    </section>
-  )}
-
-  <!-- ESTE MÊS -->
-  {month.length > 0 && (
-    <section class="lf-sec" aria-labelledby="month-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><h2 id="month-title" class="lf-h2 lf-h2--sm">/Este mês</h2><p class="lf-sub">{monthName[0].toUpperCase() + monthName.slice(1)}, sem as de hoje.</p></div>
-        </div>
-        <Rail size="card" label="Publicado este mês" loop={month.length > 3}>
-          {month.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}
-        </Rail>
-      </div>
-    </section>
-  )}
-
-  <!-- TODAS: da mais recente para a mais antiga; o resto carrega ao chegar no fim -->
-  {all.length > 0 && (
-    <section class="lf-sec" aria-labelledby="all-title">
-      <div class="wrap">
-        <div class="lf-head">
-          <div><h2 id="all-title" class="lf-h2 lf-h2--sm">/Todas as publicações</h2><p class="lf-sub">{all.length} {all.length === 1 ? 'publicação' : 'publicações'}, da mais nova para a mais antiga.</p></div>
-          <a href="/lab/rss.xml" class="lf-more">RSS</a>
-        </div>
-        <ul class="lf-list" id="feedList" aria-live="polite">
-          {first.map((c) => <FeedCard c={c} variant="row" />)}
-        </ul>
-        {all.length > PAGE && (
-          <div class="lf-load" id="feedMore" data-next={PAGE}>
-            <button type="button">Carregar mais</button>
+      <dl class="lf-stats">
+        <div><dt>Registros</dt><dd>{fmtN(all.length)}</dd></div>
+        <div><dt>Raios</dt><dd class="lf-stat-bolt"><Bolt n={totalLikes} label={`${totalLikes} curtidas somadas`} /></dd></div>
+        <div><dt>Dias com registro</dt><dd>{fmtN(act.active)}<small> no último ano</small></dd></div>
+      </dl>
+      <figure class="lf-heat" aria-labelledby="heat-cap">
+        <div class="lf-heat-scroll" data-heat>
+          <div class="lf-heat-months" aria-hidden="true">{act.months.map((m) => <span>{m ? MONTHS[m - 1] : ''}</span>)}</div>
+          <div class="lf-heat-grid" role="img" aria-label={`Atividade do último ano: ${act.active} dias com registro`}>
+            {act.cols.map((col) => <div class="lf-heat-col">{col.map((c) => <span class:list={['lf-cell', `l${c.level}`, c.future && 'is-future']} title={c.future ? undefined : dayLabel(c.date, c.n)}></span>)}</div>)}
           </div>
-        )}
+        </div>
+        <figcaption id="heat-cap" class="lf-heat-legend"><span>Menos</span><span class="lf-cell l0"></span><span class="lf-cell l1"></span><span class="lf-cell l2"></span><span class="lf-cell l3"></span><span class="lf-cell l4"></span><span>Mais</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- /BIBLIOTECA: todos os registros, uma fileira por categoria (5 por tela) -->
+  <section class="lf-sec" aria-labelledby="lib-title">
+    <div class="wrap flex flex-col gap-8">
+      <div class="lf-head" style="margin:0">
+        <div><h2 id="lib-title" class="lf-h2">/Biblioteca</h2><p class="lf-sub">{all.length ? `Todos os ${fmtN(all.length)} registros, separados por categoria.` : 'Os registros vão aparecer aqui.'}</p></div>
+        <a href="/lab/rss.xml" class="lf-more">RSS</a>
       </div>
-    </section>
-  )}
+      {library.map(({ d, items }) => (
+        <div class="flex flex-col gap-3">
+          <h3 class="lf-row-title"><a href={`/lab/${d.slug}/`}><LabIcon name={d.icon} class="size-4" />{d.name}</a><small>{items.length}</small></h3>
+          <Rail size="lib" label={`Biblioteca: ${d.name}`} loop={items.length > 5}>{items.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}</Rail>
+        </div>
+      ))}
+    </div>
+  </section>
 
   <script is:inline>
     (function () {
@@ -197,32 +176,8 @@ const jsonld = [{
       var openSearch = function () { var b = document.getElementById('labSearchBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); else { var i = document.getElementById('labSearchInput'); if (i) i.focus(); } };
       document.querySelectorAll('[data-open-search]').forEach(function (b) { b.addEventListener('click', openSearch); });
 
-      // ---------- lista infinita: carrega ao chegar perto do fim (ou pelo botão) ----------
-      var more = document.getElementById('feedMore'), list = document.getElementById('feedList');
-      if (!more || !list) return;
-      var busy = false;
-      var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-      var fmt = function (iso) { return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }).replace(/\./g, ''); };
-      var heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.7 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.8 1.1-1.7 2.7-2.8 4.7-2.8 3.4 0 5.7 3.2 4.5 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
-      var row = function (c) {
-        return '<li class="row"><div class="row-media">' + (c.cover ? '<img src="' + esc(c.cover.url) + '" alt="" loading="lazy" decoding="async">' : '') + '</div>'
-          + '<div class="min-w-0"><h3 class="row-title"><a href="' + esc(c.url) + '" class="pc-link">' + esc(c.title) + '</a></h3>'
-          + (c.summary ? '<p class="row-sum">' + esc(c.summary) + '</p>' : '')
-          + '<p class="row-meta">' + esc(c.deptName) + ' · <time datetime="' + esc(c.date) + '">' + fmt(c.date) + '</time></p></div>'
-          + '<button type="button" class="like" data-like="' + esc(c.id) + '" aria-pressed="false" aria-label="Curtir: ' + c.likes + '">' + heart + '<span data-like-count>' + c.likes + '</span></button></li>';
-      };
-      var load = function () {
-        if (busy || !more.dataset.next) return;
-        busy = true; var bt = more.querySelector('button'); bt.textContent = 'Carregando'; bt.setAttribute('aria-busy', 'true');
-        fetch('/api/lab/lista?offset=' + more.dataset.next + '&limit=12').then(function (r) { return r.json(); }).then(function (d) {
-          list.insertAdjacentHTML('beforeend', d.items.map(row).join(''));
-          if (window.labLikes) window.labLikes.sync(d.items.map(function (c) { return c.id; }));
-          if (d.next == null) { more.remove(); io && io.disconnect(); } else { more.dataset.next = d.next; more.querySelector('button').textContent = 'Carregar mais'; }
-        }).catch(function () { more.querySelector('button').textContent = 'Não carregou. Tentar de novo'; }).finally(function () { busy = false; var b2 = more.querySelector('button'); if (b2) b2.removeAttribute('aria-busy'); });
-      };
-      more.querySelector('button').addEventListener('click', load);
-      var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { if (es[0].isIntersecting) load(); }, { rootMargin: '600px 0px' }) : null;
-      if (io) io.observe(more);
+      // ---------- atividade: no celular, abre mostrando as semanas mais recentes (à direita) ----------
+      document.querySelectorAll('[data-heat]').forEach(function (h) { h.scrollLeft = h.scrollWidth; });
     })();
   </script>
 </Lab>

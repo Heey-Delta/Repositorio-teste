@@ -3,29 +3,14 @@
 //  - Stacks: bolinhas com a logo de cada tecnologia, soltas numa caixa com gravidade. Dá para pegar, arrastar e jogar;
 //    um clique (sem arrastar) abre um card com os detalhes. Logos do pacote simple-icons (embutidas no build).
 //  - Cursos: cards numa rolagem infinita (a lista se repete sem fim), que anda sozinha devagar e para quando a pessoa mexe.
-// Edite as listas `stacks` e `courses` abaixo. O "&" do título fica num <span class="amp">.
-import { siClaude, siAstro, siTailwindcss, siThreedotjs, siJavascript, siTypescript, siHtml5, siCss3, siFigma, siGit } from 'simple-icons';
-const stacks = [
-  { icon: siAstro, name: 'Astro', kind: 'Framework', desc: 'Gera sites estáticos rápidos, mandando só o JavaScript que a página precisa.', use: 'Base deste site: páginas, componentes e o build.' },
-  { icon: siTailwindcss, name: 'Tailwind CSS', kind: 'Estilo', desc: 'CSS com classes utilitárias, direto no HTML, sem arquivos de estilo gigantes.', use: 'Todo o visual brutalista do site e dos projetos.' },
-  { icon: siThreedotjs, name: 'Three.js', kind: '3D', desc: 'Biblioteca de 3D em WebGL para criar cenas interativas no navegador.', use: 'A cidade isométrica do Fly Presentations: modelos, luz, sombras e animações.' },
-  { icon: siJavascript, name: 'JavaScript', kind: 'Linguagem', desc: 'A linguagem da web: interações, animações e lógica no navegador.', use: 'Interações, física destas bolinhas e os widgets.' },
-  { icon: siTypescript, name: 'TypeScript', kind: 'Linguagem', desc: 'JavaScript com tipos, para código mais seguro e fácil de manter.', use: 'Componentes e projetos maiores.' },
-  { icon: siHtml5, name: 'HTML', kind: 'Estrutura', desc: 'A estrutura de toda página: conteúdo, semântica e acessibilidade.', use: 'Marcação semântica e acessível em todos os projetos.' },
-  { icon: siCss3, name: 'CSS', kind: 'Estilo', desc: 'Layout, cores, tipografia e animações das páginas.', use: 'Animações, glitch, glassmorphism e responsividade.' },
-  { icon: siFigma, name: 'Figma', kind: 'Design', desc: 'Ferramenta de design de interfaces, protótipos e design systems.', use: 'Wireframes e layouts antes do código.' },
-  { icon: siGit, name: 'Git', kind: 'Versionamento', desc: 'Controle de versões: histórico, ramificações e trabalho em equipe.', use: 'Todo projeto versionado no GitHub.' },
-];
-const SANTANDER = { hex: 'EC0000', path: 'M12.3 1.5c.5 2 2.6 3.4 3.2 5.6.4 1.3.2 2.6-.4 3.7 2.8.7 6.4 2.4 6.4 5.4 0 3.7-4.4 5.3-9.5 5.3S2.5 19.9 2.5 16.2c0-3 3.6-4.7 6.4-5.4-.3 1.1-.1 2.2.5 3 .1-1.6 1-2.8 2.1-4.2 1.4-1.7 1.9-3.6.8-8.1z' };
-const claude = { hex: siClaude.hex, path: siClaude.path };
-const courses = [
-  { name: 'Storytelling para marketing digital', school: 'Santander', year: 'out. 2026', icon: SANTANDER },
-  { name: 'Claude Platform 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
-  { name: 'Introduction to Claude Cowork', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
-  { name: 'Claude Code 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
-  { name: 'AI Capabilities and Limitations', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
-  { name: 'Claude 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: claude },
-];
+// As listas vêm do admin (/admin/inicio/); sem nada salvo, valem os padrões de src/lib/home-settings.ts.
+import { getHomeSettings } from '../lib/home-settings';
+import { resolveIcon } from '../lib/icons';
+const settings = await getHomeSettings();
+// ícone: marca do Simple Icons ou desenho próprio; sem ícone, a bolinha mostra as iniciais
+const initials = (n: string) => n.split(/\s+/).map((w) => w[0]).join('').slice(0, 3).toUpperCase();
+const stacks = settings.stacks.map((s) => ({ ...s, icon: resolveIcon(s.icon) }));
+const courses = settings.courses.map((c) => ({ ...c, icon: resolveIcon(c.icon, c.color) }));
 const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line lg:h-[480px]';
 ---
 <section id="stacks" class="border-b border-line" aria-labelledby="stacks-title">
@@ -43,7 +28,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
           <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--accent)_30%,transparent),color-mix(in_oklab,var(--accent)_10%,transparent)_45%,transparent_85%)]" aria-hidden="true"></div>
           {stacks.map((s, i) => (
             <button type="button" class="stack-ball absolute top-0 left-0 grid touch-none cursor-grab place-items-center rounded-full border border-line bg-surface text-ink hover:border-accent focus-visible:border-accent active:cursor-grabbing" data-i={i} aria-label={`${s.name}: ver detalhes`} aria-haspopup="dialog">
-              <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg>
+              {s.icon ? <svg viewBox="0 0 24 24" class="pointer-events-none size-[44%]" fill="currentColor" aria-hidden="true"><path d={s.icon.path} /></svg> : <span class="pointer-events-none font-display text-[clamp(12px,30%,20px)] leading-none" aria-hidden="true">{initials(s.name)}</span>}
             </button>
           ))}
           <!-- card de detalhes (abre no clique) -->
@@ -70,7 +55,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
             <ul class="m-0 grid list-none grid-cols-1 gap-2 p-2 pb-0 sm:gap-3 sm:p-3 sm:pb-0 xl:grid-cols-2" aria-hidden={copy === 1 ? 'true' : undefined}>
               {courses.map((c) => (
                 <li class="flex min-h-[120px] flex-col justify-between gap-3 rounded-[16px] border border-line bg-surface p-3 hover:border-accent sm:min-h-[132px] sm:rounded-[12px] sm:p-4">
-                  <svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg>
+                  {c.icon ? <svg class="size-6 shrink-0" viewBox="0 0 24 24" fill={`#${c.icon.hex}`} aria-hidden="true"><path d={c.icon.path}/></svg> : <span class="size-6 shrink-0 rounded-full border border-line" aria-hidden="true"></span>}
                   <div><div class="font-display text-[15px] leading-[1.05] uppercase [overflow-wrap:anywhere] min-[400px]:text-[17px] sm:text-2xl sm:leading-none">{c.name}</div><div class="mt-1.5 flex flex-wrap justify-between gap-x-2 text-xs text-muted tabular-nums sm:text-[13px]"><span>{c.school}</span><span>{c.year}</span></div></div>
                 </li>
               ))}
@@ -87,7 +72,7 @@ const box = 'relative h-[420px] overflow-hidden rounded-3xl border border-line l
   #courseBox::-webkit-scrollbar { display: none; }
   .courses-fade { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
 </style>
-<script define:vars={{ stacks: stacks.map((s) => ({ name: s.name, kind: s.kind, desc: s.desc, use: s.use, path: s.icon.path })) }}>
+<script define:vars={{ stacks: stacks.map((s) => ({ name: s.name, kind: s.kind, desc: s.desc, use: s.use, path: s.icon?.path ?? '' })) }}>
   // ---------- Bolinhas das stacks: gravidade, colisão, arrastar/jogar e clique para o card ----------
   (function () {
     var box = document.getElementById('stackBox'); if (!box) return;

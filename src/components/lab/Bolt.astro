@@ -1,0 +1,6 @@
+---
+// Raio com um número (soma de curtidas): só mostra, não é botão. Ex.: nos cards de volume e nas métricas.
+interface Props { n: number; class?: string; label?: string }
+const { n, class: cls = '', label } = Astro.props;
+---
+<span class:list={['bolt', cls]} aria-label={label ?? `${n} ${n === 1 ? 'curtida' : 'curtidas'}`} role="img"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2.5 4.8 13.4h6.1l-1.1 8.1 8.4-10.9h-6.1l1.1-8.1z"/></svg><span aria-hidden="true">{n}</span></span>

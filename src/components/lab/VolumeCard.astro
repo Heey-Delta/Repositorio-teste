@@ -1,16 +1,18 @@
 ---
-// Card de volume: capa em cima (cinza quando não tem), e embaixo o número, o título e quantos artigos.
+// Card de volume: capa em cima (cinza quando não tem), e embaixo o número, o título, quantos artigos e o total de
+// raios (a soma das curtidas de todas as publicações do volume).
 import type { VolumeCard as V } from '../../lib/lab-feed';
+import Bolt from './Bolt.astro';
 interface Props { v: V; eager?: boolean; href?: string }
 const { v, eager = false, href } = Astro.props;
 const soon = v.posts.length - v.open;
-const meta = [`${v.open} ${v.open === 1 ? 'artigo' : 'artigos'}`, soon ? `${soon} em breve` : ''].filter(Boolean).join(' · ');
+const meta = [`${v.open} ${v.open === 1 ? 'artigo' : 'artigos'}`, soon ? `${soon} em breve` : '', v.experienceUrl ? 'experiência' : ''].filter(Boolean).join(' · ');
 ---
 <a href={href ?? v.url} class="vol">
   <span class="vol-cover">{v.cover && <img src={v.cover.url} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async">}</span>
   <span class="vol-text">
-    <span class="vol-num">Volume {String(v.number).padStart(2, '0')}</span>
+    <span class="vol-num">Vol. {String(v.number).padStart(2, '0')}</span>
     <span class="vol-title">{v.title}</span>
-    <span class="vol-meta">{meta}</span>
+    <span class="vol-meta"><span>{meta}</span><Bolt n={v.likes} label={`${v.likes} ${v.likes === 1 ? 'curtida' : 'curtidas'} no volume`} /></span>
   </span>
 </a>
