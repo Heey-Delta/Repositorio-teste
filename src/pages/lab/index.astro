@@ -1,8 +1,7 @@
 ---
 // Experimental Lab: página inicial.
 // Ordem: título, imagem, busca e categorias > /Vol (os volumes, do mais recente para o mais antigo, com a soma dos
-// raios de cada um) > /Week (o que saiu nesta semana) > /Metrics (total de registros, total de raios e a atividade
-// por dia, no estilo do GitHub) > /Biblioteca (todos os registros, uma fileira por categoria, 5 por tela).
+// raios de cada um) > /Week (o que saiu nesta semana) > /Biblioteca (todos os registros, uma fileira por categoria, 5 por tela).
 // Renderizada no servidor e guardada na CDN por 2 minutos: semana, métricas e curtidas ficam sempre em dia.
 import '../../styles/lab-feed.css';
 import Lab from '../../layouts/Lab.astro';
@@ -10,9 +9,8 @@ import LabIcon from '../../components/lab/LabIcon.astro';
 import Rail from '../../components/lab/Rail.astro';
 import FeedCard from '../../components/lab/FeedCard.astro';
 import VolumeCard from '../../components/lab/VolumeCard.astro';
-import Bolt from '../../components/lab/Bolt.astro';
 import { getCatalogPublic } from '../../lib/lab-public';
-import { liveCards, publishedVolumes, isThisWeek, activity } from '../../lib/lab-feed';
+import { liveCards, publishedVolumes, isThisWeek } from '../../lib/lab-feed';
 import { LAB_NAME, LAB_DESCRIPTION } from '../../lab/data';
 
 export const prerender = false;
@@ -27,10 +25,6 @@ const [{ departments }, all, volumes] = await Promise.all([
 const now = new Date();
 const week = all.filter((c) => isThisWeek(c.date, now));
 const perDept = (slug: string) => all.filter((c) => c.dept === slug).length;
-const totalLikes = all.reduce((n, c) => n + c.likes, 0);
-const act = activity(all.map((c) => c.date), now);
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-const dayLabel = (iso: string, n: number) => `${n ? `${n} ${n === 1 ? 'registro' : 'registros'}` : 'Nenhum registro'} em ${new Date(`${iso}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).replace(/\./g, '')}`;
 // biblioteca: uma fileira por categoria (só as que têm registros), na ordem das categorias
 const library = departments.map((d) => ({ d, items: all.filter((c) => c.dept === d.slug) })).filter((r) => r.items.length);
 const fmtN = (n: number) => n.toLocaleString('pt-BR');
@@ -96,29 +90,6 @@ const jsonld = [{
     </div>
   </section>
 
-  <!-- /METRICS: totais e atividade por dia -->
-  <section class="lf-sec" aria-labelledby="metrics-title">
-    <div class="wrap flex flex-col gap-6">
-      <div class="lf-head" style="margin:0">
-        <div><h2 id="metrics-title" class="lf-h2 lf-h2--sm">/Metrics</h2><p class="lf-sub">O ritmo do laboratório.</p></div>
-      </div>
-      <dl class="lf-stats">
-        <div><dt>Registros</dt><dd>{fmtN(all.length)}</dd></div>
-        <div><dt>Raios</dt><dd class="lf-stat-bolt"><Bolt n={totalLikes} label={`${totalLikes} curtidas somadas`} /></dd></div>
-        <div><dt>Dias com registro</dt><dd>{fmtN(act.active)}<small> no último ano</small></dd></div>
-      </dl>
-      <figure class="lf-heat" aria-labelledby="heat-cap">
-        <div class="lf-heat-scroll" data-heat>
-          <div class="lf-heat-months" aria-hidden="true">{act.months.map((m) => <span>{m ? MONTHS[m - 1] : ''}</span>)}</div>
-          <div class="lf-heat-grid" role="img" aria-label={`Atividade do último ano: ${act.active} dias com registro`}>
-            {act.cols.map((col) => <div class="lf-heat-col">{col.map((c) => <span class:list={['lf-cell', `l${c.level}`, c.future && 'is-future']} title={c.future ? undefined : dayLabel(c.date, c.n)}></span>)}</div>)}
-          </div>
-        </div>
-        <figcaption id="heat-cap" class="lf-heat-legend"><span>Menos</span><span class="lf-cell l0"></span><span class="lf-cell l1"></span><span class="lf-cell l2"></span><span class="lf-cell l3"></span><span class="lf-cell l4"></span><span>Mais</span></figcaption>
-      </figure>
-    </div>
-  </section>
-
   <!-- /BIBLIOTECA: todos os registros, uma fileira por categoria (5 por tela) -->
   <section class="lf-sec" aria-labelledby="lib-title">
     <div class="wrap flex flex-col gap-8">
@@ -176,8 +147,6 @@ const jsonld = [{
       var openSearch = function () { var b = document.getElementById('labSearchBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); else { var i = document.getElementById('labSearchInput'); if (i) i.focus(); } };
       document.querySelectorAll('[data-open-search]').forEach(function (b) { b.addEventListener('click', openSearch); });
 
-      // ---------- atividade: no celular, abre mostrando as semanas mais recentes (à direita) ----------
-      document.querySelectorAll('[data-heat]').forEach(function (h) { h.scrollLeft = h.scrollWidth; });
     })();
   </script>
 </Lab>

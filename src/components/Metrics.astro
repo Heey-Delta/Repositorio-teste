@@ -1,0 +1,69 @@
+---
+// /Metrics: o ritmo do laboratório logo depois dos projetos. Total de registros (tudo o que foi publicado no Lab),
+// total de raios (as curtidas somadas) e dias com registro, mais a atividade por dia no último ano, no estilo do
+// GitHub: cinza sem registro, amarelo claro com 1, mais forte com 2, e amarelo vibrante a partir de 5.
+// A página inicial é estática: o quadro é montado no build (que roda a cada publicação) e os números são
+// atualizados ao abrir a página (/api/lab/metricas), para as curtidas ficarem sempre em dia.
+import { labMetrics } from '../lib/metrics';
+const { posts, likes, active, act } = await labMetrics();
+const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const fmtN = (n: number) => n.toLocaleString('pt-BR');
+const dayLabel = (iso: string, n: number) => `${n ? `${n} ${n === 1 ? 'registro' : 'registros'}` : 'Nenhum registro'} em ${new Date(`${iso}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).replace(/\./g, '')}`;
+const card = 'flex flex-col gap-1.5 rounded-[20px] border border-line bg-[#0d0d0d] px-4 py-4 lg:px-6 lg:py-5';
+const dt = 'label-ui text-[11px] text-muted';
+const dd = 'm-0 font-display text-[clamp(36px,9vw,72px)] leading-none tabular-nums';
+---
+<section id="metrics" class="border-b border-line" aria-labelledby="metrics-title">
+  <div class="wrap flex flex-col gap-6 py-8 lg:gap-8 lg:py-16">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+      <h2 id="metrics-title" class="font-display text-[clamp(32px,9vw,56px)] leading-none uppercase lg:text-[72px]">/Metrics</h2>
+      <p class="max-w-[420px] text-[13px] text-muted lg:text-[15px]">O ritmo do meu laboratório: tudo o que já publiquei, as curtidas que recebi e quantos dias passei escrevendo e testando ideias.</p>
+    </div>
+    <dl class="m-0 grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4" data-metrics>
+      <div class={card}><dt class={dt}>Registros</dt><dd class={dd} data-m="posts">{fmtN(posts)}</dd></div>
+      <div class={card}><dt class={dt}>Raios</dt><dd class={`${dd} flex items-center gap-2`}><svg viewBox="0 0 24 24" class="size-[.62em] shrink-0 fill-[#3B82F6]" aria-hidden="true"><path d="M13.2 2.5 4.8 13.4h6.1l-1.1 8.1 8.4-10.9h-6.1l1.1-8.1z"/></svg><span data-m="likes">{fmtN(likes)}</span></dd></div>
+      <div class:list={[card, 'col-span-2 lg:col-span-1']}><dt class={dt}>Dias com registro</dt><dd class={dd}><span data-m="active">{fmtN(active)}</span><small class="ml-2 font-sans text-[12px] text-muted">no último ano</small></dd></div>
+    </dl>
+    <figure class="m-0 flex flex-col gap-3 rounded-[20px] border border-line bg-[#0d0d0d] p-4 lg:p-6" aria-labelledby="heat-cap">
+      <div class="heat-scroll overflow-x-auto" data-heat>
+        <div class="heat-months" aria-hidden="true">{act.months.map((m) => <span>{m ? MONTHS[m - 1] : ''}</span>)}</div>
+        <div class="heat-grid" role="img" aria-label={`Atividade do último ano: ${active} dias com registro`}>
+          {act.cols.map((col) => <div class="heat-col">{col.map((c) => <span class:list={['heat-cell', `l${c.level}`, c.future && 'is-future']} title={c.future ? undefined : dayLabel(c.date, c.n)}></span>)}</div>)}
+        </div>
+      </div>
+      <figcaption id="heat-cap" class="flex flex-wrap items-center justify-between gap-3 text-[11px] text-muted">
+        <span>Cada quadrado é um dia. Quanto mais amarelo, mais registros naquele dia.</span>
+        <span class="flex items-center gap-1"><span class="mr-1">Menos</span><span class="heat-cell l0"></span><span class="heat-cell l1"></span><span class="heat-cell l2"></span><span class="heat-cell l3"></span><span class="heat-cell l4"></span><span class="ml-1">Mais</span></span>
+      </figcaption>
+    </figure>
+    <a href="lab/" class="link-ui self-start text-[11px] lg:text-xs">Ver tudo no laboratório</a>
+  </div>
+</section>
+<style is:global>
+  .heat-scroll { scrollbar-width: thin; }
+  .heat-months, .heat-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; gap: 3px; width: max-content; }
+  .heat-months span { height: 14px; font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .heat-col { display: grid; grid-template-rows: repeat(7, 13px); gap: 3px; }
+  .heat-cell { display: block; width: 13px; height: 13px; border-radius: 3px; background: #1d1d1d; }
+  .heat-cell.l1 { background: #fff1b8; }
+  .heat-cell.l2 { background: #ffe27a; }
+  .heat-cell.l3 { background: #ffd23d; }
+  .heat-cell.l4 { background: #FBBF00; box-shadow: 0 0 6px rgb(251 191 0 / .55); }
+  .heat-cell.is-future { visibility: hidden; }
+  /* no computador, o quadro ocupa a largura toda (quadrados que crescem junto) */
+  @media (min-width: 1024px) { .heat-months, .heat-grid { width: 100%; grid-auto-columns: minmax(0, 1fr); gap: 4px; } .heat-col { grid-template-rows: repeat(7, auto); gap: 4px; } .heat-cell { width: 100%; height: auto; aspect-ratio: 1; border-radius: 4px; } }
+</style>
+<script is:inline>
+  (function () {
+    // o quadro abre mostrando as semanas mais recentes (à direita), e os números são atualizados ao vivo
+    document.querySelectorAll('[data-heat]').forEach(function (h) { h.scrollLeft = h.scrollWidth; });
+    var box = document.querySelector('[data-metrics]'); if (!box || !window.fetch) return;
+    var load = function () {
+      fetch('/api/lab/metricas').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        if (!d) return;
+        ['posts', 'likes', 'active'].forEach(function (k) { var el = box.querySelector('[data-m="' + k + '"]'); if (el && typeof d[k] === 'number') el.textContent = d[k].toLocaleString('pt-BR'); });
+      }).catch(function () {});
+    };
+    if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (e) { if (e[0].isIntersecting) { io.disconnect(); load(); } }, { rootMargin: '400px 0px' }); io.observe(box); } else load();
+  })();
+</script>

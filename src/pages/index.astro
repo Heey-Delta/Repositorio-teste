@@ -11,6 +11,7 @@ import Services from '../components/Services.astro';
 import Process from '../components/Process.astro';
 import Faq from '../components/Faq.astro';
 import Lab from '../components/Lab.astro';
+import Metrics from '../components/Metrics.astro';
 import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 import DevPanel from '../components/DevPanel.astro';
@@ -79,6 +80,7 @@ const jsonld = [
   <main>
     <Hero />
     <Works />
+    <Metrics />
     <Lab />
     <Stacks />
     <About />
@@ -93,7 +95,7 @@ const jsonld = [
     // quando chega a 12% da altura visível. Sem IntersectionObserver ou com "reduzir movimento", tudo aparece direto.
     (function () {
       if (!window.IntersectionObserver || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var sel = ['#works > div > div:first-child', '#stacks h2', '#process h2', '#process h2 ~ p', '#process .proc-deck', '#contact h2', '#contact h2 ~ p', '#contactForm'];
+      var sel = ['#works > div > div:first-child', '#metrics h2', '#metrics dl', '#metrics figure', '#stacks h2', '#process h2', '#process h2 ~ p', '#process .proc-deck', '#contact h2', '#contact h2 ~ p', '#contactForm'];
       sel.forEach(function (s) { document.querySelectorAll(s).forEach(function (el, i) { el.classList.add('rv'); if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', (i * 80) + 'ms'); }); });
       var els = [].slice.call(document.querySelectorAll('main .rv'));
       els.forEach(function (el) { if (el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); });
