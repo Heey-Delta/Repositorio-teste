@@ -28,11 +28,11 @@ const sources = open.map((p) => {
 const words = open.reduce((n, p) => { const e = entries.find((x) => x.postId === p.id); return n + (e ? countWords(e.body) : 0); }, 0);
 const nData = sources.reduce((n, x) => n + x.data.length, 0), nRefs = sources.reduce((n, x) => n + x.refs.length, 0);
 const url = new URL(v.url, Astro.site).href;
-const description = v.summary || `Volume ${v.number} do Experimental Lab: ${open.length} ${open.length === 1 ? 'artigo' : 'artigos'} sobre ${v.title.toLowerCase()}.`;
+const description = v.summary || `Volume ${v.number} do Laboratório Experimental: ${open.length} ${open.length === 1 ? 'artigo' : 'artigos'} sobre ${v.title.toLowerCase()}.`;
 const jsonld = [{
   '@context': 'https://schema.org', '@type': 'CollectionPage', '@id': url, url, name: v.title, headline: `Vol. ${v.number}: ${v.title}`,
   description, inLanguage: 'pt-BR', dateModified: v.updated,
-  isPartOf: { '@type': 'CollectionPage', name: 'Experimental Lab', url: new URL('/lab/', Astro.site).href },
+  isPartOf: { '@type': 'CollectionPage', name: 'Laboratório Experimental', url: new URL('/lab/', Astro.site).href },
   author: { '@id': new URL('/#hallan', Astro.site).href },
   ...(v.cover ? { image: new URL(v.cover.url, Astro.site).href } : {}),
   mainEntity: { '@type': 'ItemList', numberOfItems: open.length, itemListOrder: 'https://schema.org/ItemListOrderAscending',

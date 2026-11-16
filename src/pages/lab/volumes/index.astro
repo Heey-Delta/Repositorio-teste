@@ -9,7 +9,7 @@ export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=900');
 const volumes = process.env.DATABASE_URL ? await publishedVolumes() : [];
 const jsonld = [{
-  '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Volumes do Experimental Lab', inLanguage: 'pt-BR',
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Volumes do Laboratório Experimental', inLanguage: 'pt-BR',
   url: new URL('/lab/volumes/', Astro.site).href,
   description: 'Coletâneas de experimentos, ensaios e pesquisas do Hallan, organizadas por tema.',
   mainEntity: { '@type': 'ItemList', itemListElement: volumes.map((v, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(v.url, Astro.site).href, name: v.title })) },

@@ -12,7 +12,7 @@ const person = authorLd(Astro.site, author);
 const entries = (await getLabEntries()).filter((e) => !e.data.draft);
 const paragraphs = (author.bio ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 const url = new URL('/lab/autor/', Astro.site).href;
-const description = (paragraphs[0] ?? `${author.name}, ${author.jobTitle ?? 'autor do Experimental Lab'}.`).slice(0, 160);
+const description = (paragraphs[0] ?? `${author.name}, ${author.jobTitle ?? 'autor do Laboratório Experimental'}.`).slice(0, 160);
 // nome legível de cada perfil a partir do endereço (linkedin.com → LinkedIn)
 const known: Record<string, string> = { 'linkedin.com': 'LinkedIn', 'github.com': 'GitHub', 'behance.net': 'Behance', 'dribbble.com': 'Dribbble', 'instagram.com': 'Instagram', 'x.com': 'X', 'twitter.com': 'X', 'youtube.com': 'YouTube', 'medium.com': 'Medium' };
 const links = author.sameAs.map((href) => {
@@ -20,7 +20,7 @@ const links = author.sameAs.map((href) => {
   return { href, name: known[host] ?? (href.startsWith(new URL('/', Astro.site).href) ? 'Portfólio' : host) };
 });
 const jsonld = [{
-  '@context': 'https://schema.org', '@type': 'ProfilePage', url, name: `${author.name} · Experimental Lab`, inLanguage: 'pt-BR',
+  '@context': 'https://schema.org', '@type': 'ProfilePage', url, name: `${author.name} · Laboratório Experimental`, inLanguage: 'pt-BR',
   mainEntity: { ...person, ...(entries.length ? { subjectOf: entries.slice(0, 20).map((e) => ({ '@type': 'Article', headline: e.data.title, url: new URL(`/lab/${e.id}/`, Astro.site).href })) } : {}) },
 }];
 ---
@@ -33,7 +33,7 @@ const jsonld = [{
         <h1 id="author-title" class="m-0 font-display text-[clamp(52px,15vw,72px)] leading-[0.92] uppercase lg:text-[104px]">{author.name}</h1>
         {author.jobTitle && <p class="m-0 text-lg">{author.jobTitle}</p>}
         <div class="flex max-w-[640px] flex-col gap-4 text-[17px] leading-[1.7] text-muted">
-          {paragraphs.length ? paragraphs.map((p) => <p class="m-0">{p}</p>) : <p class="m-0">Escrevo o Experimental Lab: experimentos, pesquisas e notas sobre design, tecnologia e percepção.</p>}
+          {paragraphs.length ? paragraphs.map((p) => <p class="m-0">{p}</p>) : <p class="m-0">Escrevo o Laboratório Experimental: experimentos, pesquisas e notas sobre design, tecnologia e percepção.</p>}
         </div>
         <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
           <a href={`${root}#works`} class="label-ui inline-flex min-h-12 items-center bg-accent px-6 text-xs font-bold text-black hover:brightness-110">Ver os trabalhos</a>

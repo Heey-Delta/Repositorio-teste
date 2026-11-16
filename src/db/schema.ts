@@ -113,7 +113,7 @@ export const posts = pgTable('posts', {
   status: editorialStatus('status').notNull().default('idea'),
   stage: researchStage('stage').notNull().default('concept'),
   level: level('level').notNull().default('Introdutório'),
-  format: text('format'),   // Field Notes: Essay, Observation, Idea, Tutorial, Opinion
+  format: text('format'),   // Notas de campo: Ensaio, Observação, Ideia, Tutorial, Opinião
   relatedProject: text('related_project'),   // slug de um trabalho do portfólio
   responsible: text('responsible'),   // quem cuida da publicação na fila de produção (login ou nome)
   layout: jsonb('layout').$type<Record<string, unknown>>(),   // layout da página e regras de formatação (src/lib/page-layout.ts)

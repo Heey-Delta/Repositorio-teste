@@ -8,7 +8,7 @@
 import Admin from '../../../layouts/Admin.astro';
 import { desc, eq } from 'drizzle-orm';
 import { db, schema as s } from '../../../db/client';
-import { getHomeSettings } from '../../../lib/home-settings';
+import { getHomeSettings, SECTIONS } from '../../../lib/home-settings';
 import { resolveIcon } from '../../../lib/icons';
 export const prerender = false;
 const settings = await getHomeSettings();
@@ -29,7 +29,7 @@ const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] te
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div class="flex flex-col gap-1">
         <h1 class="m-0 text-2xl font-bold">Página inicial</h1>
-        <p class="m-0 max-w-[640px] text-[13px] text-muted">Volumes em destaque, stacks e cursos da página inicial. Ao salvar, o site é gerado de novo e as mudanças aparecem em cerca de 1 minuto.</p>
+        <p class="m-0 max-w-[640px] text-[13px] text-muted">Cada seção da página inicial, na ordem do site. A seta abre os campos da seção; marque "Esconder do site" para tirar a seção (e o link do menu) do site. Ao salvar, o site é gerado de novo e as mudanças aparecem em cerca de 1 minuto.</p>
       </div>
       <div class="flex items-center gap-3">
         <a href="/" target="_blank" rel="noopener" class="text-sm text-muted hover:text-ink">Ver o site ↗</a>
@@ -38,29 +38,54 @@ const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] te
     </div>
     <p id="homeState" class="m-0 -mt-6 min-h-5 text-[13px] text-muted" role="status"></p>
 
-    <section class="flex flex-col gap-4" aria-labelledby="h-vols">
-      <div class="flex flex-col gap-1"><h2 id="h-vols" class="m-0 text-lg font-bold">Volumes em destaque</h2><p class="m-0 text-[13px] text-muted">Aparecem ao lado da cidade 3D, na seção Trabalhos, nesta ordem. Só volumes publicados entram no site. Com menos de 3, as vagas que sobram convidam para um projeto novo.</p></div>
+    <ol class="m-0 flex list-none flex-col gap-3 p-0" aria-label="Seções da página inicial">
+      {SECTIONS.map((sec, i) => (
+        <li class="home-sec rounded-[10px] border border-line" data-sec={sec.id}>
+          <div class="flex items-center gap-3 p-3 lg:p-4">
+            <button type="button" class="sec-toggle grid size-9 shrink-0 cursor-pointer place-items-center rounded-[6px] border border-line hover:border-ink" aria-expanded="false" aria-controls={`sec-${sec.id}`} aria-label={`Mostrar os campos de ${sec.name}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <div class="flex min-w-0 flex-1 flex-col">
+              <span class="text-[15px] font-bold"><span class="mr-2 text-xs font-normal text-muted tabular-nums">{String(i + 1).padStart(2, '0')}</span>{sec.name}<span class="sec-off ml-2 hidden rounded-full border border-[#5a2a2a] px-2 py-0.5 text-[11px] font-normal text-[#ff8a8a]">escondida</span></span>
+              <span class="truncate text-[12px] text-muted">{sec.about}</span>
+            </div>
+            <label class="flex shrink-0 cursor-pointer items-center gap-2 text-[13px] text-muted"><input type="checkbox" class="size-4 accent-[var(--accent)]" data-hide={sec.id} checked={(settings.hidden as string[]).includes(sec.id)}>Esconder do site</label>
+          </div>
+          <div id={`sec-${sec.id}`} class="sec-body flex flex-col gap-8 border-t border-line p-4 lg:p-5" hidden>
+            {sec.id === 'works' && (
+              <div class="flex flex-col gap-4">
+
+      <div class="flex flex-col gap-1"><h3 id="h-vols" class="m-0 text-base font-bold">Volumes em destaque</h3><p class="m-0 text-[13px] text-muted">Aparecem ao lado da cidade 3D, na seção Trabalhos, nesta ordem. Só volumes publicados entram no site. Com menos de 3, as vagas que sobram convidam para um projeto novo.</p></div>
       <div class="grid gap-6 lg:grid-cols-2">
         <div class="flex flex-col gap-2"><p class="m-0 text-[12px] text-muted">Em destaque <span id="featCount"></span></p><ol id="featList" class="m-0 flex list-none flex-col gap-2 p-0"></ol></div>
         <div class="flex flex-col gap-2"><p class="m-0 text-[12px] text-muted">Todos os volumes</p><ul id="volList" class="m-0 flex list-none flex-col p-0"></ul></div>
       </div>
-    </section>
-
-    <section class="flex flex-col gap-4" aria-labelledby="h-stacks">
+    
+              </div>
+            )}
+            {sec.id === 'stacks' && (
+              <>
+                <div class="flex flex-col gap-4">
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div class="flex flex-col gap-1"><h2 id="h-stacks" class="m-0 text-lg font-bold">Stacks <span class="text-muted" id="stackCount"></span></h2><p class="m-0 max-w-[640px] text-[13px] text-muted">As bolinhas que caem na caixa. Ícone: o nome da marca no <a href="https://simpleicons.org/" target="_blank" rel="noopener" class="underline hover:text-ink">Simple Icons</a> (ex.: <code>react</code>, <code>python</code>, <code>nextdotjs</code>) ou o desenho de um ícone 24×24 (o "d" do path, começa com M). Sem ícone, a bolinha mostra as iniciais.</p></div>
+        <div class="flex flex-col gap-1"><h3 id="h-stacks" class="m-0 text-base font-bold">Stacks <span class="text-muted" id="stackCount"></span></h3><p class="m-0 max-w-[640px] text-[13px] text-muted">As bolinhas que caem na caixa. Ícone: o nome da marca no <a href="https://simpleicons.org/" target="_blank" rel="noopener" class="underline hover:text-ink">Simple Icons</a> (ex.: <code>react</code>, <code>python</code>, <code>nextdotjs</code>) ou o desenho de um ícone 24×24 (o "d" do path, começa com M). Sem ícone, a bolinha mostra as iniciais.</p></div>
         <button type="button" id="stackAdd" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">+ Nova stack</button>
       </div>
       <ol id="stackList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
-    </section>
-
-    <section class="flex flex-col gap-4" aria-labelledby="h-courses">
+    </div>
+                <div class="flex flex-col gap-4">
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div class="flex flex-col gap-1"><h2 id="h-courses" class="m-0 text-lg font-bold">Cursos <span class="text-muted" id="courseCount"></span></h2><p class="m-0 text-[13px] text-muted">Os cards da rolagem infinita, ao lado das stacks. O ícone segue a mesma regra; a cor é opcional (ex.: #EC0000).</p></div>
+        <div class="flex flex-col gap-1"><h3 id="h-courses" class="m-0 text-base font-bold">Cursos <span class="text-muted" id="courseCount"></span></h3><p class="m-0 text-[13px] text-muted">Os cards da rolagem infinita, ao lado das stacks. O ícone segue a mesma regra; a cor é opcional (ex.: #EC0000).</p></div>
         <button type="button" id="courseAdd" class="min-h-10 cursor-pointer rounded-[6px] border border-line px-4 text-sm hover:border-ink">+ Novo curso</button>
       </div>
       <ol id="courseList" class="m-0 flex list-none flex-col gap-3 p-0"></ol>
-    </section>
+    </div>
+              </>
+            )}
+            {sec.id !== 'works' && sec.id !== 'stacks' && <p class="m-0 text-[13px] text-muted">Esta seção ainda não tem campos editáveis aqui. Os textos dela ficam no código; me peça e eu trago para cá.</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
   </div>
   <script is:inline define:vars={{ field }}>
     (function () {
@@ -145,7 +170,7 @@ const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] te
 
       var clean = function (arr, keys) { return arr.map(function (x) { var o = {}; keys.forEach(function (k) { o[k] = (x[k] || '').trim(); }); return o; }); };
       saveBtn.addEventListener('click', function () {
-        var body = { stacks: clean(data.stacks, ['name', 'kind', 'desc', 'use', 'icon']), courses: clean(data.courses, ['name', 'school', 'year', 'icon', 'color']), featuredVolumes: feat };
+        var body = { stacks: clean(data.stacks, ['name', 'kind', 'desc', 'use', 'icon']), courses: clean(data.courses, ['name', 'school', 'year', 'icon', 'color']), featuredVolumes: feat, hidden: [].map.call(document.querySelectorAll('[data-hide]:checked'), function (c) { return c.dataset.hide; }) };
         saveBtn.disabled = true; state.textContent = 'Salvando…'; state.style.color = '';
         fetch('/api/inicio', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
           .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
@@ -159,7 +184,18 @@ const field = 'w-full rounded-[6px] border border-line bg-bg px-3 text-[14px] te
           .then(function () { saveBtn.disabled = false; });
       });
       addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+      // seções: a seta abre e fecha os campos; "Esconder do site" marca a seção como escondida
+      document.querySelectorAll('.home-sec').forEach(function (li) {
+        var t = li.querySelector('.sec-toggle'), body = li.querySelector('.sec-body'), cb = li.querySelector('[data-hide]'), off = li.querySelector('.sec-off');
+        t.addEventListener('click', function () { var open = t.getAttribute('aria-expanded') !== 'true'; t.setAttribute('aria-expanded', String(open)); body.hidden = !open; });
+        var paint = function () { off.classList.toggle('hidden', !cb.checked); li.classList.toggle('opacity-60', cb.checked); };
+        cb.addEventListener('change', function () { paint(); mark(); }); paint();
+      });
       drawVols(); drawList('stack'); drawList('course');
     })();
   </script>
 </Admin>
+<style is:global>
+  .sec-toggle svg { transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+  .sec-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+</style>

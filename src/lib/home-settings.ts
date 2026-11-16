@@ -1,5 +1,5 @@
-// Configurações da página inicial editáveis no admin (/admin/inicio/): stacks (as bolinhas), cursos e os volumes
-// em destaque ao lado da cidade. Ficam na tabela site_settings; sem nada salvo, valem os padrões abaixo.
+// Configurações da página inicial editáveis no admin (/admin/inicio/): seções escondidas, stacks (as bolinhas),
+// cursos e os volumes em destaque ao lado da cidade. Ficam na tabela site_settings; sem nada salvo, valem os padrões abaixo.
 // Salvar gera o site de novo (a página inicial é estática).
 import { z } from 'astro/zod';
 import { inArray } from 'drizzle-orm';
@@ -20,10 +20,26 @@ export const courseInput = z.object({
   icon: z.string().trim().max(4000).default(''),
   color: z.string().trim().max(7).default(''),
 });
+/** Seções da página inicial, na ordem em que aparecem (o topo não pode ser escondido). */
+export const SECTIONS = [
+  { id: 'works', name: 'Trabalhos', about: 'A cidade 3D, os projetos e os volumes em destaque.' },
+  { id: 'metrics', name: 'Métricas', about: 'Registros, raios e a atividade por dia.' },
+  { id: 'lab', name: 'Laboratório', about: 'O card amarelo que leva ao laboratório.' },
+  { id: 'stacks', name: 'Ferramentas & Cursos', about: 'As bolinhas das ferramentas e a lista de cursos.' },
+  { id: 'about', name: 'Sobre', about: '"Cada página precisa dizer em 5 segundos o que você faz."' },
+  { id: 'services', name: 'Serviços', about: 'Os três combos.' },
+  { id: 'process', name: 'Processo', about: 'Os slides das cinco etapas.' },
+  { id: 'faq', name: 'Dúvidas', about: 'As perguntas frequentes.' },
+  { id: 'contact', name: 'Contato', about: 'O formulário e o e-mail.' },
+] as const;
+export type SectionId = (typeof SECTIONS)[number]['id'];
+const sectionIds = SECTIONS.map((s) => s.id) as [SectionId, ...SectionId[]];
+
 export const homeInput = z.object({
   stacks: z.array(stackInput).max(40),
   courses: z.array(courseInput).max(60),
   featuredVolumes: z.array(z.uuid()).max(30),
+  hidden: z.array(z.enum(sectionIds)).max(20).default([]),
 });
 export type HomeSettings = z.infer<typeof homeInput>;
 
@@ -49,8 +65,9 @@ export const DEFAULTS: HomeSettings = {
     { name: 'Claude 101', school: 'Anthropic · Claude Academy', year: 'set. 2026', icon: 'claude', color: '' },
   ],
   featuredVolumes: [],
+  hidden: [],
 };
-const KEYS = { stacks: 'home.stacks', courses: 'home.courses', featuredVolumes: 'home.featuredVolumes' } as const;
+const KEYS = { stacks: 'home.stacks', courses: 'home.courses', featuredVolumes: 'home.featuredVolumes', hidden: 'home.hidden' } as const;
 
 /** Configurações salvas (ou os padrões). Sem banco (build local), devolve os padrões. */
 export async function getHomeSettings(): Promise<HomeSettings> {
@@ -58,7 +75,7 @@ export async function getHomeSettings(): Promise<HomeSettings> {
   try {
     const rows = await db().select().from(s.siteSettings).where(inArray(s.siteSettings.key, Object.values(KEYS)));
     const get = <T,>(k: string, d: T) => (rows.find((r) => r.key === k)?.value as T | undefined) ?? d;
-    return { stacks: get(KEYS.stacks, DEFAULTS.stacks), courses: get(KEYS.courses, DEFAULTS.courses), featuredVolumes: get(KEYS.featuredVolumes, DEFAULTS.featuredVolumes) };
+    return { stacks: get(KEYS.stacks, DEFAULTS.stacks), courses: get(KEYS.courses, DEFAULTS.courses), featuredVolumes: get(KEYS.featuredVolumes, DEFAULTS.featuredVolumes), hidden: get(KEYS.hidden, DEFAULTS.hidden) };
   } catch (err) {
     console.warn('[inicio] configurações não lidas, usando os padrões:', (err as Error).message);
     return DEFAULTS;

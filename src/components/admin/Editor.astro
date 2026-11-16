@@ -24,7 +24,7 @@ const data = JSON.stringify({ id, draft, updatedAt, login, cover, attachments, a
   .replace(/</g, '\\u003c');
 const stages = { concept: 'Concept · ideia inicial', 'in-progress': 'In progress · em desenvolvimento', active: 'Active · em investigação', completed: 'Completed · concluído', archived: 'Archived · arquivado' };
 const levels = ['Introdutório', 'Intermediário', 'Aprofundado'];
-const formats = ['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion'];
+const formats = ['Ensaio', 'Observação', 'Ideia', 'Tutorial', 'Opinião'];
 const schemaTypes = ['Article', 'TechArticle', 'BlogPosting', 'CreativeWork', 'Report'];
 const fmt = (d: Date) => d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 const localInput = (iso: string | null | undefined) => {
@@ -287,7 +287,7 @@ const noPressed = ['clear', 'undo', 'redo', 'link'];
         <label class={label}>Nível
           <select name="level" class={`${field} h-11`}>{levels.map((l) => <option selected={l === draft.level}>{l}</option>)}</select>
         </label>
-        <label class={label} id="formatWrap" hidden={dep.slug !== 'field-notes'}>Formato (Field Notes)
+        <label class={label} id="formatWrap" hidden={dep.slug !== 'field-notes'}>Formato (Notas de campo)
           <select name="format" class={`${field} h-11`}>
             <option value="">Sem formato</option>
             {formats.map((f) => <option selected={f === draft.format}>{f}</option>)}

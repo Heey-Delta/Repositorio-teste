@@ -1,5 +1,9 @@
 ---
-const links = [['#works', 'Trabalhos'], ['lab/', 'Laboratório'], ['#stacks', 'Stacks & Cursos'], ['#about', 'Sobre'], ['#services', 'Serviços'], ['#process', 'Processo'], ['#contact', 'Contato']];
+import { getHomeSettings } from '../lib/home-settings';
+const allLinks = [['#works', 'Trabalhos'], ['lab/', 'Laboratório'], ['#stacks', 'Ferramentas & Cursos'], ['#about', 'Sobre'], ['#services', 'Serviços'], ['#process', 'Processo'], ['#contact', 'Contato']];
+// as seções escondidas no admin (Página inicial) saem do menu
+const { hidden } = await getHomeSettings();
+const links = allLinks.filter(([href]) => !href.startsWith('#') || !(hidden as string[]).includes(href.slice(1)));
 ---
 <header class="sticky top-[env(safe-area-inset-top,0px)] z-50 border-b border-line">
   <!-- fundo do cabeçalho: vidro "falso" (quase opaco, com um brilho leve), sem desfoque real, que pesa a cada rolagem -->

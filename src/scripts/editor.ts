@@ -440,7 +440,7 @@ function refreshDerived() {
   $('#metaDescCount').textContent = String(metaDesc.length);
   f('metaTitle').placeholder = title ? `Vazio: "${title.slice(0, 50)}"` : 'Vazio: usa o título';
   $('#serpUrl').textContent = `${data.site.replace(/^https:\/\//, '')} › lab › ${d.slug} › ${f('slug').value || '…'}`;
-  $('#serpTitle').textContent = cut(metaTitle || `${title || 'Sem título'} · Experimental Lab`, 60);
+  $('#serpTitle').textContent = cut(metaTitle || `${title || 'Sem título'} · Laboratório Experimental`, 60);
   $('#serpDesc').textContent = cut(metaDesc || summary || 'Sem descrição: o Google vai escolher um trecho do texto.', 160);
 }
 const cut = (v: string, n: number) => (v.length > n ? `${v.slice(0, n - 1)}…` : v);

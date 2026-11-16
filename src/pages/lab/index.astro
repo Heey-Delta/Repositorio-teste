@@ -44,7 +44,7 @@ const jsonld = [{
   <section class="lf-top" aria-labelledby="lab-title">
     <div class="wrap grid grid-cols-[minmax(0,1fr)] gap-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-12 lg:py-12">
       <div class="flex min-w-0 flex-col gap-5 lg:gap-6">
-        <h1 id="lab-title" class="lf-title">/Experimental <span class="text-accent">Lab</span></h1>
+        <h1 id="lab-title" class="lf-title">/Laboratório <span class="text-accent">Experimental</span></h1>
         <p class="m-0 max-w-[460px] text-[15px] text-muted lg:text-base">Experimentos, ensaios e pesquisas sobre design, tecnologia e percepção. Cada volume é uma coletânea: textos, dados e experiências sobre um mesmo assunto.</p>
         <button type="button" class="lf-search" data-open-search aria-controls="labSearch">
           <LabIcon name="search" class="size-5 shrink-0" />
@@ -69,7 +69,7 @@ const jsonld = [{
   <section class="lf-sec" aria-labelledby="vol-title">
     <div class="wrap">
       <div class="lf-head">
-        <div><h2 id="vol-title" class="lf-h2">/Vol</h2><p class="lf-sub">Coletâneas por assunto: textos, dados e experiências, do mais recente para o mais antigo.</p></div>
+        <div><h2 id="vol-title" class="lf-h2">/Volumes</h2><p class="lf-sub">Coletâneas por assunto: textos, dados e experiências, do mais recente para o mais antigo.</p></div>
         {volumes.length > 0 && <a href="/lab/volumes/" class="lf-more">Ver todos</a>}
       </div>
       {volumes.length > 0
@@ -82,7 +82,7 @@ const jsonld = [{
   <section class="lf-sec" aria-labelledby="week-title">
     <div class="wrap">
       <div class="lf-head">
-        <div><h2 id="week-title" class="lf-h2 lf-h2--sm">/Week</h2><p class="lf-sub">O que saiu nesta semana.</p></div>
+        <div><h2 id="week-title" class="lf-h2 lf-h2--sm">/Semana</h2><p class="lf-sub">O que saiu nesta semana.</p></div>
       </div>
       {week.length > 0
         ? <Rail size="card" label="Publicados nesta semana" loop={week.length > 3}>{week.map((c) => <li class="rail-item"><FeedCard c={c} /></li>)}</Rail>

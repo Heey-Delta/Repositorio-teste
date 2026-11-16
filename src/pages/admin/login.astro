@@ -19,7 +19,7 @@ const error = errors[Astro.url.searchParams.get('erro') ?? ''];
       <a href="/" class="font-display text-[32px] leading-none">/HALLAN</a>
       <div class="flex flex-col gap-2">
         <h1 class="m-0 text-xl font-bold">Entrar no admin</h1>
-        <p class="m-0 text-sm text-muted">Área privada para gerenciar o Experimental Lab.</p>
+        <p class="m-0 text-sm text-muted">Área privada para gerenciar o Laboratório Experimental.</p>
       </div>
       {error && <p role="alert" class="m-0 rounded-[6px] border border-[#ff5a5a] px-4 py-3 text-sm text-[#ff8a8a]">{error}</p>}
       <a href="/api/auth/github" class="flex min-h-12 items-center justify-center gap-3 rounded-[8px] bg-accent px-6 text-sm font-bold text-black hover:brightness-110">

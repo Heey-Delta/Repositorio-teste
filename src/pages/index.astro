@@ -18,6 +18,10 @@ import DevPanel from '../components/DevPanel.astro';
 import Visibility from '../components/Visibility.astro';
 import { getAuthor, authorLd } from '../lib/lab-public';
 import { services, faq } from '../lib/site';
+import { getHomeSettings } from '../lib/home-settings';
+// seções escondidas no admin (Página inicial): não são geradas
+const { hidden } = await getHomeSettings();
+const show = (id: string) => !(hidden as string[]).includes(id);
 
 
 // SEO da página inicial: título e descrição que dizem o que você faz, endereço canônico, imagem de compartilhamento
@@ -57,8 +61,8 @@ const jsonld = [
     <meta property="og:locale" content="pt_BR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content={image}>
-    <link rel="alternate" type="application/rss+xml" title="Experimental Lab · Hallan" href={new URL('/lab/rss.xml', Astro.site).href}>
-    {jsonld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+    <link rel="alternate" type="application/rss+xml" title="Laboratório Experimental · Hallan" href={new URL('/lab/rss.xml', Astro.site).href}>
+    {jsonld.filter((o) => show('faq') || o['@type'] !== 'FAQPage').map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
   </Fragment>
   <script slot="head" is:inline>
     // tela de abertura em toda visita à home
@@ -79,15 +83,15 @@ const jsonld = [
   <Header />
   <main>
     <Hero />
-    <Works />
-    <Metrics />
-    <Lab />
-    <Stacks />
-    <About />
-    <Services />
-    <Process />
-    <Faq />
-    <Contact />
+    {show('works') && <Works />}
+    {show('metrics') && <Metrics />}
+    {show('lab') && <Lab />}
+    {show('stacks') && <Stacks />}
+    {show('about') && <About />}
+    {show('services') && <Services />}
+    {show('process') && <Process />}
+    {show('faq') && <Faq />}
+    {show('contact') && <Contact />}
   </main>
   <Footer />
   <script is:inline>

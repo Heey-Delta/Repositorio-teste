@@ -21,7 +21,7 @@ export const postInput = z.object({
   status: z.enum(['idea', 'draft', 'review', 'scheduled', 'published', 'archived']),
   stage: z.enum(['concept', 'in-progress', 'active', 'completed', 'archived']),
   level: z.enum(['Introdutório', 'Intermediário', 'Aprofundado']),
-  format: z.enum(['Essay', 'Observation', 'Idea', 'Tutorial', 'Opinion']).nullable(),
+  format: z.enum(['Ensaio', 'Observação', 'Ideia', 'Tutorial', 'Opinião']).nullable(),
   code: z.string().trim().nullable().transform((v) => v || null).refine((v) => v === null || CODE.test(v), 'Código no formato EXP-001.'),
   slug: z.string().trim().max(100).regex(SLUG, 'Use letras minúsculas, números e hífens.'),
   areaIds: z.array(z.number().int()).max(8),

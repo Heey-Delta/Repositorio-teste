@@ -17,7 +17,7 @@ const noindex = entries.length === 0 || entries.every((e) => e.data.draft);
 const info = (await getCatalogPublic()).departments.find((d) => d.slug === dep.slug) ?? dep;   // descrições editáveis no Catálogo
 const description = `${dep.name}: ${info.short} ${info.about}`.slice(0, 160);
 const jsonld = [{
-  '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${dep.name} · Experimental Lab`, description,
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${dep.name} · Laboratório Experimental`, description,
   url: new URL(`/lab/${dep.slug}/`, Astro.site).href, inLanguage: 'pt-BR',
 }];
 ---

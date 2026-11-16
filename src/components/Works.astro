@@ -58,6 +58,8 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
         <!-- esqueleto da cidade: o /H (o mesmo do favicon) pulsando até ela carregar -->
         <div class="city-skel" aria-hidden="true"><svg viewBox="12 11 45 42" width="45" height="42"><path fill="var(--accent)" d="M13 52h9l12-40h-9z"/><path fill="#fff" d="M36 12h7v16.5h6V12h7v40h-7V35h-6v17h-7z"/></svg></div>
         <iframe class="city-frame absolute inset-0 block size-full border-0 bg-transparent [color-scheme:light]" id="cityFrame" data-src="widgets/cidade-isometrica/index.html?hold=1&card=out" title="Cidade isométrica 3D interativa com os projetos: pizzaria, cafeteria, restaurante japonês, um lote vago e um parque"></iframe>
+        <!-- aviso: os negócios da cidade (pizzaria, cafeteria, restaurante) não existem, foram criados para estudo -->
+        <p class="pointer-events-none absolute top-4 left-4 z-10 m-0 inline-flex items-center gap-2 rounded-full border border-line bg-bg/85 px-3 py-1.5 text-[12px] text-ink lg:top-6 lg:left-6"><span class="fic-dot size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>Projetos fictícios: negócios criados para estudo</p>
         <div class="pointer-events-none absolute bottom-0 left-0">
           <div class="pointer-events-auto flex flex-col gap-1.5 rounded-tr-3xl border-t border-r border-line bg-bg/90 p-4 lg:p-6">
             <h3 class="font-display text-[28px] leading-none uppercase lg:text-[44px]">Fly Presentations</h3>
@@ -69,6 +71,7 @@ const arrow = 'grid size-11 cursor-pointer place-items-center rounded-full borde
         <aside id="siteCard" class="site-card absolute top-4 right-4 bottom-4 z-20 flex w-[min(320px,calc(100%-32px))] flex-col overflow-hidden rounded-[8px] border border-line bg-bg" aria-label="Site selecionado na cidade" data-open="false" inert>
           <span class="relative block min-h-0 flex-1 overflow-hidden border-b border-line bg-[#111]"><img id="siteCardImg" src="" alt="" width="960" height="600" decoding="async" class="absolute inset-0 size-full object-cover object-left-top" /></span>
           <div class="flex flex-col gap-1.5 p-4 lg:p-5">
+            <p class="m-0 mb-1 inline-flex items-center gap-2 self-start rounded-full border border-line px-2.5 py-1 text-[11px] text-muted"><span class="fic-dot size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>Projeto fictício</p>
             <h3 id="siteCardTitle" class="m-0 font-display text-[26px] leading-none uppercase"></h3>
             <p id="siteCardKind" class="m-0 text-[13px] text-muted"></p>
             <a id="siteCardLink" href="#" class="link-ui mt-2 self-start text-[11px] lg:text-xs">Visitar o site</a>

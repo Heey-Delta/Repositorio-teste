@@ -36,7 +36,7 @@ const index = (await getLabEntries()).map((e) => ({
   k: [...e.data.tags, ...e.data.areas].join(' '),
   u: `${root}lab/${e.data.department}/${e.id.split('/').pop()}/`,
 }));
-const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...departments.map((d) => ({ slug: d.slug, name: d.slug === 'visual-archive' ? 'Archive' : d.name, href: `${root}lab/${d.slug}/` }))];
+const nav = [{ slug: 'overview', name: 'Visão geral', href: `${root}lab/` }, ...departments.map((d) => ({ slug: d.slug, name: d.slug === 'visual-archive' ? 'Acervo' : d.slug === 'open-lab' ? 'Lab aberto' : d.name, href: `${root}lab/${d.slug}/` }))];
 ---
 <Base title={fullTitle} description={description} lang="pt-BR" bodyClass="lab-body" analytics={!noindex} preloadFont>
   <Fragment slot="head">
@@ -96,7 +96,7 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
 
   {crumbs.length > 0 && (
     <nav class="wrap pt-5 text-xs text-muted" aria-label="Você está em">
-      <a href={`${root}lab/`} class="hover:text-accent">Lab</a>
+      <a href={`${root}lab/`} class="hover:text-accent">Laboratório</a>
       {crumbs.map((c, i) => <> <span aria-hidden="true">/</span> {i < crumbs.length - 1 ? <a href={`${root}${c.path.slice(1)}`} class="hover:text-accent">{c.name}</a> : <span class="text-ink">{c.name}</span>}</>)}
     </nav>
   )}
@@ -105,9 +105,9 @@ const nav = [{ slug: 'overview', name: 'Overview', href: `${root}lab/` }, ...dep
 
   <footer class="mt-0 border-t border-line">
     <div class="wrap flex flex-col gap-6 py-8 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-      <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none">/HALLAN</a><span class="text-xs text-muted">Experimental Lab</span></div>
+      <div class="flex items-center gap-4"><a href={root} class="font-display text-[26px] leading-none" aria-label="Hallan, voltar ao site"><span class="text-accent">/</span>HAS</a><span class="text-xs text-muted">Laboratório Experimental do Hallan</span></div>
       <nav class="flex flex-wrap gap-x-5 gap-y-2 text-[13px]" aria-label="Rodapé do laboratório">
-        <a href={`${root}lab/`} class="hover:text-accent">Lab</a>
+        <a href={`${root}lab/`} class="hover:text-accent">Laboratório</a>
         <a href={`${root}lab/autor/`} class="hover:text-accent">Autor</a>
         <a href={`${root}#works`} class="hover:text-accent">Trabalhos</a>
         <a href={`${root}#about`} class="hover:text-accent">Sobre</a>
