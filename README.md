@@ -1,8 +1,7 @@
 # Repositorio-teste
 
 Site principal **/HALLAN** (Digital Experience Designer) feito com **Astro** e **Tailwind CSS v4**, a partir dos wireframes
-de desktop e mobile. A **Cidade Isométrica 3D** (Three.js) fica dentro do card "Nexus" e continua sendo um arquivo
-estático, fora do Astro. Os 3 sites de demonstração (pizzaria, cafeteria, restaurante) são os projetos da cidade.
+de desktop e mobile. Os 3 sites de demonstração (pizzaria, cafeteria, restaurante) são os projetos da cidade.
 
 ## Como rodar
 
